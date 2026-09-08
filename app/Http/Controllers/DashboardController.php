@@ -121,13 +121,17 @@ class DashboardController extends Controller
         $recentClaims = $claimsQuery->orderBy('incident_date', 'desc')->take(3)->get();
 
         // 7. Monthly Cashflow Data for Chart
-        $monthlyIncomes = (clone $incomeQuery)->selectRaw("strftime('%Y-%m', invoice_date) as month, SUM(gross_amount) as total")
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        $dateIncomeFormat = $driver === 'sqlite' ? "strftime('%Y-%m', invoice_date)" : "DATE_FORMAT(invoice_date, '%Y-%m')";
+        $dateExpenseFormat = $driver === 'sqlite' ? "strftime('%Y-%m', transaction_date)" : "DATE_FORMAT(transaction_date, '%Y-%m')";
+
+        $monthlyIncomes = (clone $incomeQuery)->selectRaw("{$dateIncomeFormat} as month, SUM(gross_amount) as total")
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->pluck('total', 'month')
             ->toArray();
 
-        $monthlyExpenses = (clone $expenseQuery)->selectRaw("strftime('%Y-%m', transaction_date) as month, SUM(amount) as total")
+        $monthlyExpenses = (clone $expenseQuery)->selectRaw("{$dateExpenseFormat} as month, SUM(amount) as total")
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->pluck('total', 'month')
@@ -158,7 +162,7 @@ class DashboardController extends Controller
 
         // 9. Maintenance Cost Monthly Trend
         $maintMonthly = (clone $expenseQuery)->whereIn('category', ['service_berkala', 'ban', 'accu', 'sparepart', 'motor_pengganti'])
-            ->selectRaw("strftime('%Y-%m', transaction_date) as month, SUM(amount) as total")
+            ->selectRaw("{$dateExpenseFormat} as month, SUM(amount) as total")
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->pluck('total', 'month')
