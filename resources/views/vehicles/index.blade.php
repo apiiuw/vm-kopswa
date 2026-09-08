@@ -149,6 +149,7 @@
                         <th class="px-5 py-3.5">Plat Nomor</th>
                         <th class="px-5 py-3.5">Kategori & Merk</th>
                         <th class="px-5 py-3.5">Model & Tipe</th>
+                        <th class="px-5 py-3.5">Pengguna Motor</th>
                         <th class="px-5 py-3.5">Klien & Penempatan</th>
                         <th class="px-5 py-3.5">Jatuh Tempo Pajak</th>
                         <th class="px-5 py-3.5">Tarif Sewa</th>
@@ -181,6 +182,17 @@
                             <td class="px-5 py-4">
                                 <span class="font-black text-black block">{{ $v->model_name }}</span>
                                 <span class="text-[10px] text-slate-400">{{ $v->type_name ?: 'Standar' }} • Th. {{ $v->year }}</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-[#015471]/10 text-[#015471] flex items-center justify-center font-black text-[11px] shrink-0">
+                                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-slate-900 block text-xs">{{ $v->user_holder ?: 'Belum Ditentukan' }}</span>
+                                        <span class="text-[10px] text-slate-400 font-medium">Pemakai / Driver Lapangan</span>
+                                    </div>
+                                </div>
                             </td>
                             <td class="px-5 py-4">
                                 <span class="font-bold text-black block">{{ $v->vendor ? $v->vendor->name : '-' }}</span>

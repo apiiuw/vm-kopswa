@@ -273,10 +273,18 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Pemegang Unit -->
+                            <!-- Pemegang / Pengguna Motor -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Pemegang Unit (Pemakai Lapangan)</label>
-                                <input type="text" name="user_holder" value="{{ old('user_holder', $vehicle->user_holder) }}" placeholder="Contoh: Asisten Afdeling 1" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                    <span>Nama Pengguna / Pemakai Motor</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">Person In Charge / Driver</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    </div>
+                                    <input type="text" name="user_holder" value="{{ old('user_holder', $vehicle->user_holder) }}" placeholder="Contoh: Bpk. Bambang / Asisten Afdeling 1" class="w-full text-xs font-semibold pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900">
+                                </div>
                             </div>
 
                             <!-- Status Operasional -->
