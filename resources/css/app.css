@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    
+    --color-primary: #FF7A3D;
+    --color-primary-hover: #E86526;
+    --color-primary-light: #FFF0E9;
+    --color-primary-dark: #C94E13;
+
+    --color-secondary: #015471;
+    --color-secondary-hover: #01435B;
+    --color-secondary-light: #EBF4F7;
+    --color-secondary-dark: #003649;
+    
+    --color-bg-main: #FFFFFF;
+    --color-text-main: #000000;
+}
+
+body {
+    background-color: #FFFFFF;
+    color: #000000;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
