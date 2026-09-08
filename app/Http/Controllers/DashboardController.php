@@ -147,7 +147,31 @@ class DashboardController extends Controller
             $chartExpenseData[] = (float)($monthlyExpenses[$m] ?? 0);
         }
 
-        // 8. Recent Client Requests
+        // 8. Location Vehicle Distribution
+        $locations = \App\Models\Location::withCount(['vehicles' => function($q) use ($activeVendorId) {
+            if ($activeVendorId) {
+                $q->where('vendor_id', $activeVendorId);
+            }
+        }])->get();
+        $locationLabels = $locations->pluck('name')->toArray();
+        $locationCounts = $locations->pluck('vehicles_count')->toArray();
+
+        // 9. Maintenance Cost Monthly Trend
+        $maintMonthly = (clone $expenseQuery)->whereIn('category', ['service_berkala', 'ban', 'accu', 'sparepart', 'motor_pengganti'])
+            ->selectRaw("strftime('%Y-%m', transaction_date) as month, SUM(amount) as total")
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->pluck('total', 'month')
+            ->toArray();
+        
+        $maintTrendLabels = [];
+        $maintTrendData = [];
+        foreach ($allMonths as $m) {
+            $maintTrendLabels[] = Carbon::createFromFormat('Y-m', $m)->translatedFormat('M Y');
+            $maintTrendData[] = (float)($maintMonthly[$m] ?? 0);
+        }
+
+        // 10. Recent Client Requests
         $clientRequestsQuery = \App\Models\ClientRequest::with(['vehicle', 'vendor', 'user']);
         if ($activeVendorId) {
             $clientRequestsQuery->where('vendor_id', $activeVendorId);
@@ -179,6 +203,10 @@ class DashboardController extends Controller
             'chartLabels',
             'chartIncomeData',
             'chartExpenseData',
+            'locationLabels',
+            'locationCounts',
+            'maintTrendLabels',
+            'maintTrendData',
             'recentClientRequests',
             'pendingClientRequestsCount'
         ));

@@ -57,26 +57,49 @@
         .text-secondary {
             color: #015471 !important;
         }
-        .bg-secondary {
-            background-color: #015471 !important;
-        }
         .text-primary-color {
             color: #FF7A3D !important;
         }
+
+        /* Custom Floating Sleek Scrollbar for Sidebar */
+        aside nav {
+            scrollbar-width: thin !important;
+            scrollbar-color: rgba(255, 122, 61, 0.4) transparent !important;
+            padding-right: 4px;
+        }
+        aside nav::-webkit-scrollbar {
+            width: 3px !important;
+        }
+        aside nav::-webkit-scrollbar-track {
+            background: transparent !important;
+            margin: 6px 0;
+        }
+        aside nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-radius: 9999px !important;
+        }
+        aside nav:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 122, 61, 0.7) !important;
+        }
+        aside nav::-webkit-scrollbar-thumb:hover {
+            background: #FF7A3D !important;
+        }
+
         /* Custom horizontal scrollbar */
         .scrollbar-thin::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
+            width: 6px;
         }
         .scrollbar-thin::-webkit-scrollbar-track {
             background: #f1f5f9;
             border-radius: 9999px;
         }
         .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #015471;
+            background: #cbd5e1;
             border-radius: 9999px;
         }
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: #FF7A3D;
+            background: #015471;
         }
     </style>
     @stack('styles')
@@ -132,7 +155,7 @@
         </div>
 
         <!-- Navigation Links -->
-        <nav class="flex-1 overflow-y-auto px-3 py-2 space-y-1 text-sm font-medium">
+        <nav class="flex-1 overflow-y-auto px-3 py-2 space-y-1 text-sm font-medium sidebar-scroll">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                 <span>Dashboard</span>

@@ -7,7 +7,8 @@
 <div class="space-y-6 max-w-7xl mx-auto bg-white text-black">
 
     <!-- Top Notice / Project Status Banner -->
-    <div class="bg-gradient-to-r from-[#015471] via-[#01435b] to-[#002f40] rounded-2xl p-6 text-white shadow-md relative overflow-hidden border border-[#015471]">
+    <div class="bg-gradient-to-r from-[#015471] via-[#01435b] to-[#002f40] rounded-3xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden border border-[#015471]">
+        <div class="absolute -right-8 -bottom-8 w-60 h-60 bg-[#FF7A3D]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF7A3D]/20 text-[#FF7A3D] text-xs font-bold border border-[#FF7A3D]/30 mb-2">
@@ -25,7 +26,7 @@
                         Monitoring Keseluruhan Armada Sewa PT SUP
                     @endif
                 </h2>
-                <p class="text-slate-200 text-sm mt-1 max-w-2xl">
+                <p class="text-slate-200 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
                     @if($currentVendor)
                         Klien Mitra: <strong class="text-white">{{ $currentVendor->name }}</strong>
                         @if($currentVendor->contract_number)
@@ -39,7 +40,7 @@
                     @endif
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5 shrink-0">
                 <a href="{{ route('exports.budgetPdf') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white font-bold text-xs transition shadow-sm">
                     <i data-lucide="printer" class="w-4 h-4"></i> Cetak Rekap
                 </a>
@@ -124,16 +125,16 @@
         </div>
     </div>
 
-    <!-- Chart & Budget Ceiling Breakdown -->
+    <!-- Section 1: Visual Multi-Chart Hub (Cashflow + Budget Plafon) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Cashflow Chart -->
         <div class="lg:col-span-2 bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 class="font-bold text-black text-base">Tren Arus Kas Proyek (Pendapatan vs Pengeluaran)</h3>
-                    <p class="text-xs text-slate-600">Penerimaan sewa bulanan vs pengeluaran operasional perawatan kendaraan</p>
+                    <p class="text-xs text-slate-600">Penerimaan sewa bulanan vs pengeluaran operasional perawatan armada</p>
                 </div>
-                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#e6f0f3] text-[#015471]">Buku Besar Riil</span>
+                <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#e6f0f3] text-[#015471] w-max">Buku Kas Aktual</span>
             </div>
             <div class="h-72">
                 <canvas id="cashflowChart"></canvas>
@@ -145,7 +146,7 @@
             <div>
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-black text-base">Realisasi Pos Anggaran</h3>
-                    <a href="{{ route('financial.index') }}" class="text-xs text-[#FF7A3D] font-bold hover:underline">Detail</a>
+                    <a href="{{ route('financial.index') }}" class="text-xs text-[#FF7A3D] font-bold hover:underline">Detail Plafon &rarr;</a>
                 </div>
 
                 <div class="space-y-3.5 text-xs">
@@ -163,47 +164,44 @@
                     <!-- Ban -->
                     <div>
                         <div class="flex justify-between font-medium text-black mb-1">
-                            <span>Penggantian Ban (Depan/Belakang)</span>
-                            <span class="font-bold text-[#015471]">Rp {{ number_format($expensesByCategory['ban'], 0, ',', '.') }}</span>
+                            <span>Penggantian Ban Luar/Dalam</span>
+                            <span class="font-bold text-[#FF7A3D]">Rp {{ number_format($expensesByCategory['ban'], 0, ',', '.') }}</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-[#FF7A3D] h-2 rounded-full" style="width: {{ $budgetByCategory['ban'] > 0 ? min(100, ($expensesByCategory['ban'] / $budgetByCategory['ban']) * 100) : 0 }}%"></div>
                         </div>
                     </div>
 
+                    <!-- Accu -->
+                    <div>
+                        <div class="flex justify-between font-medium text-black mb-1">
+                            <span>Penggantian Accu / Aki</span>
+                            <span class="font-bold text-[#015471]">Rp {{ number_format($expensesByCategory['accu'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="bg-[#015471] h-2 rounded-full" style="width: {{ $budgetByCategory['accu'] > 0 ? min(100, ($expensesByCategory['accu'] / $budgetByCategory['accu']) * 100) : 0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sparepart -->
+                    <div>
+                        <div class="flex justify-between font-medium text-black mb-1">
+                            <span>Suku Cadang / Fast Moving</span>
+                            <span class="font-bold text-black">Rp {{ number_format($expensesByCategory['sparepart'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="bg-[#FF7A3D] h-2 rounded-full" style="width: {{ $budgetByCategory['sparepart'] > 0 ? min(100, ($expensesByCategory['sparepart'] / $budgetByCategory['sparepart']) * 100) : 0 }}%"></div>
+                        </div>
+                    </div>
+
                     <!-- Motor Pengganti -->
                     <div>
                         <div class="flex justify-between font-medium text-black mb-1">
-                            <span>Biaya Sewa Motor Pengganti</span>
-                            <span class="font-bold text-[#015471]">Rp {{ number_format($expensesByCategory['motor_pengganti'], 0, ',', '.') }}</span>
+                            <span>Biaya Sewa Unit Pengganti</span>
+                            <span class="font-bold text-[#FF7A3D]">Rp {{ number_format($expensesByCategory['motor_pengganti'], 0, ',', '.') }}</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                             <div class="bg-[#015471] h-2 rounded-full" style="width: {{ $budgetByCategory['motor_pengganti'] > 0 ? min(100, ($expensesByCategory['motor_pengganti'] / $budgetByCategory['motor_pengganti']) * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Legalitas / Blokir Polda -->
-                    <div>
-                        <div class="flex justify-between font-medium text-black mb-1">
-                            <span>Legalitas Kepolisian / Blokir STNK</span>
-                            <span class="font-bold text-[#015471]">Rp {{ number_format($expensesByCategory['legalitas_kepolisian'], 0, ',', '.') }}</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <div class="bg-[#FF7A3D] h-2 rounded-full" style="width: {{ $budgetByCategory['legalitas_kepolisian'] > 0 ? min(100, ($expensesByCategory['legalitas_kepolisian'] / $budgetByCategory['legalitas_kepolisian']) * 100) : 0 }}%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Asuransi & STNK -->
-                    <div>
-                        <div class="flex justify-between font-medium text-black mb-1">
-                            <span>Pajak STNK & Asuransi Kendaraan</span>
-                            <span class="font-bold text-[#015471]">Rp {{ number_format($expensesByCategory['pajak_stnk'] + $expensesByCategory['asuransi'], 0, ',', '.') }}</span>
-                        </div>
-                        @php
-                            $totalStnkAsuransiBudget = $budgetByCategory['pajak_stnk'] + $budgetByCategory['asuransi'];
-                        @endphp
-                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <div class="bg-[#015471] h-2 rounded-full" style="width: {{ $totalStnkAsuransiBudget > 0 ? min(100, (($expensesByCategory['pajak_stnk'] + $expensesByCategory['asuransi']) / $totalStnkAsuransiBudget) * 100) : 0 }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -220,7 +218,72 @@
         </div>
     </div>
 
-    <!-- Section: Permohonan & Tiket Masuk dari Klien Mitra (Realtime Client Requests) -->
+    <!-- Section 2: Visual Distribution Analytics (Status Donut + Biaya Radar/Polar + Lokasi Horizontal Bar) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Chart A: Komposisi Status Armada (Doughnut) -->
+        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+            <div class="mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-black text-sm">Status Armada Unit</h3>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Persentase kesiapan unit di lapangan</p>
+            </div>
+            <div class="h-56 relative">
+                <canvas id="statusDonutChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-slate-100 font-semibold">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Aktif: {{ $activeCount }}</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Servis: {{ $maintenanceCount }}</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span> Pengganti: {{ $replacedCount }}</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span> Hilang: {{ $lostCount }}</span>
+            </div>
+        </div>
+
+        <!-- Chart B: Breakdown Biaya Pemeliharaan (Polar/Pie) -->
+        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+            <div class="mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-black text-sm">Komposisi Pengeluaran Operasional</h3>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Distribusi biaya servis, ban, aki, dan cadangan</p>
+            </div>
+            <div class="h-56 relative">
+                <canvas id="expenseCategoryChart"></canvas>
+            </div>
+            <div class="text-center pt-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
+                Total Realisasi Biaya: <strong class="text-slate-900">Rp {{ number_format($totalExpense, 0, ',', '.') }}</strong>
+            </div>
+        </div>
+
+        <!-- Chart C: Distribusi Unit per Lokasi Kebun / Pos (Horizontal Bar) -->
+        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+            <div class="mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-black text-sm">Sebaran Unit per Lokasi</h3>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Jumlah sebaran motor pada setiap afdeling/pos</p>
+            </div>
+            <div class="h-56 relative">
+                <canvas id="locationBarChart"></canvas>
+            </div>
+            <div class="text-center pt-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
+                Total Lokasi Aktif: <strong class="text-[#015471]">{{ count($locationLabels) }} Lokasi</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section 3: Permohonan & Tiket Masuk dari Klien Mitra (Realtime Client Requests) -->
     <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div class="flex items-center gap-3">
@@ -302,7 +365,7 @@
         </div>
     </div>
 
-    <!-- Alert STNK Expiring & Recent Maintenances -->
+    <!-- Section 4: Alert STNK Expiring & Recent Maintenances -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Alert STNK / Asuransi Expiring Soon -->
         <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
@@ -389,6 +452,7 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // 1. Cashflow Bar Chart
         const ctx = document.getElementById('cashflowChart').getContext('2d');
         const labels = {!! json_encode($chartLabels) !!};
         const incomeData = {!! json_encode($chartIncomeData) !!};
@@ -451,6 +515,108 @@
                                 return 'Rp ' + (value / 1000000).toFixed(0) + ' Jt';
                             }
                         }
+                    }
+                }
+            }
+        });
+
+        // 2. Status Armada Doughnut Chart
+        const statusCtx = document.getElementById('statusDonutChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Aktif', 'Servis', 'Pengganti', 'Hilang'],
+                datasets: [{
+                    data: [{{ $activeCount }}, {{ $maintenanceCount }}, {{ $replacedCount }}, {{ $lostCount }}],
+                    backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '68%'
+            }
+        });
+
+        // 3. Expense Composition Polar / Pie Chart
+        const expCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+        new Chart(expCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Servis Berkala', 'Ganti Ban', 'Ganti Accu', 'Sparepart', 'Motor Pengganti'],
+                datasets: [{
+                    data: [
+                        {{ $expensesByCategory['service_berkala'] }},
+                        {{ $expensesByCategory['ban'] }},
+                        {{ $expensesByCategory['accu'] }},
+                        {{ $expensesByCategory['sparepart'] }},
+                        {{ $expensesByCategory['motor_pengganti'] }}
+                    ],
+                    backgroundColor: ['#015471', '#FF7A3D', '#0284c7', '#334155', '#d97706'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            font: { family: 'Plus Jakarta Sans', size: 9 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Location Distribution Horizontal Bar Chart
+        const locCtx = document.getElementById('locationBarChart').getContext('2d');
+        const locLabels = {!! json_encode($locationLabels) !!};
+        const locCounts = {!! json_encode($locationCounts) !!};
+
+        new Chart(locCtx, {
+            type: 'bar',
+            data: {
+                labels: locLabels.length > 0 ? locLabels : ['Kantor Utama'],
+                datasets: [{
+                    label: 'Jumlah Unit',
+                    data: locCounts.length > 0 ? locCounts : [{{ $totalVehicles }}],
+                    backgroundColor: '#015471',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#f1f5f9' },
+                        ticks: { stepSize: 5, font: { size: 9 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 9, weight: '600' } }
                     }
                 }
             }
