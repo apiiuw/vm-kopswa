@@ -60,15 +60,15 @@
                 <!-- Center: Navigation Menus -->
                 <nav class="hidden md:flex items-center space-x-1 font-semibold text-xs">
                     <a href="{{ route('client.dashboard') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('client.dashboard') ? 'bg-white/15 text-white font-bold' : 'text-cyan-100 hover:text-white hover:bg-white/10' }}">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#FF7A3D]"></i>
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 {{ request()->routeIs('client.dashboard') ? 'text-white' : 'text-[#FF7A3D]' }}"></i>
                         <span>Dashboard</span>
                     </a>
                     <a href="{{ route('client.requests.index') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('client.requests.*') ? 'bg-white/15 text-white font-bold' : 'text-cyan-100 hover:text-white hover:bg-white/10' }}">
-                        <i data-lucide="activity" class="w-4 h-4 text-[#FF7A3D]"></i>
+                        <i data-lucide="activity" class="w-4 h-4 {{ request()->routeIs('client.requests.*') ? 'text-white' : 'text-[#FF7A3D]' }}"></i>
                         <span>Status Pengajuan Realtime</span>
                     </a>
                     <a href="{{ route('client.vehicles.index') }}" class="px-3.5 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('client.vehicles.*') ? 'bg-white/15 text-white font-bold' : 'text-cyan-100 hover:text-white hover:bg-white/10' }}">
-                        <i data-lucide="bike" class="w-4 h-4 text-[#FF7A3D]"></i>
+                        <i data-lucide="bike" class="w-4 h-4 {{ request()->routeIs('client.vehicles.*') ? 'text-white' : 'text-[#FF7A3D]' }}"></i>
                         <span>Daftar Armada Motor</span>
                     </a>
                 </nav>
@@ -103,13 +103,13 @@
             <!-- Mobile Navigation Bar Under Header -->
             <div class="md:hidden flex items-center justify-around py-2.5 border-t border-white/10 text-xs font-bold">
                 <a href="{{ route('client.dashboard') }}" class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg {{ request()->routeIs('client.dashboard') ? 'text-white bg-white/15' : 'text-cyan-100' }}">
-                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-[#FF7A3D]"></i> Dashboard
+                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 {{ request()->routeIs('client.dashboard') ? 'text-white' : 'text-[#FF7A3D]' }}"></i> Dashboard
                 </a>
                 <a href="{{ route('client.requests.index') }}" class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg {{ request()->routeIs('client.requests.*') ? 'text-white bg-white/15' : 'text-cyan-100' }}">
-                    <i data-lucide="activity" class="w-3.5 h-3.5 text-[#FF7A3D]"></i> Pengajuan
+                    <i data-lucide="activity" class="w-3.5 h-3.5 {{ request()->routeIs('client.requests.*') ? 'text-white' : 'text-[#FF7A3D]' }}"></i> Pengajuan
                 </a>
                 <a href="{{ route('client.vehicles.index') }}" class="flex items-center gap-1.5 py-1 px-2.5 rounded-lg {{ request()->routeIs('client.vehicles.*') ? 'text-white bg-white/15' : 'text-cyan-100' }}">
-                    <i data-lucide="bike" class="w-3.5 h-3.5 text-[#FF7A3D]"></i> Armada
+                    <i data-lucide="bike" class="w-3.5 h-3.5 {{ request()->routeIs('client.vehicles.*') ? 'text-white' : 'text-[#FF7A3D]' }}"></i> Armada
                 </a>
             </div>
         </div>

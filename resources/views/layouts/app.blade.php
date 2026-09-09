@@ -172,10 +172,10 @@
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Layanan & Permohonan Klien</div>
 
             <a href="{{ route('admin.client-requests.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.client-requests.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="inbox" class="w-4 h-4 text-[#FF7A3D]"></i>
+                <i data-lucide="inbox" class="w-4 h-4"></i>
                 <span class="flex-1">Tiket & Pengajuan Klien</span>
                 @if(!empty($globalPendingRequestsCount) && $globalPendingRequestsCount > 0)
-                    <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-[#FF7A3D] text-white animate-pulse shadow-xs">
+                    <span class="px-2 py-0.5 text-[10px] font-black rounded-full {{ request()->routeIs('admin.client-requests.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#FF7A3D] text-white' }} animate-pulse shadow-xs">
                         {{ $globalPendingRequestsCount }}
                     </span>
                 @endif
