@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Carbon\Carbon::setLocale('id');
+
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             $allVendors = \App\Models\Vendor::orderBy('name', 'asc')->get();
             $activeVendorId = session('active_vendor_id');

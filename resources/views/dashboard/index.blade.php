@@ -376,7 +376,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-black text-sm">Peringatan Jatuh Tempo Dokumen & Pajak</h3>
-                        <p class="text-[11px] text-slate-500">STNK, Pajak Tahunan, dan Asuransi yang mendekati batas jatuh tempo</p>
+                        <p class="text-[11px] text-slate-500">STNK, Pajak Tahunan, dan Asuransi yang lewat tempo atau mendekati batas jatuh tempo</p>
                     </div>
                 </div>
                 <a href="{{ route('documents.index', ['filter' => 'expiring_soon']) }}" class="text-xs text-[#FF7A3D] font-bold hover:underline">Semua</a>
@@ -384,9 +384,12 @@
 
             <div class="divide-y divide-slate-100">
                 @forelse($expiringDocs as $doc)
+                    @php
+                        $diffDays = $doc->expiry_date ? (int) round(now()->startOfDay()->diffInDays($doc->expiry_date->startOfDay(), false)) : null;
+                    @endphp
                     <div class="py-3 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-[#e6f0f3] text-[#015471] flex items-center justify-center text-xs font-bold font-mono">
+                            <div class="w-9 h-9 rounded-lg {{ $diffDays !== null && $diffDays < 0 ? 'bg-rose-100 text-rose-700' : 'bg-[#e6f0f3] text-[#015471]' }} flex items-center justify-center text-xs font-bold font-mono">
                                 {{ substr($doc->vehicle->plate_number, 0, 7) }}
                             </div>
                             <div>
@@ -395,14 +398,31 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#FF7A3D]/15 text-[#FF7A3D]">
-                                {{ $doc->expiry_date ? $doc->expiry_date->format('d M Y') : '-' }}
-                            </span>
-                            <p class="text-[10px] text-slate-400 mt-0.5">{{ $doc->expiry_date ? $doc->expiry_date->diffForHumans() : '' }}</p>
+                            @if($diffDays !== null && $diffDays < 0)
+                                <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                                    {{ $doc->expiry_date->translatedFormat('d M Y') }}
+                                </span>
+                                <p class="text-[10px] text-rose-600 font-semibold mt-0.5">Lewat tempo {{ abs($diffDays) }} hari</p>
+                            @elseif($diffDays !== null && $diffDays === 0)
+                                <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-500 text-white">
+                                    Hari Ini
+                                </span>
+                                <p class="text-[10px] text-rose-600 font-semibold mt-0.5">Jatuh tempo hari ini</p>
+                            @elseif($diffDays !== null && $diffDays <= 30)
+                                <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#FF7A3D]/15 text-[#FF7A3D] border border-[#FF7A3D]/30">
+                                    {{ $doc->expiry_date->translatedFormat('d M Y') }}
+                                </span>
+                                <p class="text-[10px] text-[#FF7A3D] font-semibold mt-0.5">Sisa {{ $diffDays }} hari lagi</p>
+                            @else
+                                <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                    {{ $doc->expiry_date ? $doc->expiry_date->translatedFormat('d M Y') : '-' }}
+                                </span>
+                                <p class="text-[10px] text-slate-500 mt-0.5">{{ $diffDays !== null ? $diffDays . ' hari lagi' : '' }}</p>
+                            @endif
                         </div>
                     </div>
                 @empty
-                    <p class="text-xs text-slate-400 py-6 text-center">Tidak ada dokumen yang mendekati jatuh tempo dalam 60 hari ke depan.</p>
+                    <p class="text-xs text-slate-400 py-6 text-center">Tidak ada dokumen yang mendekati jatuh tempo atau lewat tempo.</p>
                 @endforelse
             </div>
         </div>
