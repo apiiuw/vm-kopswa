@@ -95,7 +95,7 @@
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-[#015471] uppercase tracking-wider">Plafon Anggaran Operasional</span>
                 <div class="w-9 h-9 rounded-xl bg-[#e6f0f3] text-[#015471] flex items-center justify-center">
-                    <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-baseline gap-1">
