@@ -389,12 +389,12 @@
                     @endphp
                     <div class="py-3 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg {{ $diffDays !== null && $diffDays < 0 ? 'bg-rose-100 text-rose-700' : 'bg-[#e6f0f3] text-[#015471]' }} flex items-center justify-center text-xs font-bold font-mono">
-                                {{ substr($doc->vehicle->plate_number, 0, 7) }}
+                            <div class="w-8 h-8 rounded-lg {{ $diffDays !== null && $diffDays < 0 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-[#015471]/10 text-[#015471]' }} flex items-center justify-center shrink-0">
+                                <i data-lucide="{{ in_array($doc->document_type, ['asuransi', 'klaim_asuransi']) ? 'shield-alert' : 'file-text' }}" class="w-4 h-4"></i>
                             </div>
                             <div>
-                                <p class="text-xs font-bold text-black">{{ $doc->vehicle->plate_number }} - {{ $doc->type_label }}</p>
-                                <p class="text-[11px] text-slate-500">{{ $doc->vehicle->location ? $doc->vehicle->location->name : 'Unit Operasional' }} | No: {{ $doc->document_number ?: '-' }}</p>
+                                <p class="text-xs font-bold text-black">{{ $doc->vehicle ? $doc->vehicle->plate_number : '-' }} <span class="font-normal text-slate-600">• {{ $doc->type_label }}</span></p>
+                                <p class="text-[11px] text-slate-500">{{ $doc->vehicle && $doc->vehicle->location ? $doc->vehicle->location->name : 'Unit Operasional' }} | No: {{ $doc->document_number ?: '-' }}</p>
                             </div>
                         </div>
                         <div class="text-right">
