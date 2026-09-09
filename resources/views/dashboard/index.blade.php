@@ -347,9 +347,10 @@
                             <td class="px-5 py-3 text-slate-500 font-medium">
                                 {{ $cr->created_at->diffForHumans() }}
                             </td>
-                            <td class="px-5 py-3 text-right">
-                                <a href="{{ route('admin.client-requests.show', $cr) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#015471] text-white hover:bg-[#013e54] text-[11px] font-bold transition">
+                            <td class="px-5 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.client-requests.show', $cr) }}" class="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#015471] hover:bg-[#FF7A3D] text-white text-xs font-bold transition-all duration-150 shadow-2xs hover:shadow-sm hover:-translate-y-0.5">
                                     <span>Tindak Lanjut</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
                                 </a>
                             </td>
                         </tr>

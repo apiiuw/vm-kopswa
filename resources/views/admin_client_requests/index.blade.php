@@ -179,10 +179,10 @@
                                 {{ $req->created_at->format('d M Y, H:i') }}
                             </td>
 
-                            <td class="px-6 py-4 text-right">
-                                <a href="{{ route('admin.client-requests.show', $req) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#015471] text-white hover:bg-[#013e54] text-xs font-bold transition shadow-2xs">
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.client-requests.show', $req) }}" class="group inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#015471] hover:bg-[#FF7A3D] text-white text-xs font-bold transition-all duration-150 shadow-2xs hover:shadow-sm hover:-translate-y-0.5">
                                     <span>Tindak Lanjut</span>
-                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
                                 </a>
                             </td>
                         </tr>
