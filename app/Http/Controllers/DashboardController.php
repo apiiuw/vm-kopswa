@@ -175,7 +175,60 @@ class DashboardController extends Controller
             $maintTrendData[] = (float)($maintMonthly[$m] ?? 0);
         }
 
-        // 10. Recent Client Requests
+        // 10. Comparative Absorption Analytics (Budget vs Actual per Category)
+        $comparisonCategories = [
+            'service_berkala' => 'Service & Pelumas',
+            'ban' => 'Penggantian Ban',
+            'accu' => 'Penggantian Accu',
+            'sparepart' => 'Suku Cadang',
+            'motor_pengganti' => 'Unit Pengganti',
+            'pajak_stnk' => 'Pajak STNK',
+            'asuransi' => 'Asuransi (TLO)',
+            'overhead_admin' => 'Admin & Operasional'
+        ];
+        $compareLabels = [];
+        $compareBudgetData = [];
+        $compareExpenseData = [];
+        $compareAbsorptionPercent = [];
+
+        foreach ($comparisonCategories as $key => $label) {
+            $b = (float)($budgetByCategory[$key] ?? 0);
+            $e = (float)($expensesByCategory[$key] ?? 0);
+            $compareLabels[] = $label;
+            $compareBudgetData[] = $b;
+            $compareExpenseData[] = $e;
+            $compareAbsorptionPercent[] = $b > 0 ? round(($e / $b) * 100, 1) : 0;
+        }
+
+        // 11. Request Status Breakdown
+        $requestStatusCounts = [
+            'menunggu_review' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'menunggu_review')->count(),
+            'diproses' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'diproses')->count(),
+            'unit_dikirim' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'unit_dikirim')->count(),
+            'selesai' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'selesai')->count(),
+            'ditolak' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'ditolak')->count(),
+        ];
+
+        // 12. Top 5 Costliest Maintenance Vehicles
+        $topVehicleCosts = MaintenanceRecord::selectRaw('vehicle_id, SUM(cost) as total_spent, COUNT(id) as total_records')
+            ->whereNotNull('vehicle_id')
+            ->when($activeVendorId, function($q) use ($activeVendorId) {
+                $q->whereHas('vehicle', fn($v) => $v->where('vendor_id', $activeVendorId));
+            })
+            ->groupBy('vehicle_id')
+            ->orderByDesc('total_spent')
+            ->take(5)
+            ->with(['vehicle.location'])
+            ->get();
+
+        $topVehicleLabels = [];
+        $topVehicleData = [];
+        foreach ($topVehicleCosts as $tvc) {
+            $topVehicleLabels[] = ($tvc->vehicle ? $tvc->vehicle->plate_number : 'ID #' . $tvc->vehicle_id) . ' (' . ($tvc->vehicle ? $tvc->vehicle->model_name : '') . ')';
+            $topVehicleData[] = (float)$tvc->total_spent;
+        }
+
+        // 13. Recent Client Requests
         $clientRequestsQuery = \App\Models\ClientRequest::with(['vehicle', 'vendor', 'user']);
         if ($activeVendorId) {
             $clientRequestsQuery->where('vendor_id', $activeVendorId);
@@ -211,6 +264,14 @@ class DashboardController extends Controller
             'locationCounts',
             'maintTrendLabels',
             'maintTrendData',
+            'compareLabels',
+            'compareBudgetData',
+            'compareExpenseData',
+            'compareAbsorptionPercent',
+            'requestStatusCounts',
+            'topVehicleCosts',
+            'topVehicleLabels',
+            'topVehicleData',
             'recentClientRequests',
             'pendingClientRequestsCount'
         ));
