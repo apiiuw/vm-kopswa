@@ -41,17 +41,41 @@
         </div>
     </div>
 
-    <!-- Tab Selector -->
-    <div class="border-b-2 border-slate-100">
-        <nav class="flex space-x-6 text-xs font-bold" aria-label="Tabs">
-            <a href="{{ route('financial.index', ['tab' => 'overview']) }}" class="py-3 px-1 border-b-2 {{ $tab === 'overview' ? 'border-[#FF7A3D] text-[#FF7A3D]' : 'border-transparent text-slate-600 hover:text-black hover:border-slate-300' }}">
-                1. Plafon Anggaran vs Realisasi (Memo Acuan)
+    <!-- Modern Segmented Tab Selector -->
+    <div class="bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <nav class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs font-bold" aria-label="Tabs">
+            <!-- Tab 1: Plafon Anggaran -->
+            <a href="{{ route('financial.index', ['tab' => 'overview']) }}" 
+               class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl transition-all duration-200 {{ $tab === 'overview' ? 'bg-[#015471] text-white shadow-md shadow-[#015471]/20 font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/80' }}">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center {{ $tab === 'overview' ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-[#015471]' }}">
+                    <i data-lucide="pie-chart" class="w-3.5 h-3.5 {{ $tab === 'overview' ? 'text-[#FF7A3D]' : '' }}"></i>
+                </div>
+                <span>1. Plafon Anggaran vs Realisasi</span>
+                <span class="hidden md:inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider {{ $tab === 'overview' ? 'bg-[#FF7A3D] text-white' : 'bg-slate-200 text-slate-500' }}">Memo</span>
             </a>
-            <a href="{{ route('financial.index', ['tab' => 'incomes']) }}" class="py-3 px-1 border-b-2 {{ $tab === 'incomes' ? 'border-[#FF7A3D] text-[#FF7A3D]' : 'border-transparent text-slate-600 hover:text-black hover:border-slate-300' }}">
-                2. Tagihan Sewa Bulanan (Incomes)
+
+            <!-- Tab 2: Tagihan Sewa Bulanan (Incomes) -->
+            <a href="{{ route('financial.index', ['tab' => 'incomes']) }}" 
+               class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl transition-all duration-200 {{ $tab === 'incomes' ? 'bg-[#015471] text-white shadow-md shadow-[#015471]/20 font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/80' }}">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center {{ $tab === 'incomes' ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-emerald-700]' }}">
+                    <i data-lucide="arrow-down-left" class="w-3.5 h-3.5 {{ $tab === 'incomes' ? 'text-[#FF7A3D]' : 'text-emerald-600' }}"></i>
+                </div>
+                <span>2. Tagihan Sewa Bulanan</span>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black {{ $tab === 'incomes' ? 'bg-[#FF7A3D] text-white' : 'bg-slate-200 text-slate-700' }}">
+                    {{ $incomes->total() }}
+                </span>
             </a>
-            <a href="{{ route('financial.index', ['tab' => 'expenses']) }}" class="py-3 px-1 border-b-2 {{ $tab === 'expenses' ? 'border-[#FF7A3D] text-[#FF7A3D]' : 'border-transparent text-slate-600 hover:text-black hover:border-slate-300' }}">
-                3. Buku Kas Pengeluaran (Expenses)
+
+            <!-- Tab 3: Buku Kas Pengeluaran (Expenses) -->
+            <a href="{{ route('financial.index', ['tab' => 'expenses']) }}" 
+               class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl transition-all duration-200 {{ $tab === 'expenses' ? 'bg-[#015471] text-white shadow-md shadow-[#015471]/20 font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/80' }}">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center {{ $tab === 'expenses' ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-rose-600' }}">
+                    <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 {{ $tab === 'expenses' ? 'text-[#FF7A3D]' : 'text-rose-600' }}"></i>
+                </div>
+                <span>3. Buku Kas Pengeluaran</span>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black {{ $tab === 'expenses' ? 'bg-[#FF7A3D] text-white' : 'bg-slate-200 text-slate-700' }}">
+                    {{ $expenses->total() }}
+                </span>
             </a>
         </nav>
     </div>
