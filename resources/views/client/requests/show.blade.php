@@ -24,14 +24,8 @@
         } elseif (str_starts_with($name, 'Foto Keluhan #') || isset($f['complaint_index'])) {
             $complaintPhotos[] = $f;
         } else {
-            // Check if it's an image or document
-            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
-                // If it's an image without vehicle angle tag, assign to complaintPhotos as fallback
-                $complaintPhotos[] = $f;
-            } else {
-                $generalDocs[] = $f;
-            }
+            // General supporting documents or additional photos (from proof_files)
+            $generalDocs[] = $f;
         }
     }
 
@@ -615,19 +609,48 @@
                     </div>
 
                     @if(count($generalDocs) > 0)
-                        <div class="space-y-2 pt-2 border-t border-slate-100">
-                            <span class="text-xs font-black text-slate-800 block">Dokumen Pendukung Lainnya:</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="space-y-3 pt-4 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                    <i data-lucide="paperclip" class="w-4 h-4 text-[#FF7A3D]"></i>
+                                    Dokumen & Foto Bukti Lampiran Lainnya:
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                    {{ count($generalDocs) }} Berkas
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                 @foreach($generalDocs as $doc)
-                                    <a href="{{ asset('storage/' . $doc['path']) }}" target="_blank" class="p-3 rounded-xl border border-slate-200 hover:border-[#015471] bg-slate-50 hover:bg-white transition flex items-center gap-3 group">
-                                        <div class="w-9 h-9 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center shrink-0">
-                                            <i data-lucide="file-text" class="w-4 h-4"></i>
-                                        </div>
-                                        <div class="overflow-hidden flex-1 text-xs">
-                                            <span class="font-bold text-slate-900 group-hover:text-[#015471] block truncate">{{ $doc['name'] ?? 'Berkas Lampiran' }}</span>
-                                            <span class="text-[10px] text-slate-400">Buka berkas &rarr;</span>
-                                        </div>
-                                    </a>
+                                    @php
+                                        $docName = $doc['name'] ?? 'Berkas Lampiran';
+                                        $docPath = $doc['path'] ?? '';
+                                        $ext = strtolower(pathinfo($docName, PATHINFO_EXTENSION));
+                                        $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                    @endphp
+                                    @if($isImg)
+                                        <a href="{{ asset('storage/' . $docPath) }}" target="_blank" class="group relative rounded-2xl overflow-hidden border border-slate-200 hover:border-[#015471] bg-white transition shadow-2xs block">
+                                            <img src="{{ asset('storage/' . $docPath) }}" alt="{{ $docName }}" class="w-full h-32 object-cover group-hover:scale-105 transition duration-200">
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-2.5">
+                                                <span class="text-[10px] text-white font-bold truncate">{{ $docName }} &rarr;</span>
+                                            </div>
+                                            <div class="p-2 bg-white border-t border-slate-100">
+                                                <span class="text-[11px] font-bold text-slate-800 truncate block">{{ $docName }}</span>
+                                                <span class="text-[9px] text-[#015471] font-semibold flex items-center gap-1">
+                                                    <i data-lucide="image" class="w-3 h-3"></i> Foto Dokumen Lampiran
+                                                </span>
+                                            </div>
+                                        </a>
+                                    @else
+                                        <a href="{{ asset('storage/' . $docPath) }}" target="_blank" class="p-3 rounded-2xl border border-slate-200 hover:border-[#015471] bg-slate-50 hover:bg-white transition flex items-center gap-3 group shadow-2xs">
+                                            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center shrink-0">
+                                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                                            </div>
+                                            <div class="overflow-hidden flex-1 text-xs">
+                                                <span class="font-bold text-slate-900 group-hover:text-[#015471] block truncate">{{ $docName }}</span>
+                                                <span class="text-[10px] text-slate-400 font-semibold block mt-0.5">Format .{{ strtoupper($ext) }} &bull; Klik buka file &rarr;</span>
+                                            </div>
+                                        </a>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
