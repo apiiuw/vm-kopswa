@@ -107,7 +107,7 @@
 <body class="h-full antialiased flex overflow-hidden bg-white text-black">
 
     <!-- Sidebar (Full Solid Blue Theme #015471) -->
-    <aside class="w-72 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] z-30 transition-all duration-300">
+    <aside class="w-64 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] z-30 transition-all duration-300">
         <!-- Logo Area (Height 64px / h-16, perfectly aligned with topbar header) -->
         <div class="h-16 flex items-center px-5 border-b border-[#01435b] bg-[#015471]">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 w-full">
