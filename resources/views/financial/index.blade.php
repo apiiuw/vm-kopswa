@@ -165,35 +165,39 @@
             </div>
 
             <div class="bg-white rounded-2xl border-2 border-slate-100 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-[#e6f0f3] border-b border-slate-200 text-[#015471] font-bold uppercase tracking-wider text-[10px]">
+                <div class="overflow-x-auto scrollbar-thin">
+                    <table class="w-full text-left text-xs min-w-[1200px]">
+                        <thead class="bg-[#e6f0f3] border-b border-slate-200 text-[#015471] font-bold uppercase tracking-wider text-[10px] whitespace-nowrap">
                             <tr>
                                 <th class="px-5 py-3.5">No. Invoice</th>
                                 <th class="px-5 py-3.5">Periode Sewa</th>
                                 <th class="px-5 py-3.5">Tanggal Invoice</th>
-                                <th class="px-5 py-3.5">Bruto (Rp)</th>
-                                <th class="px-5 py-3.5">PPN 11% (Rp)</th>
-                                <th class="px-5 py-3.5">Total Tagihan (Rp)</th>
-                                <th class="px-5 py-3.5">PPh 2% (Rp)</th>
-                                <th class="px-5 py-3.5">Status</th>
+                                <th class="px-5 py-3.5 text-right">Bruto (Rp)</th>
+                                <th class="px-5 py-3.5 text-right">PPN 11% (Rp)</th>
+                                <th class="px-5 py-3.5 text-right">Total Tagihan (Rp)</th>
+                                <th class="px-5 py-3.5 text-right">PPh 2% (Rp)</th>
+                                <th class="px-5 py-3.5 text-center">Status</th>
+                                <th class="px-5 py-3.5 text-right">Keuntungan Bersih (Rp)</th>
                                 <th class="px-5 py-3.5 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-black">
+                        <tbody class="divide-y divide-slate-100 text-black whitespace-nowrap">
                             @forelse($incomes as $inc)
                                 <tr class="hover:bg-slate-50 transition">
                                     <td class="px-5 py-3.5 font-mono font-bold text-black">{{ $inc->invoice_number }}</td>
                                     <td class="px-5 py-3.5 font-bold text-[#015471]">{{ $inc->period_month_year }}</td>
                                     <td class="px-5 py-3.5 text-slate-600">{{ $inc->invoice_date->format('d/m/Y') }}</td>
-                                    <td class="px-5 py-3.5 font-medium">Rp {{ number_format($inc->gross_amount, 0, ',', '.') }}</td>
-                                    <td class="px-5 py-3.5 text-slate-500">Rp {{ number_format($inc->ppn_amount, 0, ',', '.') }}</td>
-                                    <td class="px-5 py-3.5 font-bold text-black">Rp {{ number_format($inc->total_amount_with_ppn, 0, ',', '.') }}</td>
-                                    <td class="px-5 py-3.5 font-bold text-amber-700">Rp {{ number_format($inc->pph23_amount, 0, ',', '.') }}</td>
-                                    <td class="px-5 py-3.5">
+                                    <td class="px-5 py-3.5 font-medium text-right">Rp {{ number_format($inc->gross_amount, 0, ',', '.') }}</td>
+                                    <td class="px-5 py-3.5 text-slate-500 text-right">Rp {{ number_format($inc->ppn_amount, 0, ',', '.') }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-black text-right">Rp {{ number_format($inc->total_amount_with_ppn, 0, ',', '.') }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-amber-700 text-right">Rp {{ number_format($inc->pph23_amount, 0, ',', '.') }}</td>
+                                    <td class="px-5 py-3.5 text-center">
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $inc->status === 'lunas' ? 'bg-[#e6f0f3] text-[#015471]' : 'bg-[#FF7A3D]/20 text-[#FF7A3D]' }}">
                                             {{ strtoupper($inc->status) }}
                                         </span>
+                                    </td>
+                                    <td class="px-5 py-3.5 font-black text-emerald-700 font-mono text-right bg-emerald-50/40">
+                                        Rp {{ number_format($inc->net_profit, 0, ',', '.') }}
                                     </td>
                                     <td class="px-5 py-3.5 text-right">
                                         @if($inc->status !== 'lunas')
@@ -202,18 +206,18 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="lunas">
                                                 <input type="hidden" name="payment_date" value="{{ date('Y-m-d') }}">
-                                                <button type="submit" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#015471] text-white hover:bg-[#013e54]">
+                                                <button type="submit" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#015471] text-white hover:bg-[#013e54] shadow-2xs transition">
                                                     Set Lunas
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="text-[10px] text-slate-500">Dibayar {{ $inc->payment_date ? $inc->payment_date->format('d/m/Y') : '-' }}</span>
+                                            <span class="text-[10px] text-slate-500 font-medium">Dibayar {{ $inc->payment_date ? $inc->payment_date->format('d/m/Y') : '-' }}</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-8 text-slate-400">Belum ada invoice tagihan sewa.</td>
+                                    <td colspan="10" class="text-center py-8 text-slate-400">Belum ada invoice tagihan sewa.</td>
                                 </tr>
                             @endforelse
                         </tbody>

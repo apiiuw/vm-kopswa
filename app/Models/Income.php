@@ -29,4 +29,10 @@ class Income extends Model
         // PPh 23 (2% dari Nilai Bruto Sewa)
         return round(((float) $this->gross_amount) * 0.02, 2);
     }
+
+    public function getNetProfitAttribute(): float
+    {
+        // Penerimaan / Keuntungan Bersih = Bruto - Potongan PPh 23 (2%)
+        return round(((float) $this->gross_amount) - $this->pph23_amount, 2);
+    }
 }
