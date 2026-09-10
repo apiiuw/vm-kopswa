@@ -126,10 +126,10 @@
                     <p class="text-xs text-slate-600">Data perbandingan alokasi pagu anggaran tender vs pengeluaran operasional aktual</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="openAddBudgetModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white shadow-xs transition">
+                    <a href="{{ route('financial.budget.create') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white shadow-xs transition">
                         <i data-lucide="plus" class="w-4 h-4 text-[#FF7A3D]"></i>
                         <span>Input Plafon Baru</span>
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="overflow-x-auto">

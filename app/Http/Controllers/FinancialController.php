@@ -283,6 +283,82 @@ class FinancialController extends Controller
         return redirect()->route('financial.index', ['tab' => 'incomes'])->with('success', 'Status tagihan diperbarui!');
     }
 
+    public function createBudget()
+    {
+        $activeVendorId = session('active_vendor_id');
+        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $currentVendor = $activeVendorId ? \App\Models\Vendor::find($activeVendorId) : null;
+
+        // Default categories configuration with presets
+        $categoryPresets = [
+            'service_berkala' => [
+                'label' => 'Service Berkala & Pelumas',
+                'target' => 'CRF 150 & Supra X',
+                'monthly_rate' => 83333,
+                'qty' => 70,
+                'desc' => 'Pergantian oli mesin, pelumas, tune-up berkala per kilometer dan pengecekan umum.'
+            ],
+            'ban' => [
+                'label' => 'Penggantian Ban (Depan / Belakang)',
+                'target' => 'CRF 150 & Supra X',
+                'monthly_rate' => 50000,
+                'qty' => 70,
+                'desc' => 'Ban luar & dalam depan/belakang dan jasa penggantian ban aus.'
+            ],
+            'accu' => [
+                'label' => 'Penggantian Accu / Aki Kering',
+                'target' => 'CRF 150 & Supra X',
+                'monthly_rate' => 15000,
+                'qty' => 70,
+                'desc' => 'Penggantian aki kering/basah untuk kelistrikan dan electric starter.'
+            ],
+            'sparepart' => [
+                'label' => 'Sparepart & Fast Moving Lainnya',
+                'target' => 'CRF 150 & Supra X',
+                'monthly_rate' => 35000,
+                'qty' => 70,
+                'desc' => 'Rantai, gear set, kanvas rem depan/belakang, busi, dan suku cadang aus.'
+            ],
+            'motor_pengganti' => [
+                'label' => 'Biaya Unit Motor Pengganti (Temporary)',
+                'target' => 'Semua Unit Operasional',
+                'monthly_rate' => 10000,
+                'qty' => 70,
+                'desc' => 'Alokasi armada pengganti bila unit operasional mengalami perbaikan berat/insiden.'
+            ],
+            'pajak_stnk' => [
+                'label' => 'Pajak Kendaraan & STNK Tahunan',
+                'target' => 'CRF 150 & Supra X',
+                'monthly_rate' => 30000,
+                'qty' => 70,
+                'desc' => 'PKB tahunan, SWDKLLJ, dan pengesahan STNK 1 tahunan.'
+            ],
+            'asuransi' => [
+                'label' => 'Premi Asuransi Kendaraan (TLO)',
+                'target' => 'Semua Unit Operasional',
+                'monthly_rate' => 25000,
+                'qty' => 70,
+                'desc' => 'Proteksi kehilangan total unit (Total Loss Only) & klaim insiden operasional.'
+            ],
+            'legalitas_kepolisian' => [
+                'label' => 'Legalitas, Kepolisian & Dokumen',
+                'target' => 'Semua Unit Operasional',
+                'monthly_rate' => 5000,
+                'qty' => 70,
+                'desc' => 'Biaya pengurusan surat izin, rekomendasi lantas, atau administrasi kepolisian.'
+            ],
+            'overhead_admin' => [
+                'label' => 'Transportasi, Operasional & Administrasi',
+                'target' => 'Semua Unit Operasional',
+                'monthly_rate' => 10000,
+                'qty' => 70,
+                'desc' => 'Overhead operasional kantor, monitoring lapangan, logistik, dan administrasi.'
+            ],
+        ];
+
+        return view('financial.budget.create', compact('vendors', 'currentVendor', 'categoryPresets'));
+    }
+
     public function storeBudget(Request $request)
     {
         $validated = $request->validate([

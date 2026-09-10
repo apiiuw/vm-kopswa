@@ -39,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Financial & Cashflow Module (Incomes, Expenses, Budget Plafond)
     Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
+    Route::get('/financial/budget/create', [FinancialController::class, 'createBudget'])->name('financial.budget.create');
     Route::post('/financial/budget', [FinancialController::class, 'storeBudget'])->name('financial.budget.store');
     Route::put('/financial/budget/{budget}', [FinancialController::class, 'updateBudget'])->name('financial.budget.update');
     Route::post('/financial/income', [FinancialController::class, 'storeIncome'])->name('financial.income.store');
