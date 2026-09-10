@@ -4,7 +4,7 @@
 @section('page_title', 'Dashboard Eksekutif Monitoring Proyek')
 
 @section('content')
-<div class="space-y-6 max-w-7xl mx-auto bg-white text-black">
+<div class="space-y-6 w-full bg-white text-black">
 
     <!-- Top Notice / Project Status Banner -->
     <div class="bg-gradient-to-r from-[#015471] via-[#01435b] to-[#002f40] rounded-3xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden border border-[#015471]">
