@@ -296,8 +296,8 @@
 
     </div>
 
-    <!-- Section 3: Visual Distribution Analytics (Status Donut + Biaya Pie + Lokasi Bar + Top Unit Boros) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Section 3: Visual Distribution Analytics (2 Charts per Row) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <!-- Chart A: Komposisi Status Armada (Doughnut) -->
         <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
@@ -310,16 +310,16 @@
                         <h3 class="font-bold text-black text-sm">Status Armada</h3>
                     </div>
                     <button onclick="downloadChartImage('statusDonutChart', 'Distribusi_Status_Armada')" title="Download Chart"
-                            class="p-1 rounded-md text-slate-400 hover:text-[#015471] hover:bg-slate-100 transition">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-[#015471]"></i> Download PNG
                     </button>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-0.5">Persentase kesiapan unit di lapangan</p>
             </div>
-            <div class="h-48 relative">
+            <div class="h-64 relative">
                 <canvas id="statusDonutChart"></canvas>
             </div>
-            <div class="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-slate-100 font-semibold">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pt-3 border-t border-slate-100 font-semibold">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Aktif: {{ $activeCount }}</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Servis: {{ $maintenanceCount }}</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span> Ganti: {{ $replacedCount }}</span>
@@ -338,17 +338,17 @@
                         <h3 class="font-bold text-black text-sm">Porsi Pengeluaran</h3>
                     </div>
                     <button onclick="downloadChartImage('expenseCategoryChart', 'Komposisi_Biaya_Operasional')" title="Download Chart"
-                            class="p-1 rounded-md text-slate-400 hover:text-[#015471] hover:bg-slate-100 transition">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-[#FF7A3D]"></i> Download PNG
                     </button>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-0.5">Distribusi pengeluaran biaya riil</p>
             </div>
-            <div class="h-48 relative">
+            <div class="h-64 relative">
                 <canvas id="expenseCategoryChart"></canvas>
             </div>
             <div class="text-center pt-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium font-mono">
-                Total: <strong class="text-slate-900">Rp {{ number_format($totalExpense, 0, ',', '.') }}</strong>
+                Total Realisasi Biaya: <strong class="text-slate-900">Rp {{ number_format($totalExpense, 0, ',', '.') }}</strong>
             </div>
         </div>
 
@@ -363,13 +363,13 @@
                         <h3 class="font-bold text-black text-sm">Sebaran per Lokasi</h3>
                     </div>
                     <button onclick="downloadChartImage('locationBarChart', 'Sebaran_Armada_Lokasi')" title="Download Chart"
-                            class="p-1 rounded-md text-slate-400 hover:text-[#015471] hover:bg-slate-100 transition">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-[#015471]"></i> Download PNG
                     </button>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-0.5">Jumlah motor di tiap pos/afdeling</p>
             </div>
-            <div class="h-48 relative">
+            <div class="h-64 relative">
                 <canvas id="locationBarChart"></canvas>
             </div>
             <div class="text-center pt-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
@@ -388,13 +388,13 @@
                         <h3 class="font-bold text-black text-sm">Top 5 Biaya Servis</h3>
                     </div>
                     <button onclick="downloadChartImage('topVehicleChart', 'Top_Unit_Biaya_Servis')" title="Download Chart"
-                            class="p-1 rounded-md text-slate-400 hover:text-[#015471] hover:bg-slate-100 transition">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-rose-600"></i> Download PNG
                     </button>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-0.5">Unit dengan akumulasi perbaikan terbesar</p>
             </div>
-            <div class="h-48 relative">
+            <div class="h-64 relative">
                 <canvas id="topVehicleChart"></canvas>
             </div>
             <div class="text-center pt-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
