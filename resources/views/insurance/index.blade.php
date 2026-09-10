@@ -4,7 +4,7 @@
 @section('page_title', 'Modul Asuransi & Laporan Klaim (TLO / Partial Loss)')
 
 @section('content')
-<div class="space-y-6 max-w-7xl mx-auto bg-white text-black">
+<div class="space-y-6 w-full bg-white text-black">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -4,7 +4,7 @@
 @section('page_title', 'Modul Legalitas, STNK & Pajak Kendaraan')
 
 @section('content')
-<div class="space-y-6 max-w-7xl mx-auto bg-white text-slate-900">
+<div class="space-y-6 w-full bg-white text-slate-900">
 
     <!-- Top Header & Action Banner -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
