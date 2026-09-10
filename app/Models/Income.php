@@ -23,4 +23,10 @@ class Income extends Model
         'ppn_amount' => 'decimal:2',
         'total_amount_with_ppn' => 'decimal:2',
     ];
+
+    public function getPph23AmountAttribute(): float
+    {
+        // PPh 23 (2% dari Nilai Bruto Sewa)
+        return round(((float) $this->gross_amount) * 0.02, 2);
+    }
 }

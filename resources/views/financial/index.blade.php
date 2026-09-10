@@ -175,6 +175,7 @@
                                 <th class="px-5 py-3.5">Bruto (Rp)</th>
                                 <th class="px-5 py-3.5">PPN 11% (Rp)</th>
                                 <th class="px-5 py-3.5">Total Tagihan (Rp)</th>
+                                <th class="px-5 py-3.5">PPh 2% (Rp)</th>
                                 <th class="px-5 py-3.5">Status</th>
                                 <th class="px-5 py-3.5 text-right">Aksi</th>
                             </tr>
@@ -188,6 +189,7 @@
                                     <td class="px-5 py-3.5 font-medium">Rp {{ number_format($inc->gross_amount, 0, ',', '.') }}</td>
                                     <td class="px-5 py-3.5 text-slate-500">Rp {{ number_format($inc->ppn_amount, 0, ',', '.') }}</td>
                                     <td class="px-5 py-3.5 font-bold text-black">Rp {{ number_format($inc->total_amount_with_ppn, 0, ',', '.') }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-amber-700">Rp {{ number_format($inc->pph23_amount, 0, ',', '.') }}</td>
                                     <td class="px-5 py-3.5">
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $inc->status === 'lunas' ? 'bg-[#e6f0f3] text-[#015471]' : 'bg-[#FF7A3D]/20 text-[#FF7A3D]' }}">
                                             {{ strtoupper($inc->status) }}
@@ -211,7 +213,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-8 text-slate-400">Belum ada invoice tagihan sewa.</td>
+                                    <td colspan="9" class="text-center py-8 text-slate-400">Belum ada invoice tagihan sewa.</td>
                                 </tr>
                             @endforelse
                         </tbody>
