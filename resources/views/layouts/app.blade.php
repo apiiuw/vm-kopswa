@@ -173,13 +173,13 @@
 
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Layanan & Permohonan Klien</div>
 
-            <a href="{{ route('admin.client-requests.index') }}" class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('admin.client-requests.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <div class="flex items-center gap-3 min-w-0">
+            <a href="{{ route('admin.client-requests.index') }}" class="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl transition-colors {{ request()->routeIs('admin.client-requests.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                     <i data-lucide="inbox" class="w-4 h-4 shrink-0"></i>
-                    <span class="whitespace-nowrap">Tiket & Pengajuan Klien</span>
+                    <span class="truncate text-[13px]">Tiket & Pengajuan</span>
                 </div>
                 @if(!empty($globalPendingRequestsCount) && $globalPendingRequestsCount > 0)
-                    <span class="px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 {{ request()->routeIs('admin.client-requests.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#FF7A3D] text-white' }} animate-pulse shadow-xs">
+                    <span class="w-5 h-5 flex items-center justify-center text-[10px] font-black rounded-full shrink-0 {{ request()->routeIs('admin.client-requests.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#FF7A3D] text-white' }} animate-pulse shadow-xs ml-1">
                         {{ $globalPendingRequestsCount }}
                     </span>
                 @endif
