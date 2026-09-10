@@ -16,29 +16,66 @@
             <a href="{{ route('exports.financialExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-black border-2 border-slate-200 shadow-2xs transition">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel Lengkap
             </a>
-            <a href="{{ route('exports.budgetPdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
+            <a href="{{ route('exports.budgetPdf', ['tab' => $tab]) }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
                 <i data-lucide="printer" class="w-4 h-4"></i> Cetak Rekap PDF
             </a>
         </div>
     </div>
 
-    <!-- Summary Ceiling & Cash Cards -->
+    <!-- Summary Ceiling & Cash Cards (Dynamic per Tab) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-            <span class="text-xs font-bold text-[#015471]">Total Pagu Operasional 36 Bulan</span>
-            <span class="text-2xl font-black text-black block mt-1">Rp {{ number_format($totalBudget, 0, ',', '.') }}</span>
-            <span class="text-[11px] text-slate-500 mt-1 block">Berdasarkan Memo Anggaran Internal 2026</span>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-            <span class="text-xs font-bold text-[#FF7A3D]">Realisasi Biaya Operasional Riil</span>
-            <span class="text-2xl font-black text-[#FF7A3D] block mt-1">Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
-            <span class="text-[11px] text-slate-500 mt-1 block">Pemeliharaan, Ban, Accu, Sparepart, Unit Pengganti</span>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
-            <span class="text-xs font-bold text-[#015471]">Sisa Pagu Tersedia</span>
-            <span class="text-2xl font-black text-[#015471] block mt-1">Rp {{ number_format($remainingBudget, 0, ',', '.') }}</span>
-            <span class="text-[11px] text-[#015471] font-bold mt-1 block">Aman & Terkendali s/d Mei 2028</span>
-        </div>
+        @if($tab === 'incomes')
+            <!-- Incomes Tab Summary Cards -->
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#015471]">Total Bruto Tagihan Sewa</span>
+                <span class="text-2xl font-black text-black block mt-1 font-mono">Rp {{ number_format($totalIncomeGross, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Akumulasi seluruh tagihan DPP riil</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-amber-600">Total Potongan PPh 2%</span>
+                <span class="text-2xl font-black text-amber-600 block mt-1 font-mono">Rp {{ number_format($totalIncomePph, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Pasal 23 atas jasa sewa kendaraan</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-emerald-700">Penerimaan / Keuntungan Bersih</span>
+                <span class="text-2xl font-black text-emerald-700 block mt-1 font-mono">Rp {{ number_format($totalIncomeNet, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-emerald-700 font-bold mt-1 block">Lunas: Rp {{ number_format($totalIncomePaid, 0, ',', '.') }} | Belum: Rp {{ number_format($totalIncomeUnpaid, 0, ',', '.') }}</span>
+            </div>
+        @elseif($tab === 'expenses')
+            <!-- Expenses Tab Summary Cards -->
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#FF7A3D]">Total Pengeluaran Kas Riil</span>
+                <span class="text-2xl font-black text-[#FF7A3D] block mt-1 font-mono">Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Pemeliharaan, Ban, Accu, Sparepart & Cadangan</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#015471]">Total Catatan Transaksi</span>
+                <span class="text-2xl font-black text-[#015471] block mt-1 font-mono">{{ $totalExpensesCount }} Transaksi</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Seluruh riwayat buku kas pengeluaran tercatat</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#015471]">Sisa Pagu Anggaran Operasional</span>
+                <span class="text-2xl font-black text-[#015471] block mt-1 font-mono">Rp {{ number_format($remainingBudget, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-[#015471] font-bold mt-1 block">Dari Pagu 36 Bulan (Rp {{ number_format($totalBudget, 0, ',', '.') }})</span>
+            </div>
+        @else
+            <!-- Overview / Default Tab Summary Cards -->
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#015471]">Total Pagu Operasional 36 Bulan</span>
+                <span class="text-2xl font-black text-black block mt-1 font-mono">Rp {{ number_format($totalBudget, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Berdasarkan Memo Anggaran Internal 2026</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#FF7A3D]">Realisasi Biaya Operasional Riil</span>
+                <span class="text-2xl font-black text-[#FF7A3D] block mt-1 font-mono">Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-slate-500 mt-1 block">Pemeliharaan, Ban, Accu, Sparepart, Unit Pengganti</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-[#015471]">Sisa Pagu Tersedia</span>
+                <span class="text-2xl font-black text-[#015471] block mt-1 font-mono">Rp {{ number_format($remainingBudget, 0, ',', '.') }}</span>
+                <span class="text-[11px] text-[#015471] font-bold mt-1 block">Aman & Terkendali s/d Mei 2028</span>
+            </div>
+        @endif
     </div>
 
     <!-- Modern Segmented Tab Selector -->

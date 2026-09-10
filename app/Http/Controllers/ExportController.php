@@ -15,36 +15,60 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController extends Controller
 {
-    // Export Budget & Expenses Rekap to PDF (Format Memo Master)
-    public function exportBudgetPdf()
+    // Export Budget & Expenses Rekap to PDF (Format Memo Master or Incomes / Expenses)
+    public function exportBudgetPdf(Request $request)
     {
+        $tab = $request->get('tab', 'overview');
         $activeVendorId = session('active_vendor_id');
         $vendor = $activeVendorId ? \App\Models\Vendor::find($activeVendorId) : null;
 
         $budgetQuery = Budget::query();
-        $expenseQuery = Expense::with('vehicle')->orderBy('transaction_date', 'asc');
+        $expenseQuery = Expense::with(['vehicle.location', 'vendor'])->orderBy('transaction_date', 'desc');
+        $incomeQuery = Income::with('vendor')->orderBy('invoice_date', 'desc');
 
         if ($activeVendorId) {
             $budgetQuery->where('vendor_id', $activeVendorId);
             $expenseQuery->where('vendor_id', $activeVendorId);
+            $incomeQuery->where('vendor_id', $activeVendorId);
         }
 
         $budgets = $budgetQuery->get();
         $expenses = $expenseQuery->get();
+        $incomes = $incomeQuery->get();
+
         $totalBudget = $budgets->sum('total_budget_36m');
         $totalExpense = $expenses->sum('amount');
         $remainingBudget = $totalBudget - $totalExpense;
 
+        $totalIncomeGross = $incomes->sum('gross_amount');
+        $totalIncomePph = round($totalIncomeGross * 0.02, 2);
+        $totalIncomeNet = round($totalIncomeGross - $totalIncomePph, 2);
+        $totalIncomePaid = $incomes->where('status', 'lunas')->sum('gross_amount');
+        $totalIncomeUnpaid = $incomes->where('status', '!=', 'lunas')->sum('gross_amount');
+
         $pdf = Pdf::loadView('exports.pdf_budget_rekap', compact(
+            'tab',
             'budgets',
             'expenses',
+            'incomes',
             'totalBudget',
             'totalExpense',
             'remainingBudget',
+            'totalIncomeGross',
+            'totalIncomePph',
+            'totalIncomeNet',
+            'totalIncomePaid',
+            'totalIncomeUnpaid',
             'vendor'
-        ))->setPaper('a4', 'portrait');
+        ))->setPaper('a4', $tab === 'incomes' ? 'landscape' : 'portrait');
 
-        $filename = 'Rekapitulasi_Anggaran_' . ($vendor ? $vendor->code : 'MultiVendor') . '.pdf';
+        $tabPrefix = match($tab) {
+            'incomes' => 'Rekap_Tagihan_Sewa_',
+            'expenses' => 'Rekap_Buku_Kas_Pengeluaran_',
+            default => 'Rekapitulasi_Anggaran_',
+        };
+
+        $filename = $tabPrefix . ($vendor ? $vendor->code : 'MultiVendor') . '_' . date('Ymd') . '.pdf';
         return $pdf->download($filename);
     }
 

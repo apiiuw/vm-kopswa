@@ -33,11 +33,21 @@ class FinancialController extends Controller
         $totalExpense = (clone $expenseQuery)->sum('amount');
         $remainingBudget = $totalBudget - $totalExpense;
 
-        // Incomes
+        // Incomes query & metrics
         $perPageIncomes = in_array((int) $request->get('per_page_incomes', 12), [10, 12, 25, 50, 100]) ? (int) $request->get('per_page_incomes', 12) : 12;
         $incomes = (clone $incomeQuery)->orderBy('invoice_date', 'desc')->paginate($perPageIncomes, ['*'], 'incomes_page')->withQueryString();
         $totalIncomeGross = (clone $incomeQuery)->sum('gross_amount');
+        $totalIncomePpn = (clone $incomeQuery)->sum('ppn_amount');
+        $totalIncomePph = round($totalIncomeGross * 0.02, 2);
+        $totalIncomeNet = round($totalIncomeGross - $totalIncomePph, 2);
         $totalIncomePaid = (clone $incomeQuery)->where('status', 'lunas')->sum('gross_amount');
+        $totalIncomeUnpaid = (clone $incomeQuery)->where('status', '!=', 'lunas')->sum('gross_amount');
+
+        // Expenses stats
+        $totalExpensesCount = (clone $expenseQuery)->count();
+        $totalServiceExpense = (clone $expenseQuery)->where('category', 'service_berkala')->sum('amount');
+        $totalTaxExpense = (clone $expenseQuery)->where('category', 'pajak_stnk')->sum('amount');
+        $totalOtherExpense = $totalExpense - ($totalServiceExpense + $totalTaxExpense);
 
         // Expenses filter by category
         if ($request->filled('category')) {
@@ -176,7 +186,15 @@ class FinancialController extends Controller
             'remainingBudget',
             'incomes',
             'totalIncomeGross',
+            'totalIncomePpn',
+            'totalIncomePph',
+            'totalIncomeNet',
             'totalIncomePaid',
+            'totalIncomeUnpaid',
+            'totalExpensesCount',
+            'totalServiceExpense',
+            'totalTaxExpense',
+            'totalOtherExpense',
             'expenses',
             'categoriesReport',
             'vehicles',
