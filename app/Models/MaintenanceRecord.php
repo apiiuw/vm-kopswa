@@ -22,6 +22,21 @@ class MaintenanceRecord extends Model
 
     public function getTypeLabelAttribute(): string
     {
+        $complaints = $this->parsed_complaints;
+        if (!empty($complaints) && count($complaints) > 1) {
+            $cats = [];
+            foreach ($complaints as $c) {
+                $raw = $c['category'] ?? '';
+                if (str_contains(strtolower($raw), 'aki') || str_contains(strtolower($raw), 'accu')) $cats['accu'] = 'Accu/Aki';
+                elseif (str_contains(strtolower($raw), 'ban')) $cats['ban'] = 'Ban';
+                elseif (str_contains(strtolower($raw), 'service') || str_contains(strtolower($raw), 'pelumas') || str_contains(strtolower($raw), 'oli')) $cats['service'] = 'Servis/Oli';
+                else $cats['sparepart'] = 'Sparepart';
+            }
+            if (!empty($cats)) {
+                return implode(' & ', array_values($cats));
+            }
+        }
+
         return match($this->type) {
             'service_berkala' => 'Service Berkala & Pelumas',
             'ganti_ban' => 'Penggantian Ban',

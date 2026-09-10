@@ -7,6 +7,7 @@ use App\Models\ClientRequest;
 use App\Models\Vehicle;
 use App\Models\MaintenanceRecord;
 use App\Models\InsuranceClaim;
+use App\Models\Expense;
 
 class AdminClientRequestController extends Controller
 {
@@ -84,7 +85,7 @@ class AdminClientRequestController extends Controller
 
         // Auto sync to Maintenance Record if requested and completed
         if ($request->boolean('sync_to_maintenance') && $validated['status'] === 'selesai') {
-            MaintenanceRecord::create([
+            $record = MaintenanceRecord::create([
                 'vehicle_id' => $clientRequest->vehicle_id,
                 'type' => match($clientRequest->request_type) {
                     'ganti_ban_accu' => 'ganti_ban',
@@ -97,6 +98,26 @@ class AdminClientRequestController extends Controller
                 'description' => $clientRequest->title . ' - ' . $clientRequest->description,
                 'cost' => $clientRequest->estimated_cost ?: 0,
                 'memo_number' => 'REQ-KLIEN-' . str_pad($clientRequest->id, 4, '0', STR_PAD_LEFT),
+            ]);
+
+            // Sync to Expense ledger
+            $vehicle = Vehicle::find($clientRequest->vehicle_id);
+            Expense::create([
+                'vehicle_id' => $record->vehicle_id,
+                'vendor_id' => $vehicle ? $vehicle->vendor_id : null,
+                'maintenance_record_id' => $record->id,
+                'expense_number' => 'EXP-' . date('Ymd') . '-' . str_pad($record->id, 4, '0', STR_PAD_LEFT),
+                'memo_number' => $record->memo_number,
+                'transaction_date' => $record->date,
+                'category' => match($clientRequest->request_type) {
+                    'ganti_ban_accu' => 'ban',
+                    'unit_pengganti' => 'motor_pengganti',
+                    default => 'service_berkala',
+                },
+                'title' => ($clientRequest->title ?: 'Pemeliharaan Unit') . ' - ' . ($vehicle ? $vehicle->plate_number : ''),
+                'amount' => $record->cost,
+                'recipient_vendor' => $record->workshop_name ?: 'Bengkel Rekanan',
+                'description' => $record->description,
             ]);
 
             // Restore vehicle to active

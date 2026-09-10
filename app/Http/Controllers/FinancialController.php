@@ -7,6 +7,7 @@ use App\Models\Income;
 use App\Models\Expense;
 use App\Models\Budget;
 use App\Models\Vehicle;
+use App\Models\MaintenanceRecord;
 use Carbon\Carbon;
 
 class FinancialController extends Controller
@@ -59,15 +60,92 @@ class FinancialController extends Controller
             'overhead_admin' => 'Transportasi, Administrasi & Operasional',
         ];
 
+        // 1. Calculate detailed spent from Maintenance Records (handles multi-item requests like Service + Ban + Aki)
+        $mRecordQuery = MaintenanceRecord::query();
+        if ($activeVendorId) {
+            $mRecordQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+                $q->where('vendor_id', $activeVendorId);
+            });
+        }
+        $allMaintenanceRecords = $mRecordQuery->get();
+
+        $maintenanceCategoryCosts = [
+            'service_berkala' => 0,
+            'ban' => 0,
+            'accu' => 0,
+            'sparepart' => 0,
+            'motor_pengganti' => 0,
+            'overhead_admin' => 0,
+        ];
+
+        foreach ($allMaintenanceRecords as $rec) {
+            $recCost = (float) $rec->cost;
+            $complaints = $rec->parsed_complaints;
+
+            if (!empty($complaints) && count($complaints) > 0) {
+                $hasParsedCost = false;
+                foreach ($complaints as $c) {
+                    $itemCost = (float) str_replace(['.', ','], '', $c['cost'] ?? '0');
+                    if ($itemCost > 0) {
+                        $hasParsedCost = true;
+                        $cat = strtolower($c['category'] ?? '');
+                        $title = strtolower($c['title'] ?? '');
+
+                        if (str_contains($cat, 'aki') || str_contains($cat, 'accu') || str_contains($title, 'aki') || str_contains($title, 'accu')) {
+                            $maintenanceCategoryCosts['accu'] += $itemCost;
+                        } elseif (str_contains($cat, 'ban') || str_contains($title, 'ban')) {
+                            $maintenanceCategoryCosts['ban'] += $itemCost;
+                        } elseif (str_contains($cat, 'service') || str_contains($cat, 'pelumas') || str_contains($cat, 'oli') || str_contains($title, 'service') || str_contains($title, 'oli')) {
+                            $maintenanceCategoryCosts['service_berkala'] += $itemCost;
+                        } elseif (str_contains($cat, 'motor_pengganti') || str_contains($cat, 'pengganti') || str_contains($title, 'motor pengganti')) {
+                            $maintenanceCategoryCosts['motor_pengganti'] += $itemCost;
+                        } else {
+                            $maintenanceCategoryCosts['sparepart'] += $itemCost;
+                        }
+                    }
+                }
+
+                if (!$hasParsedCost) {
+                    $mainCat = match($rec->type) {
+                        'ganti_ban' => 'ban',
+                        'ganti_accu' => 'accu',
+                        'sparepart' => 'sparepart',
+                        'motor_pengganti' => 'motor_pengganti',
+                        default => 'service_berkala',
+                    };
+                    $maintenanceCategoryCosts[$mainCat] += $recCost;
+                }
+            } else {
+                $mainCat = match($rec->type) {
+                    'ganti_ban' => 'ban',
+                    'ganti_accu' => 'accu',
+                    'sparepart' => 'sparepart',
+                    'motor_pengganti' => 'motor_pengganti',
+                    default => 'service_berkala',
+                };
+                $maintenanceCategoryCosts[$mainCat] += $recCost;
+            }
+        }
+
         foreach ($categories as $key => $lbl) {
-            $spentQ = Expense::where('category', $key);
             $allocQ = Budget::where('category', $key);
             if ($activeVendorId) {
-                $spentQ->where('vendor_id', $activeVendorId);
                 $allocQ->where('vendor_id', $activeVendorId);
             }
 
-            $spent = $spentQ->sum('amount');
+            // For maintenance-related categories, use the granular sub-item calculation
+            // For other categories (pajak_stnk, asuransi, legalitas, overhead), sum from Expense table
+            if (isset($maintenanceCategoryCosts[$key])) {
+                // Also add any direct Expense not tied to maintenance_record_id
+                $directExpenseQ = Expense::where('category', $key)->whereNull('maintenance_record_id');
+                if ($activeVendorId) $directExpenseQ->where('vendor_id', $activeVendorId);
+                $spent = $maintenanceCategoryCosts[$key] + $directExpenseQ->sum('amount');
+            } else {
+                $spentQ = Expense::where('category', $key);
+                if ($activeVendorId) $spentQ->where('vendor_id', $activeVendorId);
+                $spent = $spentQ->sum('amount');
+            }
+
             $allocated = $allocQ->sum('total_budget_36m');
             if (in_array($key, ['motor_pengganti', 'legalitas_kepolisian', 'overhead_admin']) && $allocated == 0) {
                 $allocated = ($key === 'overhead_admin' || $key === 'motor_pengganti') ? 99000000 : 0;
