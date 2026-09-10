@@ -131,10 +131,17 @@
                             </td>
 
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('client.requests.create', ['vehicle_id' => $v->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#015471] text-white hover:bg-[#013e54] text-[11px] font-bold transition shadow-2xs">
-                                    <i data-lucide="wrench" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
-                                    <span>Ajukan Servis / Lapor</span>
-                                </a>
+                                @if($v->status === 'lost')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-400 text-[11px] font-bold cursor-not-allowed border border-slate-200" title="Unit ini berstatus hilang dan tidak dapat diajukan servis/lapor">
+                                        <i data-lucide="ban" class="w-3.5 h-3.5 text-rose-400"></i>
+                                        <span>Unit Hilang (TLO)</span>
+                                    </span>
+                                @else
+                                    <a href="{{ route('client.requests.create', ['vehicle_id' => $v->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#015471] text-white hover:bg-[#013e54] text-[11px] font-bold transition shadow-2xs">
+                                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
+                                        <span>Ajukan Servis / Lapor</span>
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                     @empty

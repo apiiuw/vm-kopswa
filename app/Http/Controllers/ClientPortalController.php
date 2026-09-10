@@ -77,7 +77,10 @@ class ClientPortalController extends Controller
     public function createRequest(Request $request)
     {
         $vendorId = $this->getClientVendorId();
-        $vehiclesQuery = Vehicle::with(['location'])->orderBy('plate_number');
+        $vehiclesQuery = Vehicle::with(['location'])
+            ->where('status', '!=', 'lost')
+            ->orderBy('plate_number');
+
         if ($vendorId) {
             $vehiclesQuery->where('vendor_id', $vendorId);
         }
@@ -116,6 +119,11 @@ class ClientPortalController extends Controller
             'photo_behind' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'proof_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
+
+        $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
+        if ($vehicle->status === 'lost') {
+            return back()->withInput()->with('error', 'Unit kendaraan ini berstatus hilang (TLO) dan tidak dapat diajukan servis atau permohonan baru.');
+        }
 
         $uploadedFiles = [];
 
