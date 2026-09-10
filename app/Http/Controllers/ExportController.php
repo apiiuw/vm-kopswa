@@ -228,4 +228,291 @@ class ExportController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
+
+    // Export Single Client Request to PDF
+    public function exportClientRequestPdf(\App\Models\ClientRequest $clientRequest)
+    {
+        $clientRequest->load(['vehicle.location', 'vendor', 'user']);
+
+        // Extract metadata blocks and complaints from description (handling both \r\n and \n)
+        $normalizedDesc = str_replace(["\r\n", "\r"], "\n", $clientRequest->description ?? '');
+        $descLines = explode("\n", $normalizedDesc);
+
+        $structuredData = [
+            'pic_name' => '',
+            'pic_phone' => '',
+            'operational_status' => '',
+            'unit_position' => '',
+            'physical_notes' => '',
+            'workshop_phone' => '',
+            'mechanic_name' => '',
+            'mechanic_phone' => '',
+        ];
+
+        $complaintBlocks = [];
+        $cleanDescLines = [];
+        $currentComplaint = null;
+
+        foreach ($descLines as $line) {
+            $trimmed = trim($line);
+            if (empty($trimmed)) continue;
+
+            if (str_starts_with($trimmed, '[PIC Pengaju:')) {
+                $content = trim($trimmed, '[]');
+                if (preg_match('/PIC Pengaju:\s*([^-]+?)(?:\s*-\s*Telp:\s*(.*))?$/i', $content, $pm)) {
+                    $structuredData['pic_name'] = trim($pm[1] ?? '');
+                    $structuredData['pic_phone'] = trim($pm[2] ?? '');
+                }
+            } elseif (str_starts_with($trimmed, '[Kondisi Operasional:') || str_contains($trimmed, 'Kondisi Operasional:')) {
+                $content = trim($trimmed, '[]');
+                $parts = explode('|', $content);
+                foreach ($parts as $part) {
+                    $partTrim = trim($part);
+                    if (str_starts_with($partTrim, 'Kondisi Operasional:')) {
+                        $structuredData['operational_status'] = trim(substr($partTrim, 20));
+                    } elseif (str_starts_with($partTrim, 'Posisi Unit:')) {
+                        $structuredData['unit_position'] = trim(substr($partTrim, 12));
+                    } elseif (str_starts_with($partTrim, 'Catatan Fisik:')) {
+                        $structuredData['physical_notes'] = trim(substr($partTrim, 14));
+                    }
+                }
+            } elseif (str_starts_with($trimmed, '[Telp Bengkel:') || str_contains($trimmed, 'Telp Bengkel:') || str_contains($trimmed, 'Mekanik:')) {
+                $content = trim($trimmed, '[]');
+                $parts = explode('|', $content);
+                foreach ($parts as $part) {
+                    $partTrim = trim($part);
+                    if (str_starts_with($partTrim, 'Telp Bengkel:')) {
+                        $structuredData['workshop_phone'] = trim(substr($partTrim, 13));
+                    } elseif (str_starts_with($partTrim, 'Mekanik:')) {
+                        $mContent = trim(substr($partTrim, 8));
+                        if (preg_match('/^(.*?)\s*\(Telp:\s*(.*?)\)$/i', $mContent, $mm)) {
+                            $structuredData['mechanic_name'] = trim($mm[1]);
+                            $structuredData['mechanic_phone'] = trim($mm[2]);
+                        } else {
+                            $structuredData['mechanic_name'] = $mContent;
+                        }
+                    }
+                }
+            } elseif (preg_match('/^\[Keluhan #(\d+): (.*?)\]$/', $trimmed, $m)) {
+                if ($currentComplaint) {
+                    $complaintBlocks[] = $currentComplaint;
+                }
+                $currentComplaint = [
+                    'num' => $m[1],
+                    'category' => $m[2],
+                    'title' => '',
+                    'cost' => '',
+                    'desc' => '',
+                ];
+            } elseif ($currentComplaint && str_starts_with($trimmed, 'Judul: ')) {
+                $titleLine = substr($trimmed, 7);
+                if (preg_match('/^(.*?) \(Estimasi: (.*?)\)$/', $titleLine, $cm)) {
+                    $currentComplaint['title'] = $cm[1];
+                    $currentComplaint['cost'] = $cm[2];
+                } else {
+                    $currentComplaint['title'] = $titleLine;
+                }
+            } elseif ($currentComplaint && str_starts_with($trimmed, 'Uraian: ')) {
+                $currentComplaint['desc'] = substr($trimmed, 8);
+            } elseif ($currentComplaint) {
+                $currentComplaint['desc'] .= (!empty($currentComplaint['desc']) ? "\n" : '') . $trimmed;
+            } elseif (!str_starts_with($trimmed, '[Kategori:')) {
+                $cleanDescLines[] = $trimmed;
+            }
+        }
+
+        if ($currentComplaint) {
+            $complaintBlocks[] = $currentComplaint;
+        }
+
+        if (empty($complaintBlocks) && $clientRequest->request_type === 'perbaikan_servis') {
+            $complaintBlocks[] = [
+                'num' => '1',
+                'category' => 'Pengajuan Perbaikan / Servis',
+                'title' => $clientRequest->title,
+                'cost' => $clientRequest->estimated_cost > 0 ? 'Rp ' . number_format($clientRequest->estimated_cost, 0, ',', '.') : '',
+                'desc' => implode("\n", $cleanDescLines) ?: $clientRequest->description,
+            ];
+        }
+
+        $remainingDescription = implode("\n", $cleanDescLines);
+
+        // Separate vehicle angle photos
+        $proofFiles = $clientRequest->proof_files ?? [];
+        $vehicleAnglePhotos = [];
+        $otherDocs = [];
+
+        foreach ($proofFiles as $pf) {
+            $name = $pf['name'] ?? '';
+            $path = $pf['path'] ?? '';
+            if (str_contains($name, 'Tampak Depan')) {
+                $vehicleAnglePhotos['front'] = $pf;
+            } elseif (str_contains($name, 'Samping Kanan')) {
+                $vehicleAnglePhotos['right'] = $pf;
+            } elseif (str_contains($name, 'Samping Kiri')) {
+                $vehicleAnglePhotos['left'] = $pf;
+            } elseif (str_contains($name, 'Tampak Belakang')) {
+                $vehicleAnglePhotos['behind'] = $pf;
+            } else {
+                $otherDocs[] = $pf;
+            }
+        }
+
+        $pdf = Pdf::loadView('exports.pdf_client_request', compact(
+            'clientRequest',
+            'structuredData',
+            'complaintBlocks',
+            'remainingDescription',
+            'vehicleAnglePhotos',
+            'otherDocs'
+        ))->setPaper('a4', 'portrait');
+
+        $filename = 'Tiket_Permohonan_REQ-' . str_pad($clientRequest->id, 4, '0', STR_PAD_LEFT) . '_' . ($clientRequest->vehicle ? str_replace(' ', '_', $clientRequest->vehicle->plate_number) : 'Unit') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    // Export Single Client Request to Word Document (.doc)
+    public function exportClientRequestDoc(\App\Models\ClientRequest $clientRequest)
+    {
+        $clientRequest->load(['vehicle.location', 'vendor', 'user']);
+
+        // Extract metadata blocks and complaints from description (handling both \r\n and \n)
+        $normalizedDesc = str_replace(["\r\n", "\r"], "\n", $clientRequest->description ?? '');
+        $descLines = explode("\n", $normalizedDesc);
+
+        $structuredData = [
+            'pic_name' => '',
+            'pic_phone' => '',
+            'operational_status' => '',
+            'unit_position' => '',
+            'physical_notes' => '',
+            'workshop_phone' => '',
+            'mechanic_name' => '',
+            'mechanic_phone' => '',
+        ];
+
+        $complaintBlocks = [];
+        $cleanDescLines = [];
+        $currentComplaint = null;
+
+        foreach ($descLines as $line) {
+            $trimmed = trim($line);
+            if (empty($trimmed)) continue;
+
+            if (str_starts_with($trimmed, '[PIC Pengaju:')) {
+                $content = trim($trimmed, '[]');
+                if (preg_match('/PIC Pengaju:\s*([^-]+?)(?:\s*-\s*Telp:\s*(.*))?$/i', $content, $pm)) {
+                    $structuredData['pic_name'] = trim($pm[1] ?? '');
+                    $structuredData['pic_phone'] = trim($pm[2] ?? '');
+                }
+            } elseif (str_starts_with($trimmed, '[Kondisi Operasional:') || str_contains($trimmed, 'Kondisi Operasional:')) {
+                $content = trim($trimmed, '[]');
+                $parts = explode('|', $content);
+                foreach ($parts as $part) {
+                    $partTrim = trim($part);
+                    if (str_starts_with($partTrim, 'Kondisi Operasional:')) {
+                        $structuredData['operational_status'] = trim(substr($partTrim, 20));
+                    } elseif (str_starts_with($partTrim, 'Posisi Unit:')) {
+                        $structuredData['unit_position'] = trim(substr($partTrim, 12));
+                    } elseif (str_starts_with($partTrim, 'Catatan Fisik:')) {
+                        $structuredData['physical_notes'] = trim(substr($partTrim, 14));
+                    }
+                }
+            } elseif (str_starts_with($trimmed, '[Telp Bengkel:') || str_contains($trimmed, 'Telp Bengkel:') || str_contains($trimmed, 'Mekanik:')) {
+                $content = trim($trimmed, '[]');
+                $parts = explode('|', $content);
+                foreach ($parts as $part) {
+                    $partTrim = trim($part);
+                    if (str_starts_with($partTrim, 'Telp Bengkel:')) {
+                        $structuredData['workshop_phone'] = trim(substr($partTrim, 13));
+                    } elseif (str_starts_with($partTrim, 'Mekanik:')) {
+                        $mContent = trim(substr($partTrim, 8));
+                        if (preg_match('/^(.*?)\s*\(Telp:\s*(.*?)\)$/i', $mContent, $mm)) {
+                            $structuredData['mechanic_name'] = trim($mm[1]);
+                            $structuredData['mechanic_phone'] = trim($mm[2]);
+                        } else {
+                            $structuredData['mechanic_name'] = $mContent;
+                        }
+                    }
+                }
+            } elseif (preg_match('/^\[Keluhan #(\d+): (.*?)\]$/', $trimmed, $m)) {
+                if ($currentComplaint) {
+                    $complaintBlocks[] = $currentComplaint;
+                }
+                $currentComplaint = [
+                    'num' => $m[1],
+                    'category' => $m[2],
+                    'title' => '',
+                    'cost' => '',
+                    'desc' => '',
+                ];
+            } elseif ($currentComplaint && str_starts_with($trimmed, 'Judul: ')) {
+                $titleLine = substr($trimmed, 7);
+                if (preg_match('/^(.*?) \(Estimasi: (.*?)\)$/', $titleLine, $cm)) {
+                    $currentComplaint['title'] = $cm[1];
+                    $currentComplaint['cost'] = $cm[2];
+                } else {
+                    $currentComplaint['title'] = $titleLine;
+                }
+            } elseif ($currentComplaint && str_starts_with($trimmed, 'Uraian: ')) {
+                $currentComplaint['desc'] = substr($trimmed, 8);
+            } elseif ($currentComplaint) {
+                $currentComplaint['desc'] .= (!empty($currentComplaint['desc']) ? "\n" : '') . $trimmed;
+            } elseif (!str_starts_with($trimmed, '[Kategori:')) {
+                $cleanDescLines[] = $trimmed;
+            }
+        }
+
+        if ($currentComplaint) {
+            $complaintBlocks[] = $currentComplaint;
+        }
+
+        if (empty($complaintBlocks) && $clientRequest->request_type === 'perbaikan_servis') {
+            $complaintBlocks[] = [
+                'num' => '1',
+                'category' => 'Pengajuan Perbaikan / Servis',
+                'title' => $clientRequest->title,
+                'cost' => $clientRequest->estimated_cost > 0 ? 'Rp ' . number_format($clientRequest->estimated_cost, 0, ',', '.') : '',
+                'desc' => implode("\n", $cleanDescLines) ?: $clientRequest->description,
+            ];
+        }
+
+        $remainingDescription = implode("\n", $cleanDescLines);
+
+        $proofFiles = $clientRequest->proof_files ?? [];
+        $vehicleAnglePhotos = [];
+        $otherDocs = [];
+
+        foreach ($proofFiles as $pf) {
+            $name = $pf['name'] ?? '';
+            if (str_contains($name, 'Tampak Depan')) {
+                $vehicleAnglePhotos['front'] = $pf;
+            } elseif (str_contains($name, 'Samping Kanan')) {
+                $vehicleAnglePhotos['right'] = $pf;
+            } elseif (str_contains($name, 'Samping Kiri')) {
+                $vehicleAnglePhotos['left'] = $pf;
+            } elseif (str_contains($name, 'Tampak Belakang')) {
+                $vehicleAnglePhotos['behind'] = $pf;
+            } else {
+                $otherDocs[] = $pf;
+            }
+        }
+
+        $content = view('exports.pdf_client_request', compact(
+            'clientRequest',
+            'structuredData',
+            'complaintBlocks',
+            'remainingDescription',
+            'vehicleAnglePhotos',
+            'otherDocs'
+        ))->render();
+
+        $filename = 'Tiket_Permohonan_REQ-' . str_pad($clientRequest->id, 4, '0', STR_PAD_LEFT) . '_' . ($clientRequest->vehicle ? str_replace(' ', '_', $clientRequest->vehicle->plate_number) : 'Unit') . '.doc';
+
+        return response($content, 200, [
+            'Content-Type' => 'application/msword',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
 }

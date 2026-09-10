@@ -45,15 +45,29 @@ class DocumentController extends Controller
         }
         $vehicles = $vehicleQuery->get();
 
-        $expiringQ = VehicleDocument::where('expiry_date', '<=', Carbon::now()->addDays(30));
+        $docStatsQ = VehicleDocument::query();
         if ($activeVendorId) {
-            $expiringQ->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $docStatsQ->whereHas('vehicle', function($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
-        $expiringCount = $expiringQ->count();
 
-        return view('documents.index', compact('documents', 'vehicles', 'expiringCount', 'perPage'));
+        $now = Carbon::now()->startOfDay();
+        $in30Days = Carbon::now()->addDays(30)->endOfDay();
+
+        $stats = [
+            'total_docs' => (clone $docStatsQ)->count(),
+            'active_docs' => (clone $docStatsQ)->where('expiry_date', '>', $in30Days)->count(),
+            'expiring_soon' => (clone $docStatsQ)->whereBetween('expiry_date', [$now, $in30Days])->count(),
+            'expired' => (clone $docStatsQ)->where('expiry_date', '<', $now)->count(),
+            'total_cost' => (clone $docStatsQ)->sum('cost'),
+            'tax_cost' => (clone $docStatsQ)->whereIn('document_type', ['stnk', 'pajak_tahunan', 'plat_5_tahunan'])->sum('cost'),
+            'insurance_cost' => (clone $docStatsQ)->where('document_type', 'asuransi')->sum('cost'),
+        ];
+
+        $expiringCount = $stats['expiring_soon'] + $stats['expired'];
+
+        return view('documents.index', compact('documents', 'vehicles', 'expiringCount', 'perPage', 'stats'));
     }
 
     public function create(Request $request)

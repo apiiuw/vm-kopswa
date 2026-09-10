@@ -57,10 +57,8 @@
                     <select name="request_type" onchange="document.getElementById('filterForm').submit()" class="text-xs font-bold bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-[#015471] focus:outline-hidden cursor-pointer shadow-2xs">
                         <option value="">Semua Jenis</option>
                         <option value="perbaikan_servis" {{ request('request_type') === 'perbaikan_servis' ? 'selected' : '' }}>Perbaikan / Servis</option>
-                        <option value="ganti_ban_accu" {{ request('request_type') === 'ganti_ban_accu' ? 'selected' : '' }}>Ganti Ban / Accu</option>
                         <option value="unit_pengganti" {{ request('request_type') === 'unit_pengganti' ? 'selected' : '' }}>Unit Pengganti</option>
                         <option value="lapor_kehilangan" {{ request('request_type') === 'lapor_kehilangan' ? 'selected' : '' }}>Lapor Kehilangan</option>
-                        <option value="input_hasil_perbaikan" {{ request('request_type') === 'input_hasil_perbaikan' ? 'selected' : '' }}>Hasil Perbaikan</option>
                     </select>
                 </div>
 

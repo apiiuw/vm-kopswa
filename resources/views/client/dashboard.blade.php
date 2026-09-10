@@ -31,19 +31,19 @@
         </div>
     </div>
 
-    <!-- Quick Action Shortcut Cards (4 Action Tiles) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Quick Action Shortcut Cards (3 Action Tiles) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Shortcut 1: Servis / Perbaikan -->
         <a href="{{ route('client.requests.create', ['type' => 'perbaikan_servis']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-[#015471] transition group">
             <div class="w-12 h-12 rounded-2xl bg-[#015471]/10 text-[#015471] group-hover:bg-[#015471] group-hover:text-white transition flex items-center justify-center mb-4">
                 <i data-lucide="wrench" class="w-6 h-6 text-[#FF7A3D]"></i>
             </div>
             <h2 class="text-sm font-bold text-slate-900 group-hover:text-[#015471] transition">Ajukan Perbaikan / Servis</h2>
-            <p class="text-xs text-slate-500 mt-1">Lapor kerusakan mesin, ganti oli, ban & sparepart motor sewa</p>
+            <p class="text-xs text-slate-500 mt-1">Servis berkala, ganti ban, accu, & suku cadang fast moving</p>
         </a>
 
         <!-- Shortcut 2: Unit Pengganti -->
-        <a href="{{ route('client.requests.create', ['type' => 'unit_pengganti']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-[#015471] transition group">
+        <a href="{{ route('client.requests.create', ['type' => 'unit_pengganti']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-[#FF7A3D] transition group">
             <div class="w-12 h-12 rounded-2xl bg-[#FF7A3D]/10 text-[#FF7A3D] group-hover:bg-[#FF7A3D] group-hover:text-white transition flex items-center justify-center mb-4">
                 <i data-lucide="refresh-cw" class="w-6 h-6"></i>
             </div>
@@ -58,15 +58,6 @@
             </div>
             <h2 class="text-sm font-bold text-slate-900 group-hover:text-rose-600 transition">Lapor Kehilangan (TLO)</h2>
             <p class="text-xs text-slate-500 mt-1">Input insiden kehilangan unit & berkas LP Polsek/Polres</p>
-        </a>
-
-        <!-- Shortcut 4: Input Bukti Selesai Perbaikan -->
-        <a href="{{ route('client.requests.create', ['type' => 'input_hasil_perbaikan']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-emerald-500 transition group">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition flex items-center justify-center mb-4">
-                <i data-lucide="file-check" class="w-6 h-6"></i>
-            </div>
-            <h2 class="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition">Input Bukti Selesai Servis</h2>
-            <p class="text-xs text-slate-500 mt-1">Upload nota bengkel rekanan & foto motor siap beroperasi</p>
         </a>
     </div>
 
@@ -182,9 +173,9 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('client.requests.create', ['vehicle_id' => $v->id, 'type' => 'input_hasil_perbaikan']) }}" class="px-3 py-1.5 text-[11px] font-bold rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition shrink-0">
-                                + Input Bukti Selesai
-                            </a>
+                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                Dalam Penanganan
+                            </span>
                         </div>
                     @empty
                         <div class="p-8 text-center text-slate-400 text-xs">

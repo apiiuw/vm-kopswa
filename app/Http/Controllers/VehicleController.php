@@ -63,7 +63,21 @@ class VehicleController extends Controller
         $brands = Vehicle::distinct()->whereNotNull('brand')->pluck('brand')->filter()->values();
         $currentVendor = $activeVendorId ? Vendor::find($activeVendorId) : null;
 
-        return view('vehicles.index', compact('vehicles', 'locations', 'vendors', 'categories', 'brands', 'currentVendor', 'activeVendorId', 'perPage'));
+        $statsQuery = Vehicle::query();
+        if ($activeVendorId) {
+            $statsQuery->where('vendor_id', $activeVendorId);
+        }
+
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('status', 'active')->count(),
+            'maintenance' => (clone $statsQuery)->where('status', 'maintenance')->count(),
+            'replaced' => (clone $statsQuery)->where('status', 'replaced')->count(),
+            'lost' => (clone $statsQuery)->where('status', 'lost')->count(),
+            'total_rental' => (clone $statsQuery)->sum('rental_price_per_month'),
+        ];
+
+        return view('vehicles.index', compact('vehicles', 'locations', 'vendors', 'categories', 'brands', 'currentVendor', 'activeVendorId', 'perPage', 'stats'));
     }
 
     public function create()
@@ -86,6 +100,7 @@ class VehicleController extends Controller
             'type_name' => 'nullable|string|max:100',
             'location_id' => 'nullable|exists:locations,id',
             'user_holder' => 'nullable|string',
+            'driver_phone' => 'nullable|string|max:50',
             'frame_number' => 'nullable|string',
             'engine_number' => 'nullable|string',
             'year' => 'required|numeric|min:2000|max:2035',
@@ -210,6 +225,7 @@ class VehicleController extends Controller
             'type_name' => 'nullable|string|max:100',
             'location_id' => 'nullable|exists:locations,id',
             'user_holder' => 'nullable|string',
+            'driver_phone' => 'nullable|string|max:50',
             'frame_number' => 'nullable|string',
             'engine_number' => 'nullable|string',
             'year' => 'required|numeric|min:2000|max:2035',

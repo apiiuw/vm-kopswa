@@ -107,7 +107,7 @@
 <body class="h-full antialiased flex overflow-hidden bg-white text-black">
 
     <!-- Sidebar (Full Solid Blue Theme #015471) -->
-    <aside class="w-64 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] z-30 transition-all duration-300">
+    <aside class="w-72 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] z-30 transition-all duration-300">
         <!-- Logo Area (Height 64px / h-16, perfectly aligned with topbar header) -->
         <div class="h-16 flex items-center px-5 border-b border-[#01435b] bg-[#015471]">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 w-full">
@@ -126,14 +126,14 @@
             <form action="{{ route('vendors.switch') }}" method="POST" id="vendorSwitchForm" class="space-y-1.5">
                 @csrf
                 <div class="flex items-center justify-between text-slate-200">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5 whitespace-nowrap">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#FF7A3D] shrink-0"></i>
                         <span>Filter Klien Sewa</span>
                     </span>
                     @if($currentVendor)
-                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-[#FF7A3D] text-white font-bold">{{ $currentVendor->code }}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-[#FF7A3D] text-white font-bold whitespace-nowrap">{{ $currentVendor->code }}</span>
                     @else
-                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-700 text-slate-300 font-bold">Semua</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-700 text-slate-300 font-bold whitespace-nowrap">Semua</span>
                     @endif
                 </div>
 
@@ -156,65 +156,69 @@
 
         <!-- Navigation Links -->
         <nav class="flex-1 overflow-y-auto px-3 py-2 space-y-1 text-sm font-medium sidebar-scroll">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                <span>Dashboard</span>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('dashboard') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Dashboard</span>
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Klien & Kontrak Sewa</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Klien & Kontrak Sewa</div>
 
-            <a href="{{ route('vendors.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('vendors.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="building-2" class="w-4 h-4"></i>
-                <span class="flex-1">Klien Proyek Sewa</span>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full {{ request()->routeIs('vendors.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#013e54] text-white' }}">{{ $globalVendors->count() }}</span>
+            <a href="{{ route('vendors.index') }}" class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('vendors.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <div class="flex items-center gap-3 min-w-0">
+                    <i data-lucide="building-2" class="w-4 h-4 shrink-0"></i>
+                    <span class="whitespace-nowrap">Klien Proyek Sewa</span>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full shrink-0 {{ request()->routeIs('vendors.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#013e54] text-white' }}">{{ $globalVendors->count() }}</span>
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Layanan & Permohonan Klien</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Layanan & Permohonan Klien</div>
 
-            <a href="{{ route('admin.client-requests.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.client-requests.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="inbox" class="w-4 h-4"></i>
-                <span class="flex-1">Tiket & Pengajuan Klien</span>
+            <a href="{{ route('admin.client-requests.index') }}" class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('admin.client-requests.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <div class="flex items-center gap-3 min-w-0">
+                    <i data-lucide="inbox" class="w-4 h-4 shrink-0"></i>
+                    <span class="whitespace-nowrap">Tiket & Pengajuan Klien</span>
+                </div>
                 @if(!empty($globalPendingRequestsCount) && $globalPendingRequestsCount > 0)
-                    <span class="px-2 py-0.5 text-[10px] font-black rounded-full {{ request()->routeIs('admin.client-requests.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#FF7A3D] text-white' }} animate-pulse shadow-xs">
+                    <span class="px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 {{ request()->routeIs('admin.client-requests.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#FF7A3D] text-white' }} animate-pulse shadow-xs">
                         {{ $globalPendingRequestsCount }}
                     </span>
                 @endif
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Armada & Operasional</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Armada & Operasional</div>
 
-            <a href="{{ route('vehicles.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('vehicles.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="bike" class="w-4 h-4"></i>
-                <span class="flex-1">Data Armada</span>
+            <a href="{{ route('vehicles.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('vehicles.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="bike" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Data Armada</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('maintenance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="wrench" class="w-4 h-4"></i>
-                <span>Servis & Pemeliharaan</span>
+            <a href="{{ route('maintenance.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('maintenance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="wrench" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Servis & Pemeliharaan</span>
             </a>
 
-            <a href="{{ route('documents.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('documents.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="file-check" class="w-4 h-4"></i>
-                <span>STNK & Pajak</span>
+            <a href="{{ route('documents.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('documents.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="file-check" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">STNK & Pajak</span>
             </a>
 
-            <a href="{{ route('insurance.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('insurance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="shield-alert" class="w-4 h-4"></i>
-                <span>Asuransi & Klaim</span>
+            <a href="{{ route('insurance.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors {{ request()->routeIs('insurance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="shield-alert" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Asuransi & Klaim</span>
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Keuangan & Anggaran</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Keuangan & Anggaran</div>
 
-            <a href="{{ route('financial.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('financial.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="wallet" class="w-4 h-4"></i>
-                <span>Pendapatan & Kas</span>
+            <a href="{{ route('financial.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('financial.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="wallet" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Pendapatan & Kas</span>
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300">Pengaturan</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Pengaturan</div>
 
-            <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="users" class="w-4 h-4"></i>
-                <span>Pengguna Internal</span>
+            <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('users.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Pengguna Internal</span>
             </a>
         </nav>
 
@@ -222,7 +226,7 @@
         <div class="p-3 border-t border-[#01435b] bg-[#003c52]">
             <div class="flex items-center justify-between p-2 rounded-lg bg-[#015471]/80">
                 <div class="flex items-center gap-2.5 overflow-hidden">
-                    <div class="w-8 h-8 rounded-full bg-[#FF7A3D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    <div class="w-8 h-8 rounded-full bg-[#FF7A3D] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
                         {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 2)) }}
                     </div>
                     <div class="truncate">
@@ -232,7 +236,7 @@
                 </div>
                 <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                     @csrf
-                    <button type="button" onclick="confirmLogout()" class="p-1.5 text-slate-200 hover:text-[#FF7A3D] rounded-md hover:bg-[#01435b] transition" title="Logout">
+                    <button type="button" onclick="confirmLogout()" class="p-1.5 text-slate-200 hover:text-[#FF7A3D] rounded-md hover:bg-[#01435b] transition shrink-0" title="Logout">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </form>
@@ -321,7 +325,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: "{{ session('success') }}",
+                    text: {!! json_encode(html_entity_decode(session('success'), ENT_QUOTES, 'UTF-8')) !!},
                     confirmButtonColor: '#FF7A3D',
                     timer: 3000
                 });
@@ -331,7 +335,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Terjadi Kesalahan',
-                    text: "{{ session('error') }}",
+                    text: {!! json_encode(html_entity_decode(session('error'), ENT_QUOTES, 'UTF-8')) !!},
                     confirmButtonColor: '#015471'
                 });
             @endif
@@ -340,7 +344,7 @@
                 Swal.fire({
                     icon: 'info',
                     title: 'Informasi',
-                    text: "{{ session('info') }}",
+                    text: {!! json_encode(html_entity_decode(session('info'), ENT_QUOTES, 'UTF-8')) !!},
                     confirmButtonColor: '#015471'
                 });
             @endif

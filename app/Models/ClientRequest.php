@@ -35,10 +35,9 @@ class ClientRequest extends Model
         return match($this->request_type) {
             'perbaikan_servis' => 'Pengajuan Perbaikan / Servis',
             'ganti_ban_accu' => 'Penggantian Ban / Accu',
-            'unit_pengganti' => 'Unit Pengganti Sementara',
+            'unit_pengganti' => 'Pengajuan Unit Pengganti Sementara',
             'lapor_kehilangan' => 'Laporan Insiden / Kehilangan (TLO)',
-            'input_hasil_perbaikan' => 'Hasil & Bukti Perbaikan Selesai',
-            default => 'Lainnya',
+            default => 'Layanan Klien',
         };
     }
 

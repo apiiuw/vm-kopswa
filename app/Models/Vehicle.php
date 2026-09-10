@@ -61,4 +61,54 @@ class Vehicle extends Model
             default => ['label' => ucfirst($this->status), 'class' => 'bg-slate-100 text-slate-800 border-slate-200'],
         };
     }
+
+    public function getIconNameAttribute(): string
+    {
+        $cat = strtolower($this->category ?? '');
+        $type = strtolower($this->type_name ?? '');
+        $model = strtolower($this->model_name ?? '');
+        $group = strtolower($this->vehicle_type ?? '');
+
+        // 1. Truk / Bus / Alat Berat / Double Cabin (Mobil Besar / Truk)
+        if (
+            str_contains($cat, 'alat berat') || 
+            str_contains($cat, 'truk') || 
+            str_contains($type, 'truk') || 
+            str_contains($type, 'alat berat') || 
+            str_contains($type, 'traktor') || 
+            str_contains($type, 'bus') ||
+            str_contains($type, 'double cabin') ||
+            str_contains($model, 'truk') ||
+            str_contains($model, 'fuso') ||
+            str_contains($model, 'hino') ||
+            str_contains($model, 'canter') ||
+            str_contains($model, 'hilux') ||
+            str_contains($model, 'd-max') ||
+            str_contains($model, 'triton')
+        ) {
+            return 'truck';
+        }
+
+        // 2. Mobil / Pick Up / Minibus / Sedan (Mobil Biasa / Roda 4)
+        if (
+            str_contains($cat, 'roda 4') || 
+            str_contains($cat, 'mobil') || 
+            str_contains($type, 'mobil') || 
+            str_contains($type, 'pick up') || 
+            str_contains($type, 'minibus') || 
+            str_contains($type, 'mpv') || 
+            str_contains($type, 'sedan') ||
+            str_contains($type, 'suv') ||
+            str_contains($model, 'avanza') ||
+            str_contains($model, 'xenia') ||
+            str_contains($model, 'innova') ||
+            str_contains($model, 'gran max') ||
+            str_contains($model, 'carry')
+        ) {
+            return 'car';
+        }
+
+        // 3. Sepeda Motor (Roda 2 / Trail / Bebek / Matic / CRF / Supra / KLX)
+        return 'bike';
+    }
 }

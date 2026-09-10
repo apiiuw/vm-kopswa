@@ -6,11 +6,16 @@
 @section('content')
 <div class="space-y-6 max-w-7xl mx-auto bg-white text-black">
 
-    <!-- Header Actions & Filters -->
+    <!-- Top Header & Action Banner -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-black tracking-tight">Armada Kendaraan Operasional</h2>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-2xl bg-[#015471] text-white flex items-center justify-center shadow-xs">
+                    <i data-lucide="truck" class="w-5 h-5 text-[#FF7A3D]"></i>
+                </span>
+                Armada Kendaraan Operasional
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
                 @if($currentVendor)
                     Vendor: <strong class="text-[#015471]">{{ $currentVendor->name }}</strong> ({{ $vehicles->total() }} Unit Terdaftar)
                 @else
@@ -19,15 +24,85 @@
             </p>
         </div>
         <div class="flex items-center gap-2.5">
-            <a href="{{ route('exports.vehiclesPdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-black border-2 border-slate-200 shadow-2xs transition">
+            <a href="{{ route('exports.vehiclesPdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
                 <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i> Ekspor PDF
             </a>
-            <a href="{{ route('exports.vehiclesExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-black border-2 border-slate-200 shadow-2xs transition">
+            <a href="{{ route('exports.vehiclesExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel
             </a>
-            <a href="{{ route('vehicles.create') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
+            <a href="{{ route('vehicles.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition active:scale-95">
                 <i data-lucide="plus" class="w-4 h-4"></i> Tambah Motor
             </a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Cards (5 Cards Grid) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
+        <!-- 1. Total Armada -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-2xs hover:border-slate-300 hover:shadow-xs transition relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Total Armada</span>
+                <span class="w-7 h-7 rounded-lg bg-slate-100 text-[#015471] flex items-center justify-center text-xs">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+            <span class="text-xl font-black text-slate-900 mt-2 block font-mono">{{ $stats['total'] }} <span class="text-xs font-semibold text-slate-400">Unit</span></span>
+            <span class="text-[10px] text-slate-400 mt-1 block">Seluruh unit terdaftar</span>
+        </div>
+
+        <!-- 2. Aktif Beroperasi -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-2xs hover:border-emerald-200 hover:shadow-xs transition relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <span class="text-emerald-700 block text-[10px] uppercase font-bold tracking-wider">Aktif Beroperasi</span>
+                <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs">
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+            <span class="text-xl font-black text-emerald-700 mt-2 block font-mono">{{ $stats['active'] }} <span class="text-xs font-semibold text-slate-400">Unit</span></span>
+            <span class="text-[10px] text-slate-400 mt-1 block">Unit siap jalan di lapangan</span>
+        </div>
+
+        <!-- 3. Dalam Servis / Bengkel -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-2xs hover:border-orange-200 hover:shadow-xs transition relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <span class="text-[#FF7A3D] block text-[10px] uppercase font-bold tracking-wider">Dalam Perbaikan</span>
+                <span class="w-7 h-7 rounded-lg bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center text-xs">
+                    <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+            <span class="text-xl font-black text-[#FF7A3D] mt-2 block font-mono">{{ $stats['maintenance'] }} <span class="text-xs font-semibold text-slate-400">Unit</span></span>
+            <span class="text-[10px] text-slate-400 mt-1 block">Sedang dalam proses servis</span>
+        </div>
+
+        <!-- 4. Unit Pengganti / Klaim -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-2xs hover:border-amber-200 hover:shadow-xs transition relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <span class="text-amber-700 block text-[10px] uppercase font-bold tracking-wider">Pengganti / Hilang</span>
+                <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs">
+                    <i data-lucide="repeat" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+            <span class="text-xl font-black text-amber-700 mt-2 block font-mono">
+                {{ $stats['replaced'] }} <span class="text-xs font-normal text-slate-400">ganti</span> 
+                @if($stats['lost'] > 0)
+                    <span class="text-xs font-semibold text-rose-600">/ {{ $stats['lost'] }} hilang</span>
+                @endif
+            </span>
+            <span class="text-[10px] text-slate-400 mt-1 block">Backup aktif & klaim asuransi</span>
+        </div>
+
+        <!-- 5. Estimasi Nilai Sewa / Bln -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-2xs hover:border-blue-200 hover:shadow-xs transition relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <span class="text-[#015471] block text-[10px] uppercase font-bold tracking-wider">Nilai Kontrak / Bln</span>
+                <span class="w-7 h-7 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center text-xs">
+                    <i data-lucide="coins" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+            <span class="text-base sm:text-lg font-black text-[#015471] mt-2 block font-mono">
+                Rp {{ number_format($stats['total_rental'], 0, ',', '.') }}
+            </span>
+            <span class="text-[10px] text-slate-400 mt-1 block">Total billing sewa unit/bulan</span>
         </div>
     </div>
 

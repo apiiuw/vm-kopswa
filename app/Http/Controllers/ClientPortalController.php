@@ -77,42 +77,159 @@ class ClientPortalController extends Controller
     public function createRequest(Request $request)
     {
         $vendorId = $this->getClientVendorId();
-        $vehiclesQuery = Vehicle::orderBy('plate_number');
+        $vehiclesQuery = Vehicle::with(['location'])->orderBy('plate_number');
         if ($vendorId) {
             $vehiclesQuery->where('vendor_id', $vendorId);
         }
         $vehicles = $vehiclesQuery->get();
         $preselectedVehicleId = $request->get('vehicle_id');
         $preselectedType = $request->get('type', 'perbaikan_servis');
+        $clientVendor = Auth::user()->vendor;
 
-        return view('client.requests.create', compact('vehicles', 'preselectedVehicleId', 'preselectedType'));
+        return view('client.requests.create', compact('vehicles', 'preselectedVehicleId', 'preselectedType', 'clientVendor'));
     }
 
     public function storeRequest(Request $request)
     {
         $validated = $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
-            'request_type' => 'required|in:perbaikan_servis,ganti_ban_accu,unit_pengganti,lapor_kehilangan,input_hasil_perbaikan,lainnya',
+            'request_type' => 'required|in:perbaikan_servis,unit_pengganti,lapor_kehilangan',
+            'repair_category' => 'nullable|string',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'odometer_km' => 'nullable|integer',
+            'vehicle_operational_status' => 'nullable|string',
+            'vehicle_current_location' => 'nullable|string',
+            'vehicle_condition_notes' => 'nullable|string',
             'driver_name' => 'nullable|string',
             'driver_phone' => 'nullable|string',
+            'pic_name' => 'nullable|string',
+            'pic_phone' => 'nullable|string',
             'workshop_name' => 'nullable|string',
+            'workshop_phone' => 'nullable|string',
+            'mechanic_name' => 'nullable|string',
+            'mechanic_phone' => 'nullable|string',
             'estimated_cost' => 'nullable|numeric|min:0',
+            'photo_front' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+            'photo_right' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+            'photo_left' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+            'photo_behind' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'proof_files.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $uploadedFiles = [];
+
+        // Extract 4 standard vehicle photos
+        $vehicleAngles = [
+            'photo_front' => 'Foto Tampak Depan (Nopol Terlihat)',
+            'photo_right' => 'Foto Tampak Samping Kanan',
+            'photo_left' => 'Foto Tampak Samping Kiri',
+            'photo_behind' => 'Foto Tampak Belakang (Nopol Terlihat)',
+        ];
+
+        foreach ($vehicleAngles as $fieldKey => $label) {
+            if ($request->hasFile($fieldKey)) {
+                $file = $request->file($fieldKey);
+                if ($file && $file->isValid()) {
+                    $path = $file->store('client_proofs', 'public');
+                    $uploadedFiles[] = [
+                        'path' => $path,
+                        'name' => "{$label} - " . $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                    ];
+                }
+            }
+        }
+
+        // Extract global proof files
         if ($request->hasFile('proof_files')) {
             foreach ($request->file('proof_files') as $file) {
-                $path = $file->store('client_proofs', 'public');
-                $uploadedFiles[] = [
-                    'path' => $path,
-                    'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                ];
+                if ($file->isValid()) {
+                    $path = $file->store('client_proofs', 'public');
+                    $uploadedFiles[] = [
+                        'path' => $path,
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                    ];
+                }
             }
+        }
+
+        // Extract individual complaint photos (complaint_photos_0, complaint_photos_1, etc.)
+        foreach ($request->allFiles() as $key => $files) {
+            if (str_starts_with($key, 'complaint_photos_')) {
+                $complaintNum = str_replace('complaint_photos_', '', $key);
+                $complaintIdx = is_numeric($complaintNum) ? ((int)$complaintNum + 1) : $complaintNum;
+                $fileList = is_array($files) ? $files : [$files];
+                foreach ($fileList as $file) {
+                    if ($file && $file->isValid()) {
+                        $path = $file->store('client_proofs', 'public');
+                        $uploadedFiles[] = [
+                            'path' => $path,
+                            'name' => "Foto Keluhan #{$complaintIdx} - " . $file->getClientOriginalName(),
+                            'complaint_index' => (int)$complaintNum,
+                            'size' => $file->getSize(),
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Format title or description if specific category selected
+        $title = $validated['title'];
+        $description = $validated['description'];
+        
+        // Append Workshop and Mechanic details if provided
+        $workshopDetails = [];
+        if (!empty($validated['workshop_phone'])) {
+            $workshopDetails[] = "Telp Bengkel: {$validated['workshop_phone']}";
+        }
+        if (!empty($validated['mechanic_name'])) {
+            $workshopDetails[] = "Mekanik: {$validated['mechanic_name']}" . (!empty($validated['mechanic_phone']) ? " (Telp: {$validated['mechanic_phone']})" : '');
+        }
+        if (!empty($workshopDetails)) {
+            $description = "[" . implode(" | ", $workshopDetails) . "]\n" . $description;
+        }
+
+        // Append Vehicle Technical Status Info if provided
+        $statusLabels = [
+            'masih_bisa_jalan' => 'Masih Bisa Jalan Normal / Pelan',
+            'mogok_total' => 'Mogok Total / Tidak Bisa Dihidupkan',
+            'rusak_tidak_aman' => 'Bisa Hidup Tapi Berbahaya / Tidak Aman',
+            'sudah_di_bengkel' => 'Unit Sudah Masuk / Menginap di Bengkel',
+            'unit_hilang' => 'Unit Hilang / Tidak di Tempat (TLO)',
+        ];
+        $opStatus = !empty($validated['vehicle_operational_status']) ? ($statusLabels[$validated['vehicle_operational_status']] ?? $validated['vehicle_operational_status']) : null;
+        
+        $techInfo = [];
+        if ($opStatus) {
+            $techInfo[] = "Kondisi Operasional: {$opStatus}";
+        }
+        if (!empty($validated['vehicle_current_location'])) {
+            $techInfo[] = "Posisi Unit: {$validated['vehicle_current_location']}";
+        }
+        if (!empty($validated['vehicle_condition_notes'])) {
+            $techInfo[] = "Catatan Fisik: {$validated['vehicle_condition_notes']}";
+        }
+        if (!empty($techInfo)) {
+            $description = "[" . implode(" | ", $techInfo) . "]\n" . $description;
+        }
+
+        // Append PIC details to description if provided
+        if (!empty($validated['pic_name'])) {
+            $picInfo = "[PIC Pengaju: {$validated['pic_name']}" . (!empty($validated['pic_phone']) ? " - Telp: {$validated['pic_phone']}" : '') . "]";
+            $description = $picInfo . "\n" . $description;
+        }
+
+        if (!empty($validated['repair_category']) && $validated['request_type'] === 'perbaikan_servis') {
+            $categoryLabels = [
+                'servis_berkala' => 'Servis Berkala & Tune Up',
+                'ganti_ban' => 'Penggantian Ban',
+                'ganti_accu' => 'Penggantian Accu / Aki',
+                'sparepart_fast_moving' => 'Penggantian Sparepart Fast Moving',
+            ];
+            $catLabel = $categoryLabels[$validated['repair_category']] ?? $validated['repair_category'];
+            $description = "[Kategori: {$catLabel}]\n" . $description;
         }
 
         $clientRequest = ClientRequest::create([
@@ -120,8 +237,8 @@ class ClientPortalController extends Controller
             'vendor_id' => Auth::user()->vendor_id,
             'vehicle_id' => $validated['vehicle_id'],
             'request_type' => $validated['request_type'],
-            'title' => $validated['title'],
-            'description' => $validated['description'],
+            'title' => $title,
+            'description' => $description,
             'odometer_km' => $validated['odometer_km'] ?? null,
             'driver_name' => $validated['driver_name'] ?? null,
             'driver_phone' => $validated['driver_phone'] ?? null,
@@ -131,8 +248,8 @@ class ClientPortalController extends Controller
             'status' => 'menunggu_review',
         ]);
 
-        // Automatically update vehicle status if request is repair or lost
-        if (in_array($validated['request_type'], ['perbaikan_servis', 'ganti_ban_accu'])) {
+        // Automatically update vehicle status based on request type
+        if ($validated['request_type'] === 'perbaikan_servis') {
             Vehicle::where('id', $validated['vehicle_id'])->update(['status' => 'maintenance']);
         } elseif ($validated['request_type'] === 'lapor_kehilangan') {
             Vehicle::where('id', $validated['vehicle_id'])->update(['status' => 'lost']);
