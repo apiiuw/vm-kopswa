@@ -22,9 +22,10 @@ class AppServiceProvider extends ServiceProvider
         \Carbon\Carbon::setLocale('id');
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $allVendors = \App\Models\Vendor::orderBy('name', 'asc')->get();
+            $hasVendorsTable = \Illuminate\Support\Facades\Schema::hasTable('vendors');
+            $allVendors = $hasVendorsTable ? \App\Models\Vendor::orderBy('name', 'asc')->get() : collect();
             $activeVendorId = session('active_vendor_id');
-            $currentVendor = $activeVendorId ? \App\Models\Vendor::find($activeVendorId) : null;
+            $currentVendor = ($hasVendorsTable && $activeVendorId) ? \App\Models\Vendor::find($activeVendorId) : null;
 
             $pendingRequestsCount = \Illuminate\Support\Facades\Schema::hasTable('client_requests') 
                 ? \App\Models\ClientRequest::where('status', 'menunggu_review')->count() 
