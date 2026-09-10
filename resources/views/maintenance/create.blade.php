@@ -4,7 +4,7 @@
 @section('page_title', 'Catat Pemeliharaan & Operasional Armada')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="w-full space-y-6">
 
     <form action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data" id="maintenanceWizardForm">
         @csrf

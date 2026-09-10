@@ -4,7 +4,7 @@
 @section('page_title', 'Perencanaan & Plafon Anggaran Operasional')
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6 pb-12">
+<div class="w-full space-y-6 pb-12">
 
     <!-- Top Header Bar -->
     <div class="bg-white rounded-3xl border-2 border-slate-100 shadow-sm p-5 sm:p-6">

@@ -202,9 +202,9 @@
                     </h3>
                     <p class="text-xs text-slate-500">Rekapitulasi invoice penagihan sewa armada bulanan beserta status pelunasan</p>
                 </div>
-                <button onclick="document.getElementById('addIncomeModal').classList.remove('hidden')" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
-                    + Buat Invoice Tagihan Baru
-                </button>
+                <a href="{{ route('financial.income.create') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Buat Invoice Tagihan Baru
+                </a>
             </div>
 
             <!-- Toolbar Dropdown & Total Info -->
@@ -301,9 +301,9 @@
                     <h3 class="text-sm font-bold text-black">Buku Kas Operasional Pekerjaan Sewa Kendaraan</h3>
                     <p class="text-xs text-slate-500">Mencatat pengeluaran servis, suku cadang, sewa unit pengganti, dan dokumen kepolisian</p>
                 </div>
-                <button onclick="document.getElementById('addExpenseModal').classList.remove('hidden')" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white shadow-sm transition">
-                    + Catat Pengeluaran Kas Baru
-                </button>
+                <a href="{{ route('financial.expense.create') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white shadow-sm transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Catat Pengeluaran Kas Baru
+                </a>
             </div>
 
             <!-- Toolbar Dropdown & Total Info -->

@@ -26,9 +26,9 @@
 
             <!-- Action Buttons -->
             <div class="flex items-center gap-2.5 shrink-0">
-                <button onclick="openAddUserModal()" class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
+                <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
                     <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pengguna Baru
-                </button>
+                </a>
             </div>
         </div>
     </div>

@@ -203,6 +203,78 @@ class FinancialController extends Controller
         ));
     }
 
+    public function createIncome(Request $request)
+    {
+        $activeVendorId = session('active_vendor_id');
+        $currentVendor = null;
+        if ($activeVendorId) {
+            $currentVendor = \App\Models\Vendor::find($activeVendorId);
+        }
+        if (!$currentVendor) {
+            $currentVendor = \App\Models\Vendor::first();
+        }
+
+        $vendors = \App\Models\Vendor::orderBy('name')->get();
+
+        return view('financial.income.create', compact('currentVendor', 'vendors'));
+    }
+
+    public function createExpense(Request $request)
+    {
+        $activeVendorId = session('active_vendor_id');
+        $currentVendor = null;
+        $vehicleQuery = Vehicle::with('location')->orderBy('plate_number');
+
+        if ($activeVendorId) {
+            $currentVendor = \App\Models\Vendor::find($activeVendorId);
+            $vehicleQuery->where('vendor_id', $activeVendorId);
+        }
+
+        $vehicles = $vehicleQuery->get();
+        $vendors = \App\Models\Vendor::orderBy('name')->get();
+
+        $categories = [
+            'service_berkala' => [
+                'label' => 'Service Berkala & Pelumas',
+                'desc' => 'Ganti oli mesin, tune-up berkala, filter udara, dan servis rutin berkala.'
+            ],
+            'ban' => [
+                'label' => 'Penggantian Ban',
+                'desc' => 'Ban luar depan, ban luar belakang, ban dalam, dan pentil tubeless.'
+            ],
+            'accu' => [
+                'label' => 'Penggantian Accu (Aki)',
+                'desc' => 'Aki kering/basah maintenance free, klem aki, dan kelistrikan pengisian.'
+            ],
+            'sparepart' => [
+                'label' => 'Sparepart & Fast Moving',
+                'desc' => 'Kampas rem depan/belakang, busi, rantai, gir paket, v-belt, bearing roda.'
+            ],
+            'motor_pengganti' => [
+                'label' => 'Sewa Motor Pengganti (Temporary)',
+                'desc' => 'Biaya unit sewa sementara selama unit kontrak dalam perbaikan bengkel.'
+            ],
+            'pajak_stnk' => [
+                'label' => 'Pajak STNK & Plat Kendaraan',
+                'desc' => 'PKB tahunan, SWDKLLJ, cek fisik, dan perpanjangan STNK 5 tahunan.'
+            ],
+            'asuransi' => [
+                'label' => 'Asuransi Kendaraan (TLO / All Risk)',
+                'desc' => 'Premi asuransi tahunan, biaya klaim risiko insiden atau kehilangan total.'
+            ],
+            'legalitas_kepolisian' => [
+                'label' => 'Legalitas Kepolisian / Blokir Polda',
+                'desc' => 'Biaya cabut berkas, buka blokir Polda/Lantas, surat rekomendasi, dan legalitas.'
+            ],
+            'overhead_admin' => [
+                'label' => 'Transportasi, Administrasi & Operasional',
+                'desc' => 'Biaya logistik towing/antar unit, supervisi lapangan, materai, dan administrasi.'
+            ],
+        ];
+
+        return view('financial.expense.create', compact('vehicles', 'vendors', 'currentVendor', 'categories'));
+    }
+
     public function storeIncome(Request $request)
     {
         $validated = $request->validate([
@@ -224,7 +296,10 @@ class FinancialController extends Controller
         $ppn = $gross * 0.11;
         $totalWithPpn = $gross + $ppn;
 
+        $vendorId = $request->input('vendor_id') ?: session('active_vendor_id');
+
         Income::create(array_merge($validated, [
+            'vendor_id' => $vendorId,
             'crf_subtotal' => $crfSubtotal,
             'supra_subtotal' => $supraSubtotal,
             'gross_amount' => $gross,

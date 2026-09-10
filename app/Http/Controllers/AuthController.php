@@ -68,6 +68,13 @@ class AuthController extends Controller
         return view('users.index', compact('users', 'vendors', 'perPage', 'stats'));
     }
 
+    public function createUser(Request $request)
+    {
+        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $defaultCategory = $request->get('category', 'internal');
+        return view('users.create', compact('vendors', 'defaultCategory'));
+    }
+
     public function storeUser(Request $request)
     {
         $validated = $request->validate([

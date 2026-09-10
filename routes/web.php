@@ -42,8 +42,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/financial/budget/create', [FinancialController::class, 'createBudget'])->name('financial.budget.create');
     Route::post('/financial/budget', [FinancialController::class, 'storeBudget'])->name('financial.budget.store');
     Route::put('/financial/budget/{budget}', [FinancialController::class, 'updateBudget'])->name('financial.budget.update');
+    Route::get('/financial/income/create', [FinancialController::class, 'createIncome'])->name('financial.income.create');
     Route::post('/financial/income', [FinancialController::class, 'storeIncome'])->name('financial.income.store');
     Route::patch('/financial/income/{income}/status', [FinancialController::class, 'updateIncomeStatus'])->name('financial.income.updateStatus');
+    Route::get('/financial/expense/create', [FinancialController::class, 'createExpense'])->name('financial.expense.create');
     Route::post('/financial/expense', [FinancialController::class, 'storeExpense'])->name('financial.expense.store');
     Route::delete('/financial/expense/{expense}', [FinancialController::class, 'destroyExpense'])->name('financial.expense.destroy');
 
@@ -60,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Internal Users Management
     Route::get('/users', [AuthController::class, 'usersIndex'])->name('users.index');
+    Route::get('/users/create', [AuthController::class, 'createUser'])->name('users.create');
     Route::post('/users', [AuthController::class, 'storeUser'])->name('users.store');
     Route::delete('/users/{user}', [AuthController::class, 'destroyUser'])->name('users.destroy');
 

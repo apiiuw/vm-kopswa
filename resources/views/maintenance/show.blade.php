@@ -4,7 +4,7 @@
 @section('page_title', 'Rincian Transaksi Pemeliharaan & Servis')
 
 @section('content')
-<div class="space-y-6 max-w-5xl mx-auto bg-white text-black">
+<div class="w-full space-y-6">
 
     <!-- Top Navigation & Action Header -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6">
