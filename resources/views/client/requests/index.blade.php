@@ -20,7 +20,7 @@
                             Live Update
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Monitoring permohonan servis, unit pengganti, laporan kehilangan & bukti perbaikan armada</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Monitoring permohonan servis, perbaikan armada, & laporan kehilangan (TLO) secara realtime</p>
                 </div>
             </div>
 
@@ -57,7 +57,6 @@
                     <select name="request_type" onchange="document.getElementById('filterForm').submit()" class="text-xs font-bold bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-[#015471] focus:outline-hidden cursor-pointer shadow-2xs">
                         <option value="">Semua Jenis</option>
                         <option value="perbaikan_servis" {{ request('request_type') === 'perbaikan_servis' ? 'selected' : '' }}>Perbaikan / Servis</option>
-                        <option value="unit_pengganti" {{ request('request_type') === 'unit_pengganti' ? 'selected' : '' }}>Unit Pengganti</option>
                         <option value="lapor_kehilangan" {{ request('request_type') === 'lapor_kehilangan' ? 'selected' : '' }}>Lapor Kehilangan</option>
                     </select>
                 </div>
@@ -79,43 +78,55 @@
             </div>
         </div>
 
-        <!-- Table Data -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+        <!-- Table Data with Horizontal Scroll and Clean Spacing -->
+        <div class="overflow-x-auto scrollbar-thin">
+            <table class="w-full text-left text-xs min-w-[1100px]">
                 <thead class="bg-[#e6f0f3] border-b border-slate-200 text-[#015471] font-bold uppercase tracking-wider text-[10px]">
                     <tr>
-                        <th class="px-6 py-4">Nomor & Kendaraan</th>
-                        <th class="px-6 py-4">Jenis & Judul Pengajuan</th>
-                        <th class="px-6 py-4">Pengemudi / Bengkel</th>
-                        <th class="px-6 py-4">Lampiran Bukti</th>
-                        <th class="px-6 py-4">Status Progres</th>
-                        <th class="px-6 py-4">Tanggal Pengajuan</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap">Nomor & Kendaraan</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap">Jenis Pengajuan</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap min-w-[280px]">Judul Permohonan</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap">Pengemudi / Bengkel</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap text-center">Lampiran</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap">Status Progres</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap">Waktu Pengajuan</th>
+                        <th class="px-5 py-3.5 whitespace-nowrap text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-800">
                     @forelse($requests as $req)
                         <tr class="hover:bg-slate-50/80 transition">
-                            <td class="px-6 py-4">
+                            <td class="px-5 py-3.5 whitespace-nowrap">
                                 <span class="font-mono font-bold text-slate-900 block">
                                     {{ $req->vehicle ? $req->vehicle->plate_number : '-' }}
                                 </span>
-                                <span class="text-[11px] text-slate-500">
+                                <span class="text-[11px] text-slate-500 block">
                                     {{ $req->vehicle ? $req->vehicle->model_name : '' }}
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4">
-                                <span class="font-bold text-slate-900 block">{{ $req->title }}</span>
-                                <span class="text-[11px] font-semibold text-[#015471]">{{ $req->request_type_label }}</span>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold {{ $req->request_type === 'lapor_kehilangan' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-[#015471]/10 text-[#015471] border border-[#015471]/20' }}">
+                                    <i data-lucide="{{ $req->request_type === 'lapor_kehilangan' ? 'shield-alert' : 'wrench' }}" class="w-3 h-3"></i>
+                                    {{ $req->request_type_label }}
+                                </span>
                             </td>
 
-                            <td class="px-6 py-4 text-slate-600">
+                            <td class="px-5 py-3.5">
+                                <span class="font-bold text-slate-900 block max-w-sm truncate" title="{{ $req->title }}">{{ $req->title }}</span>
+                                @if(!empty($req->complaints) && count($req->complaints) > 0)
+                                    <span class="text-[10px] text-slate-400 block truncate">
+                                        {{ count($req->complaints) }} rincian kendala
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-600">
                                 <span class="font-medium text-slate-900 block">{{ $req->driver_name ?: '-' }}</span>
-                                <span class="text-[11px] text-slate-500">{{ $req->workshop_name ?: 'Bengkel Rekanan' }}</span>
+                                <span class="text-[11px] text-slate-500 block">{{ $req->workshop_name ?: 'Bengkel Rekanan' }}</span>
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-5 py-3.5 whitespace-nowrap text-center">
                                 @if(!empty($req->proof_files) && count($req->proof_files) > 0)
                                     <span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#015471] bg-[#015471]/10 px-2 py-1 rounded-lg">
                                         <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
@@ -126,18 +137,18 @@
                                 @endif
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-5 py-3.5 whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border {{ $req->status_badge['bg'] }}">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $req->status_badge['dot'] }}"></span>
                                     {{ $req->status_badge['label'] }}
                                 </span>
                             </td>
 
-                            <td class="px-6 py-4 text-slate-500 font-medium">
+                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-500 font-medium">
                                 {{ $req->created_at->format('d M Y, H:i') }}
                             </td>
 
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-5 py-3.5 whitespace-nowrap text-right">
                                 <a href="{{ route('client.requests.show', $req) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#015471] text-white hover:bg-[#013e54] text-[11px] font-bold transition shadow-2xs">
                                     <span>Lihat Detail</span>
                                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -146,7 +157,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-10 text-slate-400">
+                            <td colspan="8" class="text-center py-10 text-slate-400">
                                 <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-300 mb-2"></i>
                                 Belum ada riwayat pengajuan permohonan.
                             </td>

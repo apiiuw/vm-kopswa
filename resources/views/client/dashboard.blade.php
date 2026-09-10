@@ -18,7 +18,7 @@
                     Selamat Datang, {{ Auth::user()->name }}
                 </h1>
                 <p class="text-xs sm:text-sm text-cyan-100 max-w-2xl leading-relaxed">
-                    Ajukan permohonan servis berkala, klaim kehilangan (TLO), unit pengganti sementara, serta pantau status pengerjaan armada sewa Anda secara real-time.
+                    Ajukan permohonan servis berkala, penggantian ban/accu/sparepart, klaim kehilangan (TLO), serta pantau status pengerjaan armada sewa Anda secara real-time.
                 </p>
             </div>
 
@@ -31,8 +31,8 @@
         </div>
     </div>
 
-    <!-- Quick Action Shortcut Cards (3 Action Tiles) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Quick Action Shortcut Cards (2 Action Tiles) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Shortcut 1: Servis / Perbaikan -->
         <a href="{{ route('client.requests.create', ['type' => 'perbaikan_servis']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-[#015471] transition group">
             <div class="w-12 h-12 rounded-2xl bg-[#015471]/10 text-[#015471] group-hover:bg-[#015471] group-hover:text-white transition flex items-center justify-center mb-4">
@@ -42,16 +42,7 @@
             <p class="text-xs text-slate-500 mt-1">Servis berkala, ganti ban, accu, & suku cadang fast moving</p>
         </a>
 
-        <!-- Shortcut 2: Unit Pengganti -->
-        <a href="{{ route('client.requests.create', ['type' => 'unit_pengganti']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-[#FF7A3D] transition group">
-            <div class="w-12 h-12 rounded-2xl bg-[#FF7A3D]/10 text-[#FF7A3D] group-hover:bg-[#FF7A3D] group-hover:text-white transition flex items-center justify-center mb-4">
-                <i data-lucide="refresh-cw" class="w-6 h-6"></i>
-            </div>
-            <h2 class="text-sm font-bold text-slate-900 group-hover:text-[#FF7A3D] transition">Unit Pengganti Sementara</h2>
-            <p class="text-xs text-slate-500 mt-1">Permohonan drop motor cadangan jika armada servis > 24 jam</p>
-        </a>
-
-        <!-- Shortcut 3: Lapor Kehilangan (TLO) -->
+        <!-- Shortcut 2: Lapor Kehilangan (TLO) -->
         <a href="{{ route('client.requests.create', ['type' => 'lapor_kehilangan']) }}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-rose-500 transition group">
             <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition flex items-center justify-center mb-4">
                 <i data-lucide="shield-alert" class="w-6 h-6"></i>

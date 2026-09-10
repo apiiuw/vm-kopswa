@@ -22,7 +22,7 @@
                                 4 Tahap Pengajuan
                             </span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">Ajukan perbaikan berkala, penggantian ban/accu/sparepart, unit pengganti, atau lapor kehilangan TLO</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Ajukan perbaikan berkala, penggantian ban/accu/sparepart, atau lapor kehilangan TLO</p>
                     </div>
                 </div>
 
@@ -198,12 +198,12 @@
                         <span class="text-[11px] text-slate-400 mt-1.5 block">Hanya armada aktif dalam kontrak sewa perusahaan Anda yang ditampilkan.</span>
                     </div>
 
-                    <!-- Radio Buttons Kendala Pokok (3 Pilihan Utama) -->
+                    <!-- Radio Buttons Kendala Pokok (2 Pilihan Utama) -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-2">
                             Pilih Kategori Kendala / Kebutuhan <span class="text-[#FF7A3D]">*</span>
                         </label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Option 1: Perbaikan / Service -->
                             <label class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-200 cursor-pointer hover:border-[#015471] transition group has-[:checked]:border-[#015471] has-[:checked]:bg-[#015471]/5 shadow-2xs">
                                 <div class="flex items-start justify-between mb-3">
@@ -216,19 +216,7 @@
                                 <span class="text-[11px] text-slate-500 leading-snug">Servis berkala, ganti ban gundul, aki drop, atau sparepart fast moving.</span>
                             </label>
 
-                            <!-- Option 2: Pengajuan Unit Pengganti Sementara -->
-                            <label class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-200 cursor-pointer hover:border-[#FF7A3D] transition group has-[:checked]:border-[#FF7A3D] has-[:checked]:bg-[#FF7A3D]/5 shadow-2xs">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="w-10 h-10 rounded-xl bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center group-hover:scale-105 transition-transform">
-                                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                                    </div>
-                                    <input type="radio" name="request_type" value="unit_pengganti" {{ old('request_type', $preselectedType) === 'unit_pengganti' ? 'checked' : '' }} onchange="onTypeChanged()" class="mt-1 text-[#FF7A3D] focus:ring-[#FF7A3D] w-4 h-4">
-                                </div>
-                                <span class="font-black text-xs text-slate-900 block mb-1">Pengajuan Unit Pengganti</span>
-                                <span class="text-[11px] text-slate-500 leading-snug">Permohonan motor pengganti sementara jika unit rusak parah / servis > 24 jam.</span>
-                            </label>
-
-                            <!-- Option 3: Lapor Kehilangan TLO -->
+                            <!-- Option 2: Lapor Kehilangan TLO -->
                             <label class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-200 cursor-pointer hover:border-rose-500 transition group has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/50 shadow-2xs">
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform">
