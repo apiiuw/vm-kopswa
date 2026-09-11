@@ -66,15 +66,15 @@ class DashboardController extends Controller
 
         // 3. Category Budgets & Expenses Breakdown
         $budgetByCategory = [
-            'service_berkala' => (clone $budgetQuery)->where('category', 'service_berkala')->sum('total_budget_36m') ?: 219000000,
-            'ban' => (clone $budgetQuery)->where('category', 'ban')->sum('total_budget_36m') ?: 164700000,
-            'accu' => (clone $budgetQuery)->where('category', 'accu')->sum('total_budget_36m') ?: 45000000,
-            'sparepart' => (clone $budgetQuery)->where('category', 'sparepart')->sum('total_budget_36m') ?: 129360000,
-            'motor_pengganti' => (clone $budgetQuery)->where('category', 'motor_pengganti')->sum('total_budget_36m') ?: 99000000,
-            'pajak_stnk' => (clone $budgetQuery)->where('category', 'pajak_stnk')->sum('total_budget_36m') ?: 172500000,
-            'asuransi' => (clone $budgetQuery)->where('category', 'asuransi')->sum('total_budget_36m') ?: 210300000,
-            'legalitas_kepolisian' => (clone $budgetQuery)->where('category', 'legalitas_kepolisian')->sum('total_budget_36m') ?: 10000000,
-            'overhead_admin' => (clone $budgetQuery)->where('category', 'overhead_admin')->sum('total_budget_36m') ?: 18000000,
+            'service_berkala' => (clone $budgetQuery)->where('category', 'service_berkala')->sum('total_budget_36m'),
+            'ban' => (clone $budgetQuery)->where('category', 'ban')->sum('total_budget_36m'),
+            'accu' => (clone $budgetQuery)->where('category', 'accu')->sum('total_budget_36m'),
+            'sparepart' => (clone $budgetQuery)->where('category', 'sparepart')->sum('total_budget_36m'),
+            'motor_pengganti' => (clone $budgetQuery)->where('category', 'motor_pengganti')->sum('total_budget_36m'),
+            'pajak_stnk' => (clone $budgetQuery)->where('category', 'pajak_stnk')->sum('total_budget_36m'),
+            'asuransi' => (clone $budgetQuery)->where('category', 'asuransi')->sum('total_budget_36m'),
+            'legalitas_kepolisian' => (clone $budgetQuery)->where('category', 'legalitas_kepolisian')->sum('total_budget_36m'),
+            'overhead_admin' => (clone $budgetQuery)->where('category', 'overhead_admin')->sum('total_budget_36m'),
         ];
 
         $expensesByCategory = [

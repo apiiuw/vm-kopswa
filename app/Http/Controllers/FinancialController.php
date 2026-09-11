@@ -157,9 +157,6 @@ class FinancialController extends Controller
             }
 
             $allocated = $allocQ->sum('total_budget_36m');
-            if (in_array($key, ['motor_pengganti', 'legalitas_kepolisian', 'overhead_admin']) && $allocated == 0) {
-                $allocated = ($key === 'overhead_admin' || $key === 'motor_pengganti') ? 99000000 : 0;
-            }
 
             $categoriesReport[$key] = [
                 'label' => $lbl,
