@@ -17,7 +17,7 @@
             </h2>
             <p class="text-xs text-slate-500 mt-1">Pemantauan masa berlaku STNK tahunan, plat 5 tahunan, BPKB, dan pencatatan bayar pajak langsung ke kas</p>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <a href="{{ route('documents.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition active:scale-95">
                 <i data-lucide="plus" class="w-4 h-4"></i> Catat Dokumen Baru
             </a>

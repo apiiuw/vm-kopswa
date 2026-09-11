@@ -106,11 +106,14 @@
 </head>
 <body class="h-full antialiased flex overflow-hidden bg-white text-black">
 
-    <!-- Sidebar (Full Solid Blue Theme #015471) -->
-    <aside class="w-64 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] z-30 transition-all duration-300">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 hidden lg:hidden transition-opacity duration-300"></div>
+
+    <!-- Sidebar (Full Solid Blue Theme #015471) - Responsive Offcanvas Drawer on Mobile, Fixed Static on Desktop -->
+    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:z-30">
         <!-- Logo Area (Height 64px / h-16, perfectly aligned with topbar header) -->
-        <div class="h-16 flex items-center px-5 border-b border-[#01435b] bg-[#015471]">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 w-full">
+        <div class="h-16 flex items-center justify-between px-5 border-b border-[#01435b] bg-[#015471]">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
                 <div class="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-xs">
                     <img src="{{ asset('img/icon/sup-icon.png') }}" alt="SUP Icon" class="w-full h-full object-contain">
                 </div>
@@ -119,6 +122,10 @@
                     <span class="text-[10px] font-bold text-[#FF7A3D] uppercase tracking-wider block mt-0.5 truncate">Vehicle Monitoring</span>
                 </div>
             </a>
+            <!-- Mobile Close Button (Hidden on Desktop) -->
+            <button type="button" onclick="toggleSidebar(false)" class="lg:hidden p-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-[#01435b] transition" title="Tutup Menu">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
 
         <!-- Multi-Client Selector Badge in Sidebar -->
@@ -247,17 +254,22 @@
     <!-- Main Container -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
         <!-- Topbar (Perfect 64px height, vertically centered and aligned) -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shrink-0">
-            <!-- Left: Page Title & Current Vendor Badge -->
-            <div class="flex items-center gap-3 min-w-0">
-                <h2 class="text-base font-extrabold text-black tracking-tight leading-none truncate">@yield('page_title', 'Dashboard Monitoring')</h2>
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3.5 sm:px-6 z-20 shrink-0 gap-2">
+            <!-- Left: Mobile Menu Toggle & Page Title & Current Vendor Badge -->
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <!-- Mobile Hamburger Button (Hidden on lg / desktop) -->
+                <button type="button" onclick="toggleSidebar(true)" class="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 hover:text-[#015471] transition shrink-0" title="Buka Navigasi">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+
+                <h2 class="text-sm sm:text-base font-extrabold text-black tracking-tight leading-none truncate">@yield('page_title', 'Dashboard Monitoring')</h2>
                 @if($currentVendor)
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#015471]/10 text-[#015471] text-xs font-bold border border-[#015471]/20 shrink-0">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#015471]/10 text-[#015471] text-xs font-bold border border-[#015471]/20 shrink-0 hidden sm:inline-flex">
                         <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
                         <span>{{ $currentVendor->name }}</span>
                     </span>
                 @else
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shrink-0">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shrink-0 hidden sm:inline-flex">
                         <i data-lucide="layers" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
                         <span>Semua Klien</span>
                     </span>
@@ -265,12 +277,13 @@
             </div>
 
             <!-- Right: Action Buttons & Context Info -->
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                 <!-- Quick Action Exports Dropdown -->
                 <div class="relative group">
-                    <button class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white transition shadow-xs">
+                    <button class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white transition shadow-xs">
                         <i data-lucide="download" class="w-4 h-4 text-[#FF7A3D]"></i>
-                        <span>Ekspor Laporan</span>
+                        <span class="hidden sm:inline">Ekspor Laporan</span>
+                        <span class="sm:hidden">Ekspor</span>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-80"></i>
                     </button>
                     <div class="absolute right-0 mt-1.5 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 hidden group-hover:block group-focus-within:block z-50">
@@ -294,10 +307,10 @@
                     </div>
                 </div>
 
-                <div class="h-6 w-px bg-slate-200"></div>
+                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
                 <!-- Vendor Context Tag: PT SUP Vendor Penyedia -->
-                <div class="text-right hidden sm:block">
+                <div class="text-right hidden md:block">
                     <p class="text-xs font-extrabold text-black leading-tight">
                         {{ $currentVendor ? $currentVendor->name : 'PT SUP (Vendor Penyedia Sewa)' }}
                     </p>
@@ -309,7 +322,7 @@
         </header>
 
         <!-- Page Content Scroll Area -->
-        <main class="flex-1 overflow-y-auto bg-white p-6">
+        <main class="flex-1 overflow-y-auto bg-white p-3.5 sm:p-6">
             @yield('content')
         </main>
     </div>
@@ -349,6 +362,21 @@
                 });
             @endif
         });
+
+        // Responsive Offcanvas Mobile Sidebar Toggle
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById('mainSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (!sidebar || !backdrop) return;
+
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
 
         function confirmLogout() {
             Swal.fire({

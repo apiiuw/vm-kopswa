@@ -131,19 +131,19 @@
     </div>
 
     <!-- Main Container -->
-    <div class="min-h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
+    <div class="min-h-full flex items-center justify-center p-3 sm:p-6 lg:p-8 relative z-10">
         <div class="max-w-md w-full mx-auto">
             
             <!-- Login Card with Animation -->
-            <div class="glass-card rounded-3xl p-8 sm:p-10 border-2 border-[#015471]/25 shadow-2xl shadow-[#015471]/15 space-y-6 animate-card-entry relative overflow-hidden">
+            <div class="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 border-2 border-[#015471]/25 shadow-2xl shadow-[#015471]/15 space-y-5 sm:space-y-6 animate-card-entry relative overflow-hidden">
                 
                 <!-- Decorative Top Ribbon -->
                 <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#015471] via-[#FF7A3D] to-[#015471]"></div>
 
                 <!-- Logo Header -->
-                <div class="text-center space-y-3 pt-2">
-                    <div class="inline-flex justify-center items-center p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm mx-auto transition-transform hover:scale-105 duration-300">
-                        <img src="{{ asset('img/logo/sup-logo.png') }}" alt="Logo" class="h-12 w-auto object-contain max-w-[220px]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="text-center space-y-2.5 sm:space-y-3 pt-1 sm:pt-2">
+                    <div class="inline-flex justify-center items-center p-2 sm:p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm mx-auto transition-transform hover:scale-105 duration-300">
+                        <img src="{{ asset('img/logo/sup-logo.png') }}" alt="Logo" class="h-10 sm:h-12 w-auto object-contain max-w-[190px] sm:max-w-[220px]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="items-center gap-2 hidden px-3 py-1">
                             <img src="{{ asset('img/icon/sup-icon.png') }}" alt="Icon" class="w-8 h-8 object-contain">
                             <span class="font-black text-[#015471] text-base">Fleet System</span>
@@ -151,8 +151,8 @@
                     </div>
                     
                     <div>
-                        <h1 class="text-2xl font-black text-black tracking-tight">Portal Monitoring Kendaraan</h1>
-                        <p class="text-xs text-[#015471] font-bold tracking-wide uppercase mt-1">Sistem Manajemen Operasional & Armada</p>
+                        <h1 class="text-xl sm:text-2xl font-black text-black tracking-tight">Portal Monitoring Kendaraan</h1>
+                        <p class="text-[11px] sm:text-xs text-[#015471] font-bold tracking-wide uppercase mt-1">Sistem Manajemen Operasional & Armada</p>
                     </div>
                 </div>
 

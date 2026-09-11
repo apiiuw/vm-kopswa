@@ -211,7 +211,7 @@
             <!-- Right Column: Summary & Confirmation Card (1 Col) -->
             <div class="space-y-6">
 
-                <div class="bg-gradient-to-br from-[#015471] to-[#013547] text-white rounded-3xl shadow-xl p-6 space-y-6 sticky top-6">
+                <div class="bg-gradient-to-br from-[#015471] to-[#013547] text-white rounded-3xl shadow-xl p-6 space-y-6 static lg:sticky lg:top-6">
                     <div class="flex items-center justify-between border-b border-white/10 pb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#FF7A3D]">

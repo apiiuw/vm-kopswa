@@ -12,7 +12,7 @@
             <h2 class="text-xl font-black text-black tracking-tight">Monitoring Anggaran & Buku Kas</h2>
             <p class="text-xs text-slate-500 mt-0.5">Penagihan sewa, pengeluaran riil, dan pemantauan pagu anggaran Rp 1.032.000.000</p>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <a href="{{ route('exports.financialExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-black border-2 border-slate-200 shadow-2xs transition">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel Lengkap
             </a>

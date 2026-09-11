@@ -7,7 +7,7 @@
 <div class="space-y-6 w-full bg-white text-black">
 
     <!-- Top Notice / Project Status Banner -->
-    <div class="bg-gradient-to-r from-[#015471] via-[#01435b] to-[#002f40] rounded-3xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden border border-[#015471]">
+    <div class="bg-gradient-to-r from-[#015471] via-[#01435b] to-[#002f40] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-7 text-white shadow-lg relative overflow-hidden border border-[#015471]">
         <div class="absolute -right-8 -bottom-8 w-60 h-60 bg-[#FF7A3D]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -19,7 +19,7 @@
                         Platform Monitoring Armada Sewa PT SUP - Multi Klien
                     @endif
                 </div>
-                <h2 class="text-2xl font-black tracking-tight text-white">
+                <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">
                     @if($currentVendor)
                         {{ $currentVendor->project_name ?? 'Monitoring Operasional Armada Kendaraan' }}
                     @else
@@ -40,10 +40,10 @@
                     @endif
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
                 <!-- Dropdown Download Report All-in-One -->
                 <div class="relative group">
-                    <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/20 shadow-sm backdrop-blur-xs">
+                    <button type="button" class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/20 shadow-sm backdrop-blur-xs">
                         <i data-lucide="download" class="w-4 h-4 text-[#FF7A3D]"></i> Download Rekap
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-70"></i>
                     </button>
@@ -64,10 +64,10 @@
                     </div>
                 </div>
 
-                <a href="{{ route('exports.budgetPdf') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white font-bold text-xs transition shadow-sm">
+                <a href="{{ route('exports.budgetPdf') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white font-bold text-xs transition shadow-sm">
                     <i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF
                 </a>
-                <a href="{{ route('vehicles.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#015471] hover:bg-slate-100 font-bold text-xs transition shadow-sm">
+                <a href="{{ route('vehicles.create') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white text-[#015471] hover:bg-slate-100 font-bold text-xs transition shadow-sm">
                     <i data-lucide="plus" class="w-4 h-4 text-[#FF7A3D]"></i> Tambah Unit
                 </a>
             </div>
@@ -151,7 +151,7 @@
     <!-- Section 1: Visual Multi-Chart Hub (Cashflow + Budget Plafon vs Realisasi) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Cashflow Chart -->
-        <div class="lg:col-span-2 bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+        <div class="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 class="font-bold text-black text-base">Tren Arus Kas Proyek (Pendapatan vs Pengeluaran)</h3>
@@ -171,7 +171,7 @@
         </div>
 
         <!-- Category Expenses vs Pagu (Breakdown Dokumen Memo) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-black text-base">Realisasi Pos Anggaran</h3>
@@ -251,7 +251,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         <!-- Comparative Chart 1: Komparasi Alokasi Pagu vs Pengeluaran Aktual per Kategori (Side-by-Side Bar) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <div class="flex items-center gap-2">
@@ -273,7 +273,7 @@
         </div>
 
         <!-- Comparative Chart 2: Tren Bulanan Pengeluaran Servis & Sparepart (Line / Area Chart) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <div class="flex items-center gap-2">
@@ -300,7 +300,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <!-- Chart A: Komposisi Status Armada (Doughnut) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
             <div class="mb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -328,7 +328,7 @@
         </div>
 
         <!-- Chart B: Breakdown Biaya Pemeliharaan (Pie) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
             <div class="mb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -353,7 +353,7 @@
         </div>
 
         <!-- Chart C: Distribusi Unit per Lokasi Kebun / Pos (Horizontal Bar) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
             <div class="mb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -378,7 +378,7 @@
         </div>
 
         <!-- Chart D: Top 5 Unit Biaya Pemeliharaan Tertinggi (Bar) -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm flex flex-col justify-between">
             <div class="mb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -405,7 +405,7 @@
     </div>
 
     <!-- Section 4: Permohonan & Tiket Masuk dari Klien Mitra (Realtime Client Requests) -->
-    <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
@@ -490,7 +490,7 @@
     <!-- Section 5: Alert STNK Expiring & Recent Maintenances -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Alert STNK / Asuransi Expiring Soon -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
@@ -550,7 +550,7 @@
         </div>
 
         <!-- Recent Maintenance Activities -->
-        <div class="bg-white rounded-2xl p-6 border-2 border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border-2 border-slate-100 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#e6f0f3] text-[#015471] flex items-center justify-center">
