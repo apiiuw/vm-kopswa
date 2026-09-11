@@ -9,7 +9,9 @@ class VendorController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Vendor::withCount(['vehicles', 'incomes', 'expenses']);
+        $query = Vendor::withCount(['vehicles', 'incomes', 'expenses', 'locations'])->with(['locations' => function($q) {
+            $q->withCount('vehicles')->orderBy('name');
+        }]);
 
         if ($request->filled('search')) {
             $s = $request->search;

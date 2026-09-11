@@ -14,6 +14,11 @@ class Vendor extends Model
         'contract_end_date' => 'date',
     ];
 
+    public function locations(): HasMany
+    {
+        return $this->hasMany(Location::class);
+    }
+
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);

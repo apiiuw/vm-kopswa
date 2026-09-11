@@ -263,7 +263,7 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">
                                     Klien Penyewa / Mitra <span class="text-[#FF7A3D]">*</span>
                                 </label>
-                                <select name="vendor_id" required class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white text-slate-900 cursor-pointer">
+                                <select name="vendor_id" id="vendor_select" required class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white text-slate-900 cursor-pointer">
                                     <option value="">-- Pilih Klien / Kontrak Sewa --</option>
                                     @foreach($vendors as $v)
                                         <option value="{{ $v->id }}" {{ (old('vendor_id', session('active_vendor_id')) == $v->id) ? 'selected' : '' }}>
@@ -275,11 +275,17 @@
 
                             <!-- Wilayah Kebun -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Wilayah Kebun / Lokasi</label>
-                                <select name="location_id" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white text-slate-900 cursor-pointer">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-bold text-slate-700">Wilayah Kebun / Lokasi</label>
+                                    <button type="button" onclick="openAddLocationModal()" class="text-[11px] font-bold text-[#015471] hover:text-[#FF7A3D] transition inline-flex items-center gap-1">
+                                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                        <span>Tambah Kebun</span>
+                                    </button>
+                                </div>
+                                <select name="location_id" id="location_select" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white text-slate-900 cursor-pointer">
                                     <option value="">-- Pilih Wilayah / Kebun --</option>
                                     @foreach($locations as $loc)
-                                        <option value="{{ $loc->id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>{{ $loc->name }}</option>
+                                        <option value="{{ $loc->id }}" data-vendor-id="{{ $loc->vendor_id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>{{ $loc->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -446,6 +452,60 @@
     </form>
 
 </div>
+
+<!-- Modal Tambah Wilayah / Kebun Cepat -->
+<div id="addLocationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transition-all">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center font-bold">
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Tambah Wilayah / Kebun Baru</h3>
+                    <p class="text-[11px] text-slate-500">Tambahkan lokasi kebun untuk klien terpilih</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeAddLocationModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form id="quickLocationForm" class="mt-4 space-y-4" onsubmit="submitQuickLocation(event)">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Klien Terpilih <span class="text-[#FF7A3D]">*</span></label>
+                <input type="text" id="modal_vendor_name" readonly class="w-full text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 cursor-not-allowed">
+                <input type="hidden" id="modal_vendor_id" name="vendor_id">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Wilayah / Kebun <span class="text-[#FF7A3D]">*</span></label>
+                <input type="text" id="modal_loc_name" name="name" required placeholder="Contoh: Kebun Bergen, Kebun Kedaton..." class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kode Kebun</label>
+                    <input type="text" id="modal_loc_code" name="code" placeholder="Contoh: BERGEN" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Manajer / PIC</label>
+                    <input type="text" id="modal_loc_manager" name="manager_name" placeholder="Nama Manajer" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeAddLocationModal()" class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
+                    Batal
+                </button>
+                <button type="submit" id="submitLocBtn" class="px-4 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#023e54] text-white transition flex items-center gap-1.5">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    <span>Simpan Kebun</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -466,6 +526,105 @@
                 <span class="text-[#015471] font-bold block truncate">✓ ${fileName}</span> 
                 <span class="text-slate-400 text-[10px] block mt-0.5">${fileSize} MB • Siap diunggah</span>
             `;
+        }
+    }
+
+    // Filter Lokasi Kebun sesuai Klien yang dipilih
+    const vendorSelect = document.getElementById('vendor_select');
+    const locationSelect = document.getElementById('location_select');
+
+    function filterLocationsByVendor() {
+        if (!vendorSelect || !locationSelect) return;
+        const selectedVendorId = vendorSelect.value;
+        const options = locationSelect.querySelectorAll('option');
+
+        options.forEach((opt, idx) => {
+            if (idx === 0) return; // Keep "-- Pilih Wilayah / Kebun --"
+            const vId = opt.getAttribute('data-vendor-id');
+            if (!selectedVendorId || !vId || vId === selectedVendorId) {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+                if (opt.selected) {
+                    locationSelect.value = '';
+                }
+            }
+        });
+    }
+
+    if (vendorSelect) {
+        vendorSelect.addEventListener('change', filterLocationsByVendor);
+        // Initial run
+        filterLocationsByVendor();
+    }
+
+    function openAddLocationModal() {
+        const vId = vendorSelect.value;
+        if (!vId) {
+            alert('Silakan pilih Klien Penyewa / Mitra terlebih dahulu.');
+            vendorSelect.focus();
+            return;
+        }
+        const vText = vendorSelect.options[vendorSelect.selectedIndex].text;
+        document.getElementById('modal_vendor_id').value = vId;
+        document.getElementById('modal_vendor_name').value = vText;
+        document.getElementById('modal_loc_name').value = '';
+        document.getElementById('modal_loc_code').value = '';
+        document.getElementById('modal_loc_manager').value = '';
+        document.getElementById('addLocationModal').classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    function closeAddLocationModal() {
+        document.getElementById('addLocationModal').classList.add('hidden');
+    }
+
+    async function submitQuickLocation(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitLocBtn');
+        btn.disabled = true;
+        btn.innerText = 'Menyimpan...';
+
+        const payload = {
+            vendor_id: document.getElementById('modal_vendor_id').value,
+            name: document.getElementById('modal_loc_name').value,
+            code: document.getElementById('modal_loc_code').value,
+            manager_name: document.getElementById('modal_loc_manager').value,
+            _token: '{{ csrf_token() }}'
+        };
+
+        try {
+            const res = await fetch('{{ route("locations.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                // Add new option to select
+                const newOpt = document.createElement('option');
+                newOpt.value = data.location.id;
+                newOpt.text = data.location.name;
+                newOpt.setAttribute('data-vendor-id', data.location.vendor_id);
+                newOpt.selected = true;
+                locationSelect.appendChild(newOpt);
+
+                closeAddLocationModal();
+                filterLocationsByVendor();
+            } else {
+                alert(data.message || 'Gagal menyimpan wilayah kebun.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan jaringan.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Simpan Kebun</span>';
+            lucide.createIcons();
         }
     }
 </script>

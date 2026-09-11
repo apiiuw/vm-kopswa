@@ -24,6 +24,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('vendors', VendorController::class)->except(['create', 'show', 'edit']);
     Route::post('/vendors/switch', [VendorController::class, 'switchVendor'])->name('vendors.switch');
 
+    // Locations Module (Wilayah / Kebun per Klien)
+    Route::post('/locations', [\App\Http\Controllers\LocationController::class, 'store'])->name('locations.store');
+    Route::put('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'update'])->name('locations.update');
+    Route::delete('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'destroy'])->name('locations.destroy');
+    Route::get('/vendors/{vendor}/locations', [\App\Http\Controllers\LocationController::class, 'byVendor'])->name('vendors.locations');
+
     // Vehicles Module
     Route::resource('vehicles', VehicleController::class);
 

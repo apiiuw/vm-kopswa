@@ -190,6 +190,12 @@
                                         @endif
                                     </form>
 
+                                    <!-- Manage Locations Button -->
+                                    <button onclick="openManageLocationsModal({{ json_encode($v) }})" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-xl border border-emerald-200 hover:border-emerald-500 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/80 transition shadow-2xs" title="Kelola Wilayah Kebun / Pos Operasional">
+                                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span class="text-[11px]">{{ $v->locations_count }} Kebun</span>
+                                    </button>
+
                                     <!-- Edit Button -->
                                     <button onclick="openEditVendorModal({{ json_encode($v) }})" class="p-1.5 text-slate-500 hover:text-[#015471] rounded-xl hover:bg-slate-100 transition" title="Edit Vendor">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -373,5 +379,128 @@
     function closeVendorModal() {
         document.getElementById('vendorModal').classList.add('hidden');
     }
+
+    // Kelola Wilayah / Kebun per Klien Modal
+    let currentVendorData = null;
+
+    function openManageLocationsModal(vendor) {
+        currentVendorData = vendor;
+        document.getElementById('manageLocVendorName').innerText = vendor.name + ' (' + vendor.code + ')';
+        document.getElementById('newLocVendorId').value = vendor.id;
+        document.getElementById('newLocName').value = '';
+        document.getElementById('newLocCode').value = '';
+        document.getElementById('newLocManager').value = '';
+
+        renderLocationsList(vendor.locations || []);
+        document.getElementById('manageLocationsModal').classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    function closeManageLocationsModal() {
+        document.getElementById('manageLocationsModal').classList.add('hidden');
+    }
+
+    function renderLocationsList(locations) {
+        const container = document.getElementById('locationsListContainer');
+        if (!locations || locations.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-slate-400">
+                    <i data-lucide="map-pin-off" class="w-8 h-8 mx-auto mb-1.5 opacity-40"></i>
+                    <p class="text-xs font-semibold">Belum ada wilayah kebun untuk klien ini</p>
+                    <p class="text-[10px] text-slate-400">Gunakan form di bawah untuk menambahkan kebun baru</p>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        let html = '<div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">';
+        locations.forEach(loc => {
+            html += `
+                <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition bg-white">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-900">${loc.name}</span>
+                            ${loc.code ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-600">${loc.code}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-500 mt-0.5">
+                            <span>PIC: ${loc.manager_name || '-'}</span>
+                            <span>•</span>
+                            <span class="text-[#015471] font-semibold">${loc.vehicles_count ?? 0} Unit Terdaftar</span>
+                        </div>
+                    </div>
+                    <div>
+                        <form action="/locations/${loc.id}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kebun ini?')" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Hapus Kebun">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        lucide.createIcons();
+    }
 </script>
+
+<!-- Modal Kelola Kebun / Lokasi Klien -->
+<div id="manageLocationsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 transition-all flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Kelola Wilayah Kebun / Pos</h3>
+                    <p class="text-[11px] text-slate-500 font-semibold" id="manageLocVendorName">Klien</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeManageLocationsModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Daftar Kebun Eksisting -->
+        <div class="py-4 overflow-y-auto flex-1 space-y-3">
+            <h4 class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>Daftar Wilayah Kebun Terdaftar</span>
+            </h4>
+            <div id="locationsListContainer">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Form Tambah Kebun Baru -->
+        <div class="pt-4 border-t border-slate-100 bg-slate-50/60 -mx-6 -mb-6 p-6 rounded-b-2xl">
+            <h4 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-[#015471]"></i>
+                <span>Tambah Kebun Baru untuk Klien Ini</span>
+            </h4>
+            <form action="{{ route('locations.store') }}" method="POST" class="space-y-3">
+                @csrf
+                <input type="hidden" name="vendor_id" id="newLocVendorId">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="sm:col-span-2">
+                        <input type="text" name="name" id="newLocName" required placeholder="Nama Kebun (misal: Kebun Bergen)" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white">
+                    </div>
+                    <div>
+                        <input type="text" name="code" id="newLocCode" placeholder="Kode (BERGEN)" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white uppercase">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" name="manager_name" id="newLocManager" placeholder="Nama Manajer / Pengawas Kebun (Opsional)" class="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white">
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#023e54] text-white transition flex items-center gap-1.5 shrink-0">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Tambah</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection

@@ -44,6 +44,28 @@ class DatabaseSeeder extends Seeder
             'category' => 'klien',
             'vendor_id' => $vendor->id,
         ]);
+
+        // 4. Data Master Lokasi / Kebun PTPN I Regional 7
+        $locations = [
+            ['name' => 'Kebun Bergen', 'code' => 'BERGEN'],
+            ['name' => 'Kebun Kedaton', 'code' => 'KEDATON'],
+            ['name' => 'Kebun Tulung Buyut', 'code' => 'TULUNG_BUYUT'],
+            ['name' => 'Kebun Way Berulu', 'code' => 'WAY_BERULU'],
+            ['name' => 'Kebun Beringin', 'code' => 'BERINGIN'],
+            ['name' => 'Kebun Musilandas', 'code' => 'MUSILANDAS'],
+            ['name' => 'Kebun Pagar Alam', 'code' => 'PAGAR_ALAM'],
+            ['name' => 'Kebun Ketahun', 'code' => 'KETAHUN'],
+            ['name' => 'Kebun Padang Pelawi', 'code' => 'PADANG_PELAWI'],
+        ];
+
+        foreach ($locations as $loc) {
+            \App\Models\Location::create([
+                'vendor_id' => $vendor->id,
+                'name' => $loc['name'],
+                'code' => $loc['code'],
+                'manager_name' => 'Manajer ' . $loc['name'],
+            ]);
+        }
     }
 }
 
