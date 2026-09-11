@@ -130,16 +130,16 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">
                                     Tipe / Segmen Kendaraan
                                 </label>
-                                <input type="text" name="type_name" id="type_name" list="type_list" value="{{ old('type_name', 'Trail On/Off Road') }}" placeholder="Trail, Bebek, Matic, Double Cabin..." class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900">
-                                <datalist id="type_list">
-                                    <option value="Trail On/Off Road">
-                                    <option value="Bebek / Underbone">
-                                    <option value="Matic / Skuter">
-                                    <option value="Sport">
-                                    <option value="Pick Up / Bak Terbuka">
-                                    <option value="Double Cabin (4x4)">
-                                    <option value="Minibus / MPV">
-                                </datalist>
+                                <select name="type_name" id="type_name" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white text-slate-900 cursor-pointer">
+                                    <option value="Trail On/Off Road" {{ old('type_name', 'Trail On/Off Road') == 'Trail On/Off Road' ? 'selected' : '' }}>Trail On/Off Road</option>
+                                    <option value="Bebek / Underbone" {{ old('type_name') == 'Bebek / Underbone' ? 'selected' : '' }}>Bebek / Underbone</option>
+                                    <option value="Matic / Skuter" {{ old('type_name') == 'Matic / Skuter' ? 'selected' : '' }}>Matic / Skuter</option>
+                                    <option value="Sport" {{ old('type_name') == 'Sport' ? 'selected' : '' }}>Sport</option>
+                                    <option value="Pick Up / Bak Terbuka" {{ old('type_name') == 'Pick Up / Bak Terbuka' ? 'selected' : '' }}>Pick Up / Bak Terbuka</option>
+                                    <option value="Double Cabin (4x4)" {{ old('type_name') == 'Double Cabin (4x4)' ? 'selected' : '' }}>Double Cabin (4x4)</option>
+                                    <option value="Minibus / MPV" {{ old('type_name') == 'Minibus / MPV' ? 'selected' : '' }}>Minibus / MPV</option>
+                                    <option value="Lainnya" {{ old('type_name') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                                </select>
                             </div>
 
                             <!-- Tarif Sewa -->
