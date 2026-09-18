@@ -87,3 +87,33 @@ Setelah seeder berjalan, Anda dapat langsung login menggunakan akun internal:
 - **Password**: `password123`
 
 *(Password dapat diubah kapan saja melalui menu Manajemen Pengguna Internal).*
+
+---
+
+## 6. Import Master Data Armada & Foto Dokumen ke Server
+
+Tersedia perintah artisan khusus yang telah disiapkan: `php artisan armada:import-excel`.
+
+### Opsi A: Jalankan di Terminal SSH Server (Download Otomatis)
+Pastikan berkas `Master-Data-Vehicle-Monitoring-SUP.xlsx` sudah ada di root proyek di server, lalu jalankan:
+```bash
+php artisan armada:import-excel
+```
+*Perintah ini otomatis:*
+- Mengosongkan data dummy armada lama.
+- Membaca baris 3 sampai baris terakhir dari sheet `1. Data Armada`.
+- Mengunduh otomatis seluruh foto STNK & BPKB dari link Google Drive ke direktori `storage/app/public/vehicles/`.
+- Memetakan tarif sewa, lokasi kebun, tanggal pajak 1 th & 5 th, nomor rangka/mesin, dan pengemudi.
+
+### Opsi B: Menggunakan Berkas Foto yang Sudah Terunduh di Lokal (Sangat Cepat)
+Karena seluruh 76 berkas STNK dan 76 berkas BPKB sudah berhasil diunduh lengkap di komputer lokal:
+1. Anda cukup zip folder lokal: `storage/app/public/vehicles/`
+2. Unggah dan ekstrak di server pada path yang sama: `storage/app/public/vehicles/`
+3. Jalankan perintah di server tanpa harus mendownload ulang:
+   ```bash
+   php artisan armada:import-excel --no-download
+   ```
+4. Pastikan symlink storage aktif:
+   ```bash
+   php artisan storage:link
+   ```

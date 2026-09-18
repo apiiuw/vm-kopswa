@@ -15,6 +15,32 @@ class Vehicle extends Model
         'tax_5year_date' => 'date',
     ];
 
+    public function setUserHolderAttribute($value): void
+    {
+        if (empty($value)) {
+            $this->attributes['user_holder'] = null;
+            return;
+        }
+
+        $cleaned = trim(preg_replace('/\s+/', ' ', (string) $value));
+        $cleaned = preg_replace('/,([^\s])/', ', ${1}', $cleaned);
+        $words = explode(' ', $cleaned);
+        $formatted = [];
+
+        foreach ($words as $w) {
+            if (empty($w)) {
+                continue;
+            }
+            if (preg_match('/^S\.(T|TP|PD|E|KOM|H|SOS|SI|PT)\.?$/i', $w)) {
+                $formatted[] = strtoupper($w);
+            } else {
+                $formatted[] = mb_convert_case(mb_strtolower($w), MB_CASE_TITLE, 'UTF-8');
+            }
+        }
+
+        $this->attributes['user_holder'] = implode(' ', $formatted);
+    }
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
