@@ -67,17 +67,17 @@
     <!-- Clients / Contracts Table Container -->
     <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div class="overflow-x-auto overflow-y-hidden scrollbar-thin">
-            <table class="w-full text-left text-xs whitespace-normal min-w-[1450px]">
+            <table class="w-full text-left text-xs whitespace-normal min-w-[1600px]">
                 <thead class="bg-[#f4f8fa] border-b border-slate-200 text-[#015471] font-bold uppercase tracking-wider text-[11px]">
                     <tr>
-                        <th class="px-6 py-4 w-[280px]">Klien Penyewa & Kode</th>
-                        <th class="px-6 py-4 w-[220px]">Nomor Kontrak</th>
-                        <th class="px-6 py-4 w-[340px]">Nama Proyek Tender</th>
-                        <th class="px-6 py-4 w-[240px]">Periode Kontrak Sewa</th>
-                        <th class="px-6 py-4 w-[240px]">PIC / Kontak Klien</th>
-                        <th class="px-6 py-4 text-center w-[130px]">Armada Disewa</th>
-                        <th class="px-6 py-4 text-center w-[120px]">Status</th>
-                        <th class="px-6 py-4 text-right w-[160px] sticky right-0 bg-[#f4f8fa] shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.05)]">Aksi</th>
+                        <th class="px-6 py-4 min-w-[280px]">Klien Penyewa & Kode</th>
+                        <th class="px-6 py-4 min-w-[220px]">Nomor Kontrak</th>
+                        <th class="px-6 py-4 min-w-[360px]">Nama Proyek Tender</th>
+                        <th class="px-6 py-4 min-w-[260px]">Periode Kontrak Sewa</th>
+                        <th class="px-6 py-4 min-w-[260px]">PIC / Kontak Klien</th>
+                        <th class="px-6 py-4 text-center min-w-[140px]">Armada Disewa</th>
+                        <th class="px-6 py-4 text-center min-w-[120px]">Status</th>
+                        <th class="px-6 py-4 text-right min-w-[180px] sticky right-0 bg-[#f4f8fa] shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.05)]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-black">
@@ -140,7 +140,7 @@
                                         {{ $v->pic_name ?: '-' }}
                                     </div>
                                     @if($v->phone)
-                                        <div class="text-[11px] text-slate-600 font-mono flex items-center gap-1.5">
+                                        <div class="text-[11px] text-slate-600 font-mono flex items-center gap-1.5 whitespace-nowrap">
                                             <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
                                             <span>{{ $v->phone }}</span>
                                         </div>
