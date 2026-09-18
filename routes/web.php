@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/vehicle/{vehicle}/card-pdf', [ExportController::class, 'exportVehicleHistoryPdf'])->name('vehicleCardPdf');
         Route::get('/client-request/{clientRequest}/pdf', [ExportController::class, 'exportClientRequestPdf'])->name('clientRequestPdf');
         Route::get('/client-request/{clientRequest}/doc', [ExportController::class, 'exportClientRequestDoc'])->name('clientRequestDoc');
+        Route::get('/invoice/{income}/pdf', [ExportController::class, 'exportSingleInvoicePdf'])->name('singleInvoicePdf');
         Route::get('/financial-excel', [ExportController::class, 'exportFinancialExcel'])->name('financialExcel');
         Route::get('/vehicles-excel', [ExportController::class, 'exportVehiclesExcel'])->name('vehiclesExcel');
     });

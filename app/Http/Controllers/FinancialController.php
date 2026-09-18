@@ -338,7 +338,7 @@ class FinancialController extends Controller
 
         $vendorId = $request->input('vendor_id') ?: session('active_vendor_id');
 
-        Income::create(array_merge($validated, [
+        $income = Income::create(array_merge($validated, [
             'vendor_id' => $vendorId,
             'crf_subtotal' => $crfSubtotal,
             'supra_subtotal' => $supraSubtotal,
@@ -348,7 +348,9 @@ class FinancialController extends Controller
             'total_amount_with_ppn' => $totalWithPpn,
         ]));
 
-        return redirect()->route('financial.index', ['tab' => 'incomes'])->with('success', 'Tagihan sewa berhasil ditambahkan!');
+        return redirect()->route('financial.index', ['tab' => 'incomes'])
+            ->with('success', 'Tagihan sewa ' . $income->invoice_number . ' berhasil diterbitkan!')
+            ->with('auto_download_invoice_id', $income->id);
     }
 
     public function storeExpense(Request $request)

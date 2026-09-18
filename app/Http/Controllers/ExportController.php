@@ -539,4 +539,23 @@ class ExportController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
+
+    // Export Single Income Invoice to PDF (View Inline or Download)
+    public function exportSingleInvoicePdf(Request $request, Income $income)
+    {
+        $action = $request->get('action', 'stream'); // 'stream' (preview) or 'download'
+
+        $pdf = Pdf::loadView('exports.pdf_invoice_single', compact('income'))
+            ->setPaper('a4', 'portrait');
+
+        $cleanNumber = str_replace(['/', '\\', ' '], '_', $income->invoice_number);
+        $fileName = 'Faktur_' . $cleanNumber . '.pdf';
+
+        if ($action === 'download') {
+            return $pdf->download($fileName);
+        }
+
+        return $pdf->stream($fileName);
+    }
 }
+

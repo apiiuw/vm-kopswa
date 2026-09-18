@@ -261,19 +261,38 @@
                                         Rp {{ number_format($inc->net_profit, 0, ',', '.') }}
                                     </td>
                                     <td class="px-5 py-3.5 text-right">
-                                        @if($inc->status !== 'lunas')
-                                            <form action="{{ route('financial.income.updateStatus', $inc) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="lunas">
-                                                <input type="hidden" name="payment_date" value="{{ date('Y-m-d') }}">
-                                                <button type="submit" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#015471] text-white hover:bg-[#013e54] shadow-2xs transition">
-                                                    Set Lunas
-                                                </button>
-                                            </form>
-                                        @else
-                                            <span class="text-[10px] text-slate-500 font-medium">Dibayar {{ $inc->payment_date ? $inc->payment_date->format('d/m/Y') : '-' }}</span>
-                                        @endif
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <!-- Tombol Lihat PDF (Icon Mata) -->
+                                            <a href="{{ route('exports.singleInvoicePdf', ['income' => $inc->id, 'action' => 'stream']) }}" 
+                                               target="_blank" 
+                                               title="Lihat Invoice PDF"
+                                               class="p-1.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 hover:text-[#015471] transition shadow-2xs inline-flex items-center justify-center">
+                                                <i data-lucide="eye" class="w-3.5 h-3.5 text-[#015471]"></i>
+                                            </a>
+
+                                            <!-- Tombol Download PDF (Arrow ke Bawah) -->
+                                            <a href="{{ route('exports.singleInvoicePdf', ['income' => $inc->id, 'action' => 'download']) }}" 
+                                               title="Download Invoice PDF"
+                                               class="p-1.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 hover:text-[#FF7A3D] transition shadow-2xs inline-flex items-center justify-center">
+                                                <i data-lucide="download" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
+                                            </a>
+
+                                            @if($inc->status !== 'lunas')
+                                                <form action="{{ route('financial.income.updateStatus', $inc) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="status" value="lunas">
+                                                    <input type="hidden" name="payment_date" value="{{ date('Y-m-d') }}">
+                                                    <button type="submit" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#015471] text-white hover:bg-[#013e54] shadow-2xs transition">
+                                                        Set Lunas
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                                    Lunas
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -622,5 +641,16 @@
             document.getElementById('budgetTotal36m').value = Math.round(qty * monthly * 36);
         }
     }
+
+    @if(session('auto_download_invoice_id'))
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trigger automatic PDF download immediately after redirect
+            const downloadUrl = "{{ route('exports.singleInvoicePdf', ['income' => session('auto_download_invoice_id'), 'action' => 'download']) }}";
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = downloadUrl;
+            document.body.appendChild(iframe);
+        });
+    @endif
 </script>
 @endsection
