@@ -213,7 +213,46 @@ class FinancialController extends Controller
 
         $vendors = \App\Models\Vendor::orderBy('name')->get();
 
-        return view('financial.income.create', compact('currentVendor', 'vendors'));
+        // Ambil unit riil dari database (per vendor jika aktif, atau keseluruhan armada)
+        $vehicleQuery = Vehicle::query();
+        if ($currentVendor) {
+            $vehicleQuery->where('vendor_id', $currentVendor->id);
+        }
+
+        $crfCount = (clone $vehicleQuery)->where(function($q) {
+            $q->where('vehicle_type', 'honda_crf_150')
+              ->orWhere('model_name', 'like', '%CRF%');
+        })->where('status', '!=', 'lost')->count();
+
+        $supraCount = (clone $vehicleQuery)->where(function($q) {
+            $q->where('vehicle_type', 'honda_supra_x_125')
+              ->orWhere('model_name', 'like', '%SUPRA%');
+        })->where('status', '!=', 'lost')->count();
+
+        // Ambil tarif sewa rata-rata/terbaru dari database untuk masing-masing model
+        $crfSample = (clone $vehicleQuery)->where(function($q) {
+            $q->where('vehicle_type', 'honda_crf_150')
+              ->orWhere('model_name', 'like', '%CRF%');
+        })->where('rental_price_per_month', '>', 0)->first();
+        $crfRate = $crfSample ? (float)$crfSample->rental_price_per_month : 1570000;
+
+        $supraSample = (clone $vehicleQuery)->where(function($q) {
+            $q->where('vehicle_type', 'honda_supra_x_125')
+              ->orWhere('model_name', 'like', '%SUPRA%');
+        })->where('rental_price_per_month', '>', 0)->first();
+        $supraRate = $supraSample ? (float)$supraSample->rental_price_per_month : 860000;
+
+        $totalUnits = $crfCount + $supraCount;
+
+        return view('financial.income.create', compact(
+            'currentVendor', 
+            'vendors', 
+            'crfCount', 
+            'supraCount', 
+            'crfRate', 
+            'supraRate', 
+            'totalUnits'
+        ));
     }
 
     public function createExpense(Request $request)
