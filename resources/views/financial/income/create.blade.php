@@ -173,15 +173,15 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-                        <!-- Unit Type 1 -->
-                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                        <!-- Unit Type 1: CRF 150 L -->
+                        <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-3">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-[#015471]/10 text-[#015471] flex items-center justify-center">
                                         <i data-lucide="bike" class="w-4 h-4"></i>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-slate-900 text-xs">Unit Tipe 1 (CRF 150 L)</h3>
+                                        <h3 class="font-bold text-slate-900 text-xs">Honda CRF 150 L</h3>
                                         <span class="text-[10px] text-slate-500">Kategori Trail On/Off Road</span>
                                     </div>
                                 </div>
@@ -190,20 +190,21 @@
                                 </span>
                             </div>
 
-                            <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="font-bold text-slate-700">Jumlah Unit Aktif Kontrak</label>
-                                    <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                                        <i data-lucide="check" class="w-3 h-3"></i> Terdata di Sistem
-                                    </span>
+                            <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between">
+                                <div>
+                                    <span class="text-[11px] text-slate-500 block">Unit Terpilih di Checklist:</span>
+                                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                                        <span class="text-2xl font-black font-mono text-[#015471]" id="display_crf_count">{{ $crfCount }}</span>
+                                        <span class="text-xs font-bold text-slate-400">/ {{ $crfCount }} Unit</span>
+                                    </div>
                                 </div>
-                                <div class="relative">
-                                    <input type="number" name="crf_count" id="crf_count" value="{{ old('crf_count', $crfCount) }}" min="0" required oninput="recalculateInvoice()"
-                                        class="w-full pl-3.5 pr-12 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#015471]">
-                                    <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400">Unit</span>
-                                </div>
-                                <p class="text-[10px] text-slate-400 mt-1">Otomatis sinkron dengan <strong>{{ $crfCount }} Unit</strong> aktif di database.</p>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                                    Auto Calculated
+                                </span>
                             </div>
+
+                            <!-- Hidden input untuk submit form -->
+                            <input type="hidden" name="crf_count" id="crf_count" value="{{ old('crf_count', $crfCount) }}">
 
                             <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold">
                                 <span class="text-slate-500">Subtotal DPP CRF:</span>
@@ -211,15 +212,15 @@
                             </div>
                         </div>
 
-                        <!-- Unit Type 2 -->
-                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                        <!-- Unit Type 2: Supra X 125 -->
+                        <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-3">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-lg bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
                                         <i data-lucide="bike" class="w-4 h-4"></i>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-slate-900 text-xs">Unit Tipe 2 (Supra X 125)</h3>
+                                        <h3 class="font-bold text-slate-900 text-xs">Honda Supra X 125</h3>
                                         <span class="text-[10px] text-slate-500">Kategori Bebek Operasional</span>
                                     </div>
                                 </div>
@@ -228,20 +229,21 @@
                                 </span>
                             </div>
 
-                            <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="font-bold text-slate-700">Jumlah Unit Terpilih</label>
-                                    <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                                        <i data-lucide="check" class="w-3 h-3"></i> Terdata di Sistem
-                                    </span>
+                            <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between">
+                                <div>
+                                    <span class="text-[11px] text-slate-500 block">Unit Terpilih di Checklist:</span>
+                                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                                        <span class="text-2xl font-black font-mono text-[#FF7A3D]" id="display_supra_count">{{ $supraCount }}</span>
+                                        <span class="text-xs font-bold text-slate-400">/ {{ $supraCount }} Unit</span>
+                                    </div>
                                 </div>
-                                <div class="relative">
-                                    <input type="number" name="supra_count" id="supra_count" value="{{ old('supra_count', $supraCount) }}" min="0" required oninput="recalculateFromInputs()"
-                                        class="w-full pl-3.5 pr-12 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#015471]">
-                                    <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400">Unit</span>
-                                </div>
-                                <p class="text-[10px] text-slate-400 mt-1">Otomatis sinkron dengan centang unit di bawah.</p>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                                    Auto Calculated
+                                </span>
                             </div>
+
+                            <!-- Hidden input untuk submit form -->
+                            <input type="hidden" name="supra_count" id="supra_count" value="{{ old('supra_count', $supraCount) }}">
 
                             <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold">
                                 <span class="text-slate-500">Subtotal DPP Supra:</span>
@@ -518,6 +520,8 @@
 
         document.getElementById('crf_count').value = crf;
         document.getElementById('supra_count').value = supra;
+        document.getElementById('display_crf_count').textContent = crf;
+        document.getElementById('display_supra_count').textContent = supra;
         document.getElementById('checklist_selected_count').textContent = selectedTotal;
 
         recalculateInvoice();
