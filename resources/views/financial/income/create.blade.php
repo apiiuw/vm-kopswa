@@ -230,23 +230,101 @@
 
                             <div>
                                 <div class="flex items-center justify-between mb-1">
-                                    <label class="font-bold text-slate-700">Jumlah Unit Aktif Kontrak</label>
+                                    <label class="font-bold text-slate-700">Jumlah Unit Terpilih</label>
                                     <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
                                         <i data-lucide="check" class="w-3 h-3"></i> Terdata di Sistem
                                     </span>
                                 </div>
                                 <div class="relative">
-                                    <input type="number" name="supra_count" id="supra_count" value="{{ old('supra_count', $supraCount) }}" min="0" required oninput="recalculateInvoice()"
+                                    <input type="number" name="supra_count" id="supra_count" value="{{ old('supra_count', $supraCount) }}" min="0" required oninput="recalculateFromInputs()"
                                         class="w-full pl-3.5 pr-12 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#015471]">
                                     <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400">Unit</span>
                                 </div>
-                                <p class="text-[10px] text-slate-400 mt-1">Otomatis sinkron dengan <strong>{{ $supraCount }} Unit</strong> aktif di database.</p>
+                                <p class="text-[10px] text-slate-400 mt-1">Otomatis sinkron dengan centang unit di bawah.</p>
                             </div>
 
                             <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold">
                                 <span class="text-slate-500">Subtotal DPP Supra:</span>
                                 <span class="text-[#FF7A3D] font-mono text-sm" id="label_supra_subtotal">Rp 0</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Checklist Unit Armada -->
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                        <div class="p-4 bg-slate-50/90 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-[#015471] text-white flex items-center justify-center">
+                                    <i data-lucide="list-checks" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-xs">Pilih Unit Armada yang Ditagihkan</h3>
+                                    <p class="text-[10px] text-slate-500">Hilangkan centang jika unit tertentu sedang tidak aktif / dipotong sewanya</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="checkAllVehicles(true)" class="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition">
+                                    Pilih Semua (76)
+                                </button>
+                                <button type="button" onclick="checkAllVehicles(false)" class="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition">
+                                    Batalkan Semua
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search Box for Fleet Filter -->
+                        <div class="p-3 border-b border-slate-100 bg-white">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                                </span>
+                                <input type="text" id="vehicleSearchInput" onkeyup="filterVehicleChecklist()" placeholder="Cari nomor plat, pemakai, atau lokasi kebun..." 
+                                    class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#015471]">
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Vehicle Checklist Grid -->
+                        <div class="p-3 max-h-72 overflow-y-auto divide-y divide-slate-100" id="vehicleChecklistContainer">
+                            @foreach($vehicles as $v)
+                                @php
+                                    $isCrf = (stripos($v->vehicle_type, 'crf') !== false || stripos($v->model_name, 'crf') !== false);
+                                    $vType = $isCrf ? 'crf' : 'supra';
+                                    $rate = $v->rental_price_per_month ?: ($isCrf ? $crfRate : $supraRate);
+                                @endphp
+                                <label class="vehicle-item flex items-center justify-between p-2 rounded-xl hover:bg-slate-50/80 cursor-pointer transition text-xs" 
+                                       data-search="{{ strtolower($v->plate_number . ' ' . $v->user_holder . ' ' . ($v->location ? $v->location->name : '')) }}">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" name="selected_vehicles[]" value="{{ $v->id }}" 
+                                            class="vehicle-checkbox rounded text-[#015471] focus:ring-[#015471] w-4 h-4 cursor-pointer" 
+                                            data-type="{{ $vType }}" 
+                                            data-rate="{{ $rate }}" 
+                                            checked 
+                                            onchange="syncChecklistToCounts()">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-mono font-bold text-slate-900">{{ $v->plate_number }}</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold {{ $isCrf ? 'bg-[#015471]/10 text-[#015471]' : 'bg-[#FF7A3D]/10 text-[#FF7A3D]' }}">
+                                                    {{ $isCrf ? 'CRF 150 L' : 'Supra X 125' }}
+                                                </span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">
+                                                Pemakai: <strong class="text-slate-700">{{ $v->user_holder ?: 'Belum ditentukan' }}</strong> • {{ $v->location ? $v->location->name : 'Pusat' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-mono font-bold text-slate-800 text-[11px]">Rp {{ number_format($rate, 0, ',', '.') }}</span>
+                                        <span class="block text-[9px] text-emerald-600 font-semibold">Aktif Sewa</span>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <div class="px-4 py-2.5 bg-slate-50/80 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
+                            <span>Unit Ditagihkan: <strong id="checklist_selected_count" class="text-[#015471] font-bold">{{ $totalUnits }}</strong> dari {{ $totalUnits }} Unit</span>
+                            <span class="text-emerald-700 font-bold flex items-center gap-1">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Perhitungan Realtime
+                            </span>
                         </div>
                     </div>
 
@@ -420,10 +498,61 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('crf_count').addEventListener('input', recalculateInvoice);
-        document.getElementById('supra_count').addEventListener('input', recalculateInvoice);
+    // Sinkronkan Checklist ke Input Angka & Total
+    function syncChecklistToCounts() {
+        const checkboxes = document.querySelectorAll('.vehicle-checkbox');
+        let crf = 0;
+        let supra = 0;
+        let selectedTotal = 0;
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                selectedTotal++;
+                if (cb.dataset.type === 'crf') {
+                    crf++;
+                } else {
+                    supra++;
+                }
+            }
+        });
+
+        document.getElementById('crf_count').value = crf;
+        document.getElementById('supra_count').value = supra;
+        document.getElementById('checklist_selected_count').textContent = selectedTotal;
+
         recalculateInvoice();
+    }
+
+    function recalculateFromInputs() {
+        recalculateInvoice();
+    }
+
+    function checkAllVehicles(state) {
+        const checkboxes = document.querySelectorAll('.vehicle-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = state;
+        });
+        syncChecklistToCounts();
+    }
+
+    function filterVehicleChecklist() {
+        const query = (document.getElementById('vehicleSearchInput').value || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.vehicle-item');
+
+        items.forEach(item => {
+            const searchData = item.getAttribute('data-search') || '';
+            if (searchData.includes(query)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('crf_count').addEventListener('input', recalculateFromInputs);
+        document.getElementById('supra_count').addEventListener('input', recalculateFromInputs);
+        syncChecklistToCounts();
         togglePaymentDate();
     });
 </script>

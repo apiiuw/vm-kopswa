@@ -244,6 +244,9 @@ class FinancialController extends Controller
 
         $totalUnits = $crfCount + $supraCount;
 
+        // Ambil seluruh daftar kendaraan lengkap untuk checklist
+        $vehicles = (clone $vehicleQuery)->with('location')->orderBy('model_name')->orderBy('plate_number')->get();
+
         return view('financial.income.create', compact(
             'currentVendor', 
             'vendors', 
@@ -251,7 +254,8 @@ class FinancialController extends Controller
             'supraCount', 
             'crfRate', 
             'supraRate', 
-            'totalUnits'
+            'totalUnits',
+            'vehicles'
         ));
     }
 
