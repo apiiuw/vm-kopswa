@@ -620,10 +620,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Cashflow Bar Chart
+        // 1. Cashflow Bar Chart (3 Batang: Terbayar/Lunas, Tertagih/Pending, Pengeluaran)
         const ctx = document.getElementById('cashflowChart').getContext('2d');
         const labels = {!! json_encode($chartLabels) !!};
-        const incomeData = {!! json_encode($chartIncomeData) !!};
+        const incomePaidData = {!! json_encode($chartIncomePaidData) !!};
+        const incomePendingData = {!! json_encode($chartIncomePendingData) !!};
         const expenseData = {!! json_encode($chartExpenseData) !!};
 
         new Chart(ctx, {
@@ -632,15 +633,21 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Pendapatan Sewa (Rp)',
-                        data: incomeData,
-                        backgroundColor: '#015471',
+                        label: 'Pendapatan Terbayar (Lunas)',
+                        data: incomePaidData,
+                        backgroundColor: '#015471', // Biru Navy Khas SUP
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Pendapatan Tertagih (Belum Bayar)',
+                        data: incomePendingData,
+                        backgroundColor: '#0284c7', // Sky Blue Cerah
                         borderRadius: 6,
                     },
                     {
                         label: 'Pengeluaran Operasional (Rp)',
                         data: expenseData,
-                        backgroundColor: '#FF7A3D',
+                        backgroundColor: '#FF7A3D', // Oranye SUP
                         borderRadius: 6,
                     }
                 ]

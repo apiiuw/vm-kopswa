@@ -120,12 +120,20 @@ class DashboardController extends Controller
         }
         $recentClaims = $claimsQuery->orderBy('incident_date', 'desc')->take(3)->get();
 
-        // 7. Monthly Cashflow Data for Chart
+        // 7. Monthly Cashflow Data for Chart (Dipisah: Terbayar / Lunas & Tertagih / Pending)
         $driver = \Illuminate\Support\Facades\DB::getDriverName();
         $dateIncomeFormat = $driver === 'sqlite' ? "strftime('%Y-%m', invoice_date)" : "DATE_FORMAT(invoice_date, '%Y-%m')";
         $dateExpenseFormat = $driver === 'sqlite' ? "strftime('%Y-%m', transaction_date)" : "DATE_FORMAT(transaction_date, '%Y-%m')";
 
-        $monthlyIncomes = (clone $incomeQuery)->selectRaw("{$dateIncomeFormat} as month, SUM(gross_amount) as total")
+        $monthlyIncomesPaid = (clone $incomeQuery)->where('status', 'lunas')
+            ->selectRaw("{$dateIncomeFormat} as month, SUM(gross_amount) as total")
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        $monthlyIncomesPending = (clone $incomeQuery)->where('status', '!=', 'lunas')
+            ->selectRaw("{$dateIncomeFormat} as month, SUM(gross_amount) as total")
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->pluck('total', 'month')
@@ -138,16 +146,22 @@ class DashboardController extends Controller
             ->toArray();
 
         // Combine unique months
-        $allMonths = array_values(array_unique(array_merge(array_keys($monthlyIncomes), array_keys($monthlyExpenses))));
+        $allMonths = array_values(array_unique(array_merge(
+            array_keys($monthlyIncomesPaid), 
+            array_keys($monthlyIncomesPending), 
+            array_keys($monthlyExpenses)
+        )));
         sort($allMonths);
 
         $chartLabels = [];
-        $chartIncomeData = [];
+        $chartIncomePaidData = [];
+        $chartIncomePendingData = [];
         $chartExpenseData = [];
 
         foreach ($allMonths as $m) {
             $chartLabels[] = Carbon::createFromFormat('Y-m', $m)->translatedFormat('M Y');
-            $chartIncomeData[] = (float)($monthlyIncomes[$m] ?? 0);
+            $chartIncomePaidData[] = (float)($monthlyIncomesPaid[$m] ?? 0);
+            $chartIncomePendingData[] = (float)($monthlyIncomesPending[$m] ?? 0);
             $chartExpenseData[] = (float)($monthlyExpenses[$m] ?? 0);
         }
 
@@ -258,7 +272,8 @@ class DashboardController extends Controller
             'recentIncomes',
             'recentClaims',
             'chartLabels',
-            'chartIncomeData',
+            'chartIncomePaidData',
+            'chartIncomePendingData',
             'chartExpenseData',
             'locationLabels',
             'locationCounts',
