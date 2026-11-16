@@ -1,6 +1,6 @@
 # VM-Kopswa — Sistem Monitoring Kendaraan
 
-<!-- Updated: 2026-11-16 -->
+<!-- Updated: 2026-11-16 15:46 WIB -->
 
 Aplikasi monitoring armada kendaraan sewa operasional kebun milik **PT Swadharma Utama
 Prima (SUP)** untuk klien seperti PTPN I Regional 7: data armada, STNK/BPKB & pajak,
