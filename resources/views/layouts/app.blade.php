@@ -6,8 +6,8 @@
     <title>@yield('title', 'Sistem Monitoring Kendaraan') | PT Swadharma Utama Prima</title>
     
     <!-- Favicon / Icon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/icon/sup-icon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/icon/sup-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/icon/kopswa-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/icon/kopswa-icon.png') }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,14 +113,9 @@
     <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#015471] text-white flex flex-col shrink-0 border-r border-[#01435b] transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:z-30">
         <!-- Logo Area (Height 64px / h-16, perfectly aligned with topbar header) -->
         <div class="h-16 flex items-center justify-between px-5 border-b border-[#01435b] bg-[#015471]">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-xs">
-                    <img src="{{ asset('img/icon/sup-icon.png') }}" alt="SUP Icon" class="w-full h-full object-contain">
-                </div>
-                <div class="overflow-hidden">
-                    <h1 class="text-white font-extrabold text-base tracking-tight leading-none truncate">PT SUP</h1>
-                    <span class="text-[10px] font-bold text-[#FF7A3D] uppercase tracking-wider block mt-0.5 truncate">Vehicle Monitoring</span>
-                </div>
+            <a href="{{ route('dashboard') }}" class="flex flex-col justify-center min-w-0 py-1 group">
+                <img src="{{ asset('img/logo/logo-kopswa.png') }}" alt="KOPSWA" class="h-7 w-auto max-w-[165px] object-contain object-left group-hover:opacity-95 transition-opacity">
+                <span class="text-[9px] font-extrabold text-[#FF7A3D] uppercase tracking-widest block mt-1 leading-none pl-0.5">Vehicle Monitoring</span>
             </a>
             <!-- Mobile Close Button (Hidden on Desktop) -->
             <button type="button" onclick="toggleSidebar(false)" class="lg:hidden p-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-[#01435b] transition" title="Tutup Menu">
@@ -305,18 +300,6 @@
                             <span>Excel Master Data Kendaraan</span>
                         </a>
                     </div>
-                </div>
-
-                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-
-                <!-- Vendor Context Tag: PT SUP Vendor Penyedia -->
-                <div class="text-right hidden md:block">
-                    <p class="text-xs font-extrabold text-black leading-tight">
-                        {{ $currentVendor ? $currentVendor->name : 'PT SUP (Vendor Penyedia Sewa)' }}
-                    </p>
-                    <p class="text-[10px] text-[#015471] font-semibold leading-tight mt-0.5">
-                        {{ $currentVendor ? ($currentVendor->project_name ?? 'Monitoring Armada Sewa') : 'Seluruh Unit Sewaan Klien' }}
-                    </p>
                 </div>
             </div>
         </header>

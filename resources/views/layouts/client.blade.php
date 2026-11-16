@@ -7,8 +7,8 @@
     <title>@yield('title', 'Portal Layanan Klien') | PT Swadharma Utama Prima</title>
     
     <!-- Favicon / Icon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/icon/sup-icon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/icon/sup-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/icon/kopswa-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/icon/kopswa-icon.png') }}">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,10 +40,8 @@
                 <!-- Left: Logo & Portal Title -->
                 <div class="flex items-center gap-4">
                     <a href="{{ route('client.dashboard') }}" class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-xs">
-                            <img src="{{ asset('img/icon/sup-icon.png') }}" alt="PT SUP" class="w-full h-full object-contain">
-                        </div>
-                        <div>
+                        <img src="{{ asset('img/logo/logo-kopswa.png') }}" alt="KOPSWA" class="h-9 sm:h-10 w-auto object-contain">
+                        <div class="border-l border-white/20 pl-3">
                             <div class="flex items-center gap-2">
                                 <h1 class="font-extrabold text-base sm:text-lg text-white tracking-tight leading-tight">Portal Klien Mitra</h1>
                                 <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FF7A3D] text-white uppercase tracking-wider">
@@ -51,7 +49,7 @@
                                 </span>
                             </div>
                             <span class="text-xs text-cyan-200 font-medium block">
-                                {{ Auth::user()->vendor ? Auth::user()->vendor->name : 'PT Swadharma Utama Prima' }}
+                                {{ Auth::user()->vendor ? Auth::user()->vendor->name : 'Koperasi Swadharma' }}
                             </span>
                         </div>
                     </a>

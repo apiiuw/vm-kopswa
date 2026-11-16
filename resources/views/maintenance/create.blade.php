@@ -209,6 +209,9 @@
                                             $isSelected = old('vehicle_id', $selectedVehicleId) == $v->id;
                                             $holderName = $v->user_holder ?: 'Pengemudi Lapangan';
                                             $holderPhone = $v->driver_phone ?: '0812-3456-7890';
+                                            $lastKm = $v->latest_service_km ?? '';
+                                            $lastRecord = $v->latest_service_record;
+                                            $lastDate = ($lastRecord && $lastRecord->date) ? $lastRecord->date->format('d/m/Y') : '';
                                         @endphp
                                         <div class="vehicle-option-item p-3 rounded-xl hover:bg-[#015471]/5 cursor-pointer transition flex items-center justify-between gap-3 {{ $isSelected ? 'bg-[#015471]/10 text-[#015471]' : 'text-slate-800' }}"
                                              data-id="{{ $v->id }}"
@@ -219,7 +222,9 @@
                                              data-holderphone="{{ $holderPhone }}"
                                              data-label="{{ $fullLabel }}"
                                              data-keywords="{{ $searchKeywords }}"
-                                             onclick="selectVehicle('{{ $v->id }}', '{{ addslashes($fullLabel) }}', '{{ addslashes($holderName) }}', '{{ addslashes($holderPhone) }}')">
+                                             data-lastkm="{{ $lastKm }}"
+                                             data-lastdate="{{ $lastDate }}"
+                                             onclick="selectVehicle('{{ $v->id }}', '{{ addslashes($fullLabel) }}', '{{ addslashes($holderName) }}', '{{ addslashes($holderPhone) }}', '{{ $lastKm }}', '{{ $lastDate }}')">
                                             <div class="flex items-center gap-3 min-w-0">
                                                 <div class="w-8 h-8 rounded-lg bg-[#015471]/10 text-[#015471] flex items-center justify-center shrink-0">
                                                     <i data-lucide="{{ ($v->type === 'mobil') ? 'car' : 'bike' }}" class="w-4 h-4 text-[#FF7A3D]"></i>
@@ -229,7 +234,12 @@
                                                     <span class="text-[11px] text-slate-500 truncate block">{{ $v->brand ? $v->brand . ' ' : '' }}{{ $v->model_name }} &bull; {{ $v->location ? $v->location->name : 'Lokasi Kebun' }}</span>
                                                 </div>
                                             </div>
-                                            <div class="shrink-0 flex items-center">
+                                            <div class="shrink-0 flex items-center gap-2">
+                                                @if($lastKm)
+                                                    <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden sm:inline-block" title="Kilometer Servis Terakhir">
+                                                        {{ number_format($lastKm, 0, ',', '.') }} KM
+                                                    </span>
+                                                @endif
                                                 <span class="option-check {{ $isSelected ? 'inline-flex' : 'hidden' }} w-5 h-5 rounded-full bg-[#015471] text-white items-center justify-center">
                                                     <i data-lucide="check" class="w-3 h-3"></i>
                                                 </span>
@@ -257,6 +267,80 @@
                             </label>
                             <input type="date" name="date" id="maintenance_date" value="{{ old('date', date('Y-m-d')) }}" class="w-full text-xs font-mono font-bold px-4 py-3 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 shadow-2xs bg-white">
                             @error('date') <span class="text-[#FF7A3D] text-[11px] block mt-1 font-semibold">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <!-- PENCATATAN KILOMETER ODOMETER (Tahap 1) -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-[#015471]/5 to-slate-50 border border-slate-200/90 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-[#015471] text-white flex items-center justify-center text-xs shadow-2xs shrink-0">
+                                    <i data-lucide="gauge" class="w-4 h-4 text-[#FF7A3D]"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-black text-slate-900 block">Pencatatan Kilometer (Odometer)</span>
+                                    <span class="text-[11px] text-slate-500">Pantau jarak tempuh armada sejak pelaksanaan servis terakhir</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-[#FF7A3D] bg-[#FF7A3D]/10 px-2.5 py-1 rounded-full border border-[#FF7A3D]/20">
+                                Wajib Diisi
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                            <!-- 1. Input Kilometer Saat Ini -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-1.5">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Kilometer Saat Ini (KM) <span class="text-[#FF7A3D]">*</span>
+                                </label>
+                                <div class="relative flex rounded-xl shadow-2xs overflow-hidden">
+                                    <input type="number" name="odometer_km" id="odometer_km" value="{{ old('odometer_km') }}" placeholder="Contoh: 15400" min="0" oninput="calculateKmDistance(); if(typeof updateSummary === 'function') updateSummary();" class="w-full text-sm font-mono font-bold px-3.5 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 bg-white">
+                                    <span class="inline-flex items-center px-3.5 border border-l-0 border-slate-300 bg-slate-100 text-[#015471] text-xs font-black font-mono">
+                                        KM
+                                    </span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 block">Angka speedometer saat pengerjaan servis ini.</span>
+                                @error('odometer_km') <span class="text-[#FF7A3D] text-[10px] font-semibold block mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- 2. Kilometer Service Terakhir (Display) -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-1.5 flex flex-col justify-between">
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800 mb-1">
+                                        Kilometer Servis Terakhir
+                                    </span>
+                                    <div class="flex items-baseline gap-1.5 py-1">
+                                        <span id="displayLastKm" class="text-xl font-black font-mono text-[#015471]">
+                                            -
+                                        </span>
+                                        <span id="displayLastKmUnit" class="text-xs font-bold text-slate-400 font-mono hidden">KM</span>
+                                    </div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 flex items-center gap-1.5 pt-1 border-t border-slate-100" id="displayLastServiceInfo">
+                                    <i data-lucide="history" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                    <span id="displayLastServiceDate" class="truncate">Pilih unit armada untuk melihat data</span>
+                                </div>
+                                <input type="hidden" id="lastServiceKmHidden" value="0" data-has-last="false">
+                            </div>
+
+                            <!-- 3. Total Jarak Tempuh Sejak Servis Terakhir -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-1.5 flex flex-col justify-between">
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800 mb-1">
+                                        Total Jarak Tempuh
+                                    </span>
+                                    <div class="flex items-baseline gap-1.5 py-1">
+                                        <span id="displayDistanceKm" class="text-xl font-black font-mono text-slate-400">
+                                            -
+                                        </span>
+                                        <span id="displayDistanceUnit" class="text-xs font-bold text-slate-400 font-mono hidden">KM</span>
+                                    </div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 flex items-center gap-1.5 pt-1 border-t border-slate-100" id="displayDistanceBadge">
+                                    <i data-lucide="milestone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                    <span id="displayDistanceText" class="truncate">Selisih jarak servis terakhir hingga saat ini</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -511,18 +595,17 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Posisi Odometer Terkini (KM) -->
-                            <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-800">
-                                    Kilometer Odometer Terakhir (KM) <span class="text-[#FF7A3D]">*</span>
-                                </label>
-                                <div class="relative flex rounded-xl shadow-2xs overflow-hidden">
-                                    <input type="number" name="odometer_km" id="odometer_km" value="{{ old('odometer_km') }}" placeholder="Contoh: 12450" min="0" oninput="updateSummary()" class="w-full text-sm font-mono font-bold px-4 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 bg-white">
-                                    <span class="inline-flex items-center px-4 border border-l-0 border-slate-300 bg-slate-100 text-[#015471] text-xs font-black font-mono">
-                                        KM
-                                    </span>
+                            <!-- Info Kilometer (Telah Diisi di Tahap 1) -->
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs space-y-1.5 flex flex-col justify-between">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700">
+                                        Kilometer Odometer Saat Ini
+                                    </label>
+                                    <div class="flex items-center gap-2 py-1">
+                                        <span id="step3OdoDisplay" class="text-base font-mono font-black text-[#015471]">- KM</span>
+                                    </div>
                                 </div>
-                                <span class="text-[10px] text-slate-400 block">Catat angka yang tertera di speedometer dashboard motor saat ini.</span>
+                                <span class="text-[10px] text-slate-400 block">Tercatat pada Tahap 1.</span>
                             </div>
 
                             <!-- Kondisi Operasional Motor Lapangan -->
@@ -1480,6 +1563,23 @@
                 }
                 return false;
             }
+
+            const odoInput = document.getElementById('odometer_km');
+            const odoValue = odoInput ? odoInput.value.trim() : '';
+
+            if (!odoValue) {
+                if (showSwal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Kilometer Saat Ini Belum Diisi',
+                        text: 'Mohon masukkan angka kilometer speedometer motor saat ini pada Tahap 1.',
+                        confirmButtonColor: '#015471',
+                        confirmButtonText: 'Isi Kilometer'
+                    });
+                    if (odoInput) odoInput.focus();
+                }
+                return false;
+            }
         } else if (step === 2) {
             const type = getSelectedType();
 
@@ -1593,22 +1693,8 @@
                 document.getElementById('formDescription').value = otherDesc.value.trim();
             }
         } else if (step === 3) {
-            const odoInput = document.getElementById('odometer_km');
-            const odoValue = odoInput ? odoInput.value.trim() : '';
-
-            if (!odoValue) {
-                if (showSwal) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Kilometer Odometer Wajib Diisi',
-                        text: 'Mohon masukkan angka kilometer terakhir pada speedometer motor pada Tahap 3.',
-                        confirmButtonColor: '#015471',
-                        confirmButtonText: 'Isi Odometer'
-                    });
-                    if (odoInput) odoInput.focus();
-                }
-                return false;
-            }
+            // Validasi teknis tahap 3 (odometer sudah divalidasi pada Tahap 1)
+            return true;
         }
         return true;
     }
@@ -1717,7 +1803,76 @@
         }
     }
 
-    function selectVehicle(id, label, holder, holderPhone) {
+    function updateLastServiceKm(lastKm, lastDate) {
+        const lastKmHidden = document.getElementById('lastServiceKmHidden');
+        const displayLastKm = document.getElementById('displayLastKm');
+        const displayLastKmUnit = document.getElementById('displayLastKmUnit');
+        const displayLastServiceDate = document.getElementById('displayLastServiceDate');
+
+        if (!displayLastKm || !lastKmHidden) return;
+
+        if (lastKm !== null && lastKm !== undefined && String(lastKm).trim() !== '' && !isNaN(lastKm) && Number(lastKm) > 0) {
+            lastKmHidden.value = lastKm;
+            lastKmHidden.dataset.hasLast = 'true';
+            displayLastKm.innerText = Number(lastKm).toLocaleString('id-ID');
+            displayLastKmUnit.classList.remove('hidden');
+            displayLastServiceDate.innerText = lastDate ? `Servis terakhir: ${lastDate}` : 'Tercatat pada servis sebelumnya';
+        } else {
+            lastKmHidden.value = '0';
+            lastKmHidden.dataset.hasLast = 'false';
+            displayLastKm.innerText = 'Belum Ada';
+            displayLastKmUnit.classList.add('hidden');
+            displayLastServiceDate.innerText = 'Belum ada riwayat servis tercatat';
+        }
+
+        calculateKmDistance();
+    }
+
+    function calculateKmDistance() {
+        const odoInput = document.getElementById('odometer_km');
+        const lastKmHidden = document.getElementById('lastServiceKmHidden');
+        const displayDist = document.getElementById('displayDistanceKm');
+        const displayUnit = document.getElementById('displayDistanceUnit');
+        const displayText = document.getElementById('displayDistanceText');
+
+        if (!odoInput || !lastKmHidden || !displayDist) return;
+
+        const currentKm = parseFloat(odoInput.value);
+        const hasLastKm = lastKmHidden.dataset.hasLast === 'true';
+        const lastKm = parseFloat(lastKmHidden.value) || 0;
+
+        if (isNaN(currentKm) || currentKm <= 0) {
+            displayDist.innerText = '-';
+            displayDist.className = 'text-xl font-black font-mono text-slate-400';
+            displayUnit.classList.add('hidden');
+            displayText.innerText = hasLastKm ? 'Masukkan KM saat ini untuk melihat selisih jarak' : 'Selisih jarak servis terakhir hingga saat ini';
+            return;
+        }
+
+        if (!hasLastKm) {
+            displayDist.innerText = currentKm.toLocaleString('id-ID');
+            displayDist.className = 'text-xl font-black font-mono text-emerald-700';
+            displayUnit.classList.remove('hidden');
+            displayText.innerHTML = `<span class="text-emerald-700 font-bold font-mono">${currentKm.toLocaleString('id-ID')} KM</span> (Servis pertama di sistem)`;
+            return;
+        }
+
+        const distance = currentKm - lastKm;
+
+        if (distance >= 0) {
+            displayDist.innerText = '+' + distance.toLocaleString('id-ID');
+            displayDist.className = 'text-xl font-black font-mono text-emerald-700';
+            displayUnit.classList.remove('hidden');
+            displayText.innerHTML = `<span class="text-emerald-700 font-bold font-mono">+${distance.toLocaleString('id-ID')} KM</span> sejak servis terakhir`;
+        } else {
+            displayDist.innerText = distance.toLocaleString('id-ID');
+            displayDist.className = 'text-xl font-black font-mono text-rose-600';
+            displayUnit.classList.remove('hidden');
+            displayText.innerHTML = `<span class="text-rose-600 font-bold">KM saat ini lebih kecil ${Math.abs(distance).toLocaleString('id-ID')} KM dari servis sebelumnya</span>`;
+        }
+    }
+
+    function selectVehicle(id, label, holder, holderPhone, lastKm = '', lastDate = '') {
         document.getElementById('vehicle_id').value = id;
         document.getElementById('selectedVehicleLabel').innerHTML = `<span class="text-slate-900 font-extrabold">${label}</span>`;
         document.getElementById('clearVehicleSelection').classList.remove('hidden');
@@ -1729,6 +1884,8 @@
         if (holderPhone) {
             document.getElementById('driver_phone').value = holderPhone;
         }
+
+        updateLastServiceKm(lastKm, lastDate);
 
         // Update active checkmarks
         document.querySelectorAll('.vehicle-option-item').forEach(item => {
@@ -1754,6 +1911,8 @@
 
         document.getElementById('driver_name').value = '';
         document.getElementById('driver_phone').value = '';
+
+        updateLastServiceKm('', '');
 
         document.querySelectorAll('.vehicle-option-item').forEach(item => {
             item.classList.remove('bg-[#015471]/10', 'text-[#015471]');
@@ -1803,7 +1962,9 @@
                     const fullLabel = vehicleOption.getAttribute('data-label') || cr.vehicle_label;
                     const holderName = cr.driver_name || vehicleOption.getAttribute('data-holder') || '';
                     const holderPhone = cr.driver_phone || vehicleOption.getAttribute('data-holderphone') || '';
-                    selectVehicle(cr.vehicle_id, fullLabel, holderName, holderPhone);
+                    const lastKm = vehicleOption.getAttribute('data-lastkm') || '';
+                    const lastDate = vehicleOption.getAttribute('data-lastdate') || '';
+                    selectVehicle(cr.vehicle_id, fullLabel, holderName, holderPhone, lastKm, lastDate);
                 } else {
                     selectVehicle(cr.vehicle_id, cr.vehicle_label || 'Armada Terpilih', cr.driver_name || '', cr.driver_phone || '');
                 }
@@ -1875,10 +2036,13 @@
         }
 
         try {
-            // 3. Technical & Lapangan Info (Tahap 3)
+            // 3. Technical & Lapangan Info
             if (cr.odometer_km) {
                 const odoElem = document.getElementById('odometer_km');
-                if (odoElem) odoElem.value = cr.odometer_km;
+                if (odoElem) {
+                    odoElem.value = cr.odometer_km;
+                    calculateKmDistance();
+                }
             }
 
             if (cr.operational_status) {
@@ -2082,6 +2246,11 @@
         }
         document.getElementById('summaryOdometer').innerHTML = odoWorkshopText;
 
+        const step3Odo = document.getElementById('step3OdoDisplay');
+        if (step3Odo) {
+            step3Odo.innerText = odo ? `${Number(odo).toLocaleString('id-ID')} KM` : '- KM';
+        }
+
         const statusSelect = document.getElementById('vehicle_operational_status');
         if (statusSelect) {
             const statusText = statusSelect.options[statusSelect.selectedIndex]?.text || '-';
@@ -2214,7 +2383,9 @@
                 const label = preselectedItem.getAttribute('data-label');
                 const holder = preselectedItem.getAttribute('data-holder');
                 const holderPhone = preselectedItem.getAttribute('data-holderphone');
-                selectVehicle(initialVehicleId, label, holder, holderPhone);
+                const lastKm = preselectedItem.getAttribute('data-lastkm') || '';
+                const lastDate = preselectedItem.getAttribute('data-lastdate') || '';
+                selectVehicle(initialVehicleId, label, holder, holderPhone, lastKm, lastDate);
             }
         }
 

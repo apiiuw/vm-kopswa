@@ -19,6 +19,7 @@ class Vehicle extends Model
     {
         if (empty($value)) {
             $this->attributes['user_holder'] = null;
+
             return;
         }
 
@@ -61,6 +62,35 @@ class Vehicle extends Model
         return $this->hasMany(MaintenanceRecord::class);
     }
 
+    public function latestMaintenanceRecord()
+    {
+        return $this->hasOne(MaintenanceRecord::class)->ofMany([
+            'date' => 'max',
+            'id' => 'max',
+        ]);
+    }
+
+    public function getLatestServiceKmAttribute(): ?int
+    {
+        if ($this->relationLoaded('maintenanceRecords')) {
+            $record = $this->maintenanceRecords->whereNotNull('odometer_km')->sortByDesc('date')->first();
+
+            return $record ? (int) $record->odometer_km : null;
+        }
+
+        return $this->maintenanceRecords()->whereNotNull('odometer_km')->orderByDesc('date')->orderByDesc('id')->value('odometer_km');
+    }
+
+    public function getLatestServiceRecordAttribute(): ?MaintenanceRecord
+    {
+        if ($this->relationLoaded('maintenanceRecords')) {
+            return $this->maintenanceRecords->whereNotNull('odometer_km')->sortByDesc('date')->first()
+                ?? $this->maintenanceRecords->sortByDesc('date')->first();
+        }
+
+        return $this->maintenanceRecords()->whereNotNull('odometer_km')->orderByDesc('date')->orderByDesc('id')->first();
+    }
+
     public function insuranceClaims(): HasMany
     {
         return $this->hasMany(InsuranceClaim::class);
@@ -78,7 +108,7 @@ class Vehicle extends Model
 
     public function getStatusBadgeAttribute(): array
     {
-        return match($this->status) {
+        return match ($this->status) {
             'active' => ['label' => 'Aktif Beroperasi', 'class' => 'bg-emerald-100 text-emerald-800 border-emerald-200'],
             'maintenance' => ['label' => 'Dalam Perbaikan / Servis', 'class' => 'bg-amber-100 text-amber-800 border-amber-200'],
             'replaced' => ['label' => 'Unit Pengganti Aktif', 'class' => 'bg-blue-100 text-blue-800 border-blue-200'],
@@ -97,11 +127,11 @@ class Vehicle extends Model
 
         // 1. Truk / Bus / Alat Berat / Double Cabin (Mobil Besar / Truk)
         if (
-            str_contains($cat, 'alat berat') || 
-            str_contains($cat, 'truk') || 
-            str_contains($type, 'truk') || 
-            str_contains($type, 'alat berat') || 
-            str_contains($type, 'traktor') || 
+            str_contains($cat, 'alat berat') ||
+            str_contains($cat, 'truk') ||
+            str_contains($type, 'truk') ||
+            str_contains($type, 'alat berat') ||
+            str_contains($type, 'traktor') ||
             str_contains($type, 'bus') ||
             str_contains($type, 'double cabin') ||
             str_contains($model, 'truk') ||
@@ -117,12 +147,12 @@ class Vehicle extends Model
 
         // 2. Mobil / Pick Up / Minibus / Sedan (Mobil Biasa / Roda 4)
         if (
-            str_contains($cat, 'roda 4') || 
-            str_contains($cat, 'mobil') || 
-            str_contains($type, 'mobil') || 
-            str_contains($type, 'pick up') || 
-            str_contains($type, 'minibus') || 
-            str_contains($type, 'mpv') || 
+            str_contains($cat, 'roda 4') ||
+            str_contains($cat, 'mobil') ||
+            str_contains($type, 'mobil') ||
+            str_contains($type, 'pick up') ||
+            str_contains($type, 'minibus') ||
+            str_contains($type, 'mpv') ||
             str_contains($type, 'sedan') ||
             str_contains($type, 'suv') ||
             str_contains($model, 'avanza') ||

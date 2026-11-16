@@ -119,8 +119,8 @@
             </div>
         </div>
 
-        <!-- 6 Quick Stats / Spec Metric Tiles -->
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mt-6 pt-6 border-t border-slate-100 text-xs">
+        <!-- 7 Quick Stats / Spec Metric Tiles -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mt-6 pt-6 border-t border-slate-100 text-xs">
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
                 <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">No. Rangka</span>
                 <span class="font-bold text-slate-900 font-mono text-xs block mt-1 truncate" title="{{ $vehicle->frame_number }}">
@@ -133,8 +133,16 @@
                     {{ $vehicle->engine_number ?: '-' }}
                 </span>
             </div>
+            <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                <span class="text-emerald-800 block text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                    <i data-lucide="gauge" class="w-3 h-3 text-emerald-600"></i> KM Servis Terakhir
+                </span>
+                <span class="font-black font-mono text-xs block mt-1 {{ $vehicle->latest_service_km ? 'text-emerald-950' : 'text-slate-400' }}">
+                    {{ $vehicle->latest_service_km ? number_format($vehicle->latest_service_km, 0, ',', '.') . ' KM' : 'Belum Servis' }}
+                </span>
+            </div>
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Pajak Tahunan (PKB)</span>
+                <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Pajak Tahunan</span>
                 <span class="font-bold font-mono text-xs block mt-1 {{ $vehicle->tax_annual_date ? 'text-[#015471]' : 'text-slate-400' }}">
                     {{ $vehicle->tax_annual_date ? $vehicle->tax_annual_date->format('d M Y') : '-' }}
                 </span>
@@ -394,6 +402,11 @@
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="px-5 py-3.5 text-slate-600 whitespace-nowrap font-mono text-[11px]">
                                     {{ $mr->date->format('d/m/Y') }}
+                                    @if($mr->odometer_km)
+                                        <span class="block text-[10px] text-emerald-700 font-bold mt-0.5">
+                                            <i data-lucide="gauge" class="w-3 h-3 inline text-emerald-600"></i> {{ number_format($mr->odometer_km, 0, ',', '.') }} KM
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#015471]/10 text-[#015471] border border-[#015471]/20">

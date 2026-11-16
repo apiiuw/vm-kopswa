@@ -6,8 +6,8 @@
     <title>Login Internal | PT Swadharma Utama Prima</title>
     
     <!-- Favicon / Icon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/icon/sup-icon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/icon/sup-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/icon/kopswa-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/icon/kopswa-icon.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,12 +142,8 @@
 
                 <!-- Logo Header -->
                 <div class="text-center space-y-2.5 sm:space-y-3 pt-1 sm:pt-2">
-                    <div class="inline-flex justify-center items-center p-2 sm:p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm mx-auto transition-transform hover:scale-105 duration-300">
-                        <img src="{{ asset('img/logo/sup-logo.png') }}" alt="Logo" class="h-10 sm:h-12 w-auto object-contain max-w-[190px] sm:max-w-[220px]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="items-center gap-2 hidden px-3 py-1">
-                            <img src="{{ asset('img/icon/sup-icon.png') }}" alt="Icon" class="w-8 h-8 object-contain">
-                            <span class="font-black text-[#015471] text-base">Fleet System</span>
-                        </div>
+                    <div class="inline-flex justify-center items-center px-4 py-2.5 rounded-2xl bg-[#015471] border border-[#01435b] shadow-md mx-auto transition-transform hover:scale-105 duration-300">
+                        <img src="{{ asset('img/logo/logo-kopswa.png') }}" alt="Logo KOPSWA" class="h-10 sm:h-12 w-auto object-contain max-w-[200px] sm:max-w-[240px]">
                     </div>
                     
                     <div>

@@ -226,6 +226,7 @@
                         <th class="px-5 py-3.5">Model & Tipe</th>
                         <th class="px-5 py-3.5">Pengguna Motor</th>
                         <th class="px-5 py-3.5">Klien & Penempatan</th>
+                        <th class="px-5 py-3.5">KM Terakhir Servis</th>
                         <th class="px-5 py-3.5">Jatuh Tempo Pajak</th>
                         <th class="px-5 py-3.5">Tarif Sewa</th>
                         <th class="px-5 py-3.5 text-center">Status & Legalitas</th>
@@ -275,6 +276,23 @@
                                     <i data-lucide="map-pin" class="w-3 h-3 text-[#FF7A3D]"></i>
                                     {{ $v->location ? $v->location->name : 'Belum Ditentukan' }}
                                 </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                @if($v->latest_service_km)
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono font-bold text-xs inline-flex items-center gap-1">
+                                            <i data-lucide="gauge" class="w-3 h-3 text-emerald-600"></i>
+                                            {{ number_format($v->latest_service_km, 0, ',', '.') }} KM
+                                        </span>
+                                    </div>
+                                    @if($v->latest_service_record && $v->latest_service_record->date)
+                                        <span class="text-[10px] text-slate-400 block mt-0.5">
+                                            Servis: {{ $v->latest_service_record->date->format('d/m/Y') }}
+                                        </span>
+                                    @endif
+                                @else
+                                    <span class="text-[11px] text-slate-400 italic">Belum servis</span>
+                                @endif
                             </td>
                             <td class="px-5 py-4">
                                 @if($v->tax_annual_date)
@@ -339,7 +357,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-12 text-slate-400">
+                            <td colspan="11" class="text-center py-12 text-slate-400">
                                 <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
                                 <p class="font-medium text-xs">Tidak ada data unit yang cocok dengan filter pencarian.</p>
                             </td>

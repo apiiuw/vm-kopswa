@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\ClientRequest;
+use App\Models\Expense;
 use App\Models\MaintenanceRecord;
 use App\Models\Vehicle;
-use App\Models\Expense;
+use Illuminate\Http\Request;
 
 class MaintenanceController extends Controller
 {
@@ -15,7 +16,7 @@ class MaintenanceController extends Controller
         $activeVendorId = session('active_vendor_id');
 
         if ($activeVendorId) {
-            $query->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $query->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -30,13 +31,13 @@ class MaintenanceController extends Controller
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(function($q) use ($s) {
+            $query->where(function ($q) use ($s) {
                 $q->where('description', 'like', "%{$s}%")
-                  ->orWhere('memo_number', 'like', "%{$s}%")
-                  ->orWhere('item_name', 'like', "%{$s}%")
-                  ->orWhereHas('vehicle', function($vq) use ($s) {
-                      $vq->where('plate_number', 'like', "%{$s}%");
-                  });
+                    ->orWhere('memo_number', 'like', "%{$s}%")
+                    ->orWhere('item_name', 'like', "%{$s}%")
+                    ->orWhereHas('vehicle', function ($vq) use ($s) {
+                        $vq->where('plate_number', 'like', "%{$s}%");
+                    });
             });
         }
 
@@ -51,7 +52,7 @@ class MaintenanceController extends Controller
 
         $statsQuery = MaintenanceRecord::query();
         if ($activeVendorId) {
-            $statsQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $statsQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -71,7 +72,7 @@ class MaintenanceController extends Controller
 
             $complaints = $record->parsed_complaints;
 
-            if (!empty($complaints) && count($complaints) > 0) {
+            if (! empty($complaints) && count($complaints) > 0) {
                 $hasCostOnComplaints = false;
                 foreach ($complaints as $c) {
                     $itemCost = (float) str_replace(['.', ','], '', $c['cost'] ?? '0');
@@ -95,8 +96,8 @@ class MaintenanceController extends Controller
                 }
 
                 // If complaints didn't have individual item costs parsed, attribute to the main record type
-                if (!$hasCostOnComplaints) {
-                    match($record->type) {
+                if (! $hasCostOnComplaints) {
+                    match ($record->type) {
                         'ganti_ban' => $banCost += $recordCost,
                         'ganti_accu' => $accuCost += $recordCost,
                         'sparepart' => $sparepartCost += $recordCost,
@@ -105,7 +106,7 @@ class MaintenanceController extends Controller
                     };
                 }
             } else {
-                match($record->type) {
+                match ($record->type) {
                     'ganti_ban' => $banCost += $recordCost,
                     'ganti_accu' => $accuCost += $recordCost,
                     'sparepart' => $sparepartCost += $recordCost,
@@ -130,7 +131,7 @@ class MaintenanceController extends Controller
     public function create(Request $request)
     {
         $activeVendorId = session('active_vendor_id');
-        $vehicleQuery = Vehicle::with('location')->orderBy('plate_number');
+        $vehicleQuery = Vehicle::with(['location', 'maintenanceRecords' => fn ($q) => $q->orderBy('date', 'desc')])->orderBy('plate_number');
         if ($activeVendorId) {
             $vehicleQuery->where('vendor_id', $activeVendorId);
         }
@@ -139,14 +140,14 @@ class MaintenanceController extends Controller
         $defaultType = $request->type ?? 'service_berkala';
 
         // Get Client Requests for Autofill / Reference
-        $requestQuery = \App\Models\ClientRequest::with(['vehicle.location', 'vendor', 'user'])->latest();
+        $requestQuery = ClientRequest::with(['vehicle.location', 'vendor', 'user'])->latest();
         if ($activeVendorId) {
             $requestQuery->where('vendor_id', $activeVendorId);
         }
         $rawClientRequests = $requestQuery->get();
 
         // Parse structured metadata and complaints for each client request
-        $clientRequests = $rawClientRequests->map(function($cr) {
+        $clientRequests = $rawClientRequests->map(function ($cr) {
             $normalizedDesc = str_replace("\r\n", "\n", $cr->description ?? '');
             $descLines = explode("\n", $normalizedDesc);
 
@@ -164,7 +165,9 @@ class MaintenanceController extends Controller
 
             foreach ($descLines as $line) {
                 $trimmed = trim($line);
-                if (empty($trimmed)) continue;
+                if (empty($trimmed)) {
+                    continue;
+                }
 
                 if (str_starts_with($trimmed, '[PIC Pengaju:') || str_starts_with($trimmed, '[PIC:')) {
                     $content = trim($trimmed, '[]');
@@ -213,9 +216,13 @@ class MaintenanceController extends Controller
                     }
                     $categoryRaw = strtolower($m[2]);
                     $catVal = 'service_berkala';
-                    if (str_contains($categoryRaw, 'ban')) $catVal = 'ganti_ban';
-                    elseif (str_contains($categoryRaw, 'accu') || str_contains($categoryRaw, 'aki')) $catVal = 'ganti_accu';
-                    elseif (str_contains($categoryRaw, 'sparepart')) $catVal = 'sparepart';
+                    if (str_contains($categoryRaw, 'ban')) {
+                        $catVal = 'ganti_ban';
+                    } elseif (str_contains($categoryRaw, 'accu') || str_contains($categoryRaw, 'aki')) {
+                        $catVal = 'ganti_accu';
+                    } elseif (str_contains($categoryRaw, 'sparepart')) {
+                        $catVal = 'sparepart';
+                    }
 
                     $currentComplaint = [
                         'num' => $m[1],
@@ -237,7 +244,7 @@ class MaintenanceController extends Controller
                 } elseif ($currentComplaint && str_starts_with($trimmed, 'Uraian: ')) {
                     $currentComplaint['desc'] = substr($trimmed, 8);
                 } elseif ($currentComplaint) {
-                    $currentComplaint['desc'] .= (!empty($currentComplaint['desc']) ? "\n" : '') . $trimmed;
+                    $currentComplaint['desc'] .= (! empty($currentComplaint['desc']) ? "\n" : '').$trimmed;
                 }
             }
 
@@ -279,18 +286,22 @@ class MaintenanceController extends Controller
             return $cr;
         });
 
-        $clientRequestsData = $clientRequests->mapWithKeys(function($cr) {
+        $clientRequestsData = $clientRequests->mapWithKeys(function ($cr) {
             $meta = $cr->parsed_meta ?? [];
             $proofFiles = is_string($cr->proof_files) ? json_decode($cr->proof_files, true) : ($cr->proof_files ?? []);
-            if (!is_array($proofFiles)) $proofFiles = [];
+            if (! is_array($proofFiles)) {
+                $proofFiles = [];
+            }
 
             $complaintPhotosMap = [];
             $vehiclePhotos = [];
             $generalProofs = [];
 
             foreach ($proofFiles as $pf) {
-                if (empty($pf['path'])) continue;
-                $url = asset('storage/' . $pf['path']);
+                if (empty($pf['path'])) {
+                    continue;
+                }
+                $url = asset('storage/'.$pf['path']);
                 $name = $pf['name'] ?? basename($pf['path']);
                 $isImg = (bool) preg_match('/\.(jpg|jpeg|png|webp)$/i', $pf['path']);
                 $item = [
@@ -320,7 +331,7 @@ class MaintenanceController extends Controller
                 'id' => $cr->id,
                 'vehicle_id' => $cr->vehicle_id,
                 'vehicle_plate' => $cr->vehicle ? $cr->vehicle->plate_number : '',
-                'vehicle_label' => $cr->vehicle ? $cr->vehicle->plate_number . ' — ' . $cr->vehicle->model_name . ' (' . ($cr->vehicle->location ? $cr->vehicle->location->name : 'Kebun') . ')' : '',
+                'vehicle_label' => $cr->vehicle ? $cr->vehicle->plate_number.' — '.$cr->vehicle->model_name.' ('.($cr->vehicle->location ? $cr->vehicle->location->name : 'Kebun').')' : '',
                 'request_type' => $cr->request_type,
                 'title' => $cr->title,
                 'cost' => (float) $cr->estimated_cost,
@@ -338,7 +349,7 @@ class MaintenanceController extends Controller
                 'mechanic_phone' => $meta['mechanic_phone'] ?? '',
                 'complaints' => $meta['complaints'] ?? [],
                 'clean_other_desc' => $meta['clean_other_desc'] ?? '',
-                'memo' => 'REQ-KLIEN-' . str_pad($cr->id, 4, '0', STR_PAD_LEFT),
+                'memo' => 'REQ-KLIEN-'.str_pad($cr->id, 4, '0', STR_PAD_LEFT),
                 'complaint_photos_map' => $complaintPhotosMap,
                 'vehicle_photos' => $vehiclePhotos,
                 'general_proofs' => $generalProofs,
@@ -386,15 +397,15 @@ class MaintenanceController extends Controller
         $uploadedFiles = [];
 
         // 0. Include any existing / auto-filled proof files from client request
-        if (!empty($request->existing_proof_files)) {
+        if (! empty($request->existing_proof_files)) {
             $existing = json_decode($request->existing_proof_files, true);
             if (is_array($existing)) {
                 foreach ($existing as $exFile) {
-                    if (!empty($exFile['path'])) {
+                    if (! empty($exFile['path'])) {
                         $uploadedFiles[] = [
                             'path' => $exFile['path'],
                             'name' => $exFile['name'] ?? basename($exFile['path']),
-                            'complaint_index' => isset($exFile['complaint_index']) ? (int)$exFile['complaint_index'] : null,
+                            'complaint_index' => isset($exFile['complaint_index']) ? (int) $exFile['complaint_index'] : null,
                             'size' => $exFile['size'] ?? 0,
                         ];
                     }
@@ -417,7 +428,7 @@ class MaintenanceController extends Controller
                     $path = $file->store('maintenance_proofs', 'public');
                     $uploadedFiles[] = [
                         'path' => $path,
-                        'name' => "{$label} - " . $file->getClientOriginalName(),
+                        'name' => "{$label} - ".$file->getClientOriginalName(),
                         'size' => $file->getSize(),
                     ];
                 }
@@ -442,15 +453,15 @@ class MaintenanceController extends Controller
         foreach ($request->allFiles() as $key => $files) {
             if (str_starts_with($key, 'complaint_photos_')) {
                 $complaintNum = str_replace('complaint_photos_', '', $key);
-                $complaintIdx = is_numeric($complaintNum) ? ((int)$complaintNum + 1) : $complaintNum;
+                $complaintIdx = is_numeric($complaintNum) ? ((int) $complaintNum + 1) : $complaintNum;
                 $fileList = is_array($files) ? $files : [$files];
                 foreach ($fileList as $file) {
                     if ($file && $file->isValid()) {
                         $path = $file->store('maintenance_proofs', 'public');
                         $uploadedFiles[] = [
                             'path' => $path,
-                            'name' => "Foto Keluhan #{$complaintIdx} - " . $file->getClientOriginalName(),
-                            'complaint_index' => (int)$complaintNum,
+                            'name' => "Foto Keluhan #{$complaintIdx} - ".$file->getClientOriginalName(),
+                            'complaint_index' => (int) $complaintNum,
                             'size' => $file->getSize(),
                         ];
                     }
@@ -466,19 +477,25 @@ class MaintenanceController extends Controller
 
         // 5. Build description with rich context (PIC, Status, Bengkel, Mekanik) if available
         $description = $validated['description'] ?? '';
-        
+
         $metaSections = [];
-        if (!empty($validated['pic_name'])) {
-            $metaSections[] = "[PIC: {$validated['pic_name']}" . (!empty($validated['pic_phone']) ? " - Telp: {$validated['pic_phone']}" : '') . "]";
+        if (! empty($validated['pic_name'])) {
+            $metaSections[] = "[PIC: {$validated['pic_name']}".(! empty($validated['pic_phone']) ? " - Telp: {$validated['pic_phone']}" : '').']';
         }
-        if (!empty($validated['workshop_name']) || !empty($validated['workshop_phone']) || !empty($validated['mechanic_name'])) {
+        if (! empty($validated['workshop_name']) || ! empty($validated['workshop_phone']) || ! empty($validated['mechanic_name'])) {
             $bengkelInfo = [];
-            if (!empty($validated['workshop_name'])) $bengkelInfo[] = "Bengkel: {$validated['workshop_name']}";
-            if (!empty($validated['workshop_phone'])) $bengkelInfo[] = "Telp: {$validated['workshop_phone']}";
-            if (!empty($validated['mechanic_name'])) $bengkelInfo[] = "Mekanik: {$validated['mechanic_name']}" . (!empty($validated['mechanic_phone']) ? " ({$validated['mechanic_phone']})" : '');
-            $metaSections[] = "[" . implode(" | ", $bengkelInfo) . "]";
+            if (! empty($validated['workshop_name'])) {
+                $bengkelInfo[] = "Bengkel: {$validated['workshop_name']}";
+            }
+            if (! empty($validated['workshop_phone'])) {
+                $bengkelInfo[] = "Telp: {$validated['workshop_phone']}";
+            }
+            if (! empty($validated['mechanic_name'])) {
+                $bengkelInfo[] = "Mekanik: {$validated['mechanic_name']}".(! empty($validated['mechanic_phone']) ? " ({$validated['mechanic_phone']})" : '');
+            }
+            $metaSections[] = '['.implode(' | ', $bengkelInfo).']';
         }
-        if (!empty($validated['vehicle_operational_status']) || !empty($validated['vehicle_current_location'])) {
+        if (! empty($validated['vehicle_operational_status']) || ! empty($validated['vehicle_current_location'])) {
             $statusLabels = [
                 'masih_bisa_jalan' => 'Masih Bisa Jalan Normal / Pelan',
                 'mogok_total' => 'Mogok Total / Tidak Bisa Dihidupkan',
@@ -488,14 +505,20 @@ class MaintenanceController extends Controller
             ];
             $opLabel = $statusLabels[$validated['vehicle_operational_status']] ?? $validated['vehicle_operational_status'];
             $techInfo = [];
-            if ($opLabel) $techInfo[] = "Kondisi: {$opLabel}";
-            if (!empty($validated['vehicle_current_location'])) $techInfo[] = "Lokasi: {$validated['vehicle_current_location']}";
-            if (!empty($validated['vehicle_condition_notes'])) $techInfo[] = "Catatan Fisik: {$validated['vehicle_condition_notes']}";
-            $metaSections[] = "[" . implode(" | ", $techInfo) . "]";
+            if ($opLabel) {
+                $techInfo[] = "Kondisi: {$opLabel}";
+            }
+            if (! empty($validated['vehicle_current_location'])) {
+                $techInfo[] = "Lokasi: {$validated['vehicle_current_location']}";
+            }
+            if (! empty($validated['vehicle_condition_notes'])) {
+                $techInfo[] = "Catatan Fisik: {$validated['vehicle_condition_notes']}";
+            }
+            $metaSections[] = '['.implode(' | ', $techInfo).']';
         }
 
-        if (!empty($metaSections)) {
-            $description = implode("\n", $metaSections) . "\n\n" . $description;
+        if (! empty($metaSections)) {
+            $description = implode("\n", $metaSections)."\n\n".$description;
         }
 
         $record = MaintenanceRecord::create([
@@ -520,7 +543,7 @@ class MaintenanceController extends Controller
             'memo_number' => $validated['memo_number'] ?? null,
             'description' => trim($description),
             'receipt_file' => $receiptPath,
-            'proof_files' => !empty($uploadedFiles) ? $uploadedFiles : null,
+            'proof_files' => ! empty($uploadedFiles) ? $uploadedFiles : null,
         ]);
 
         // Map type to expense category
@@ -539,11 +562,11 @@ class MaintenanceController extends Controller
         Expense::create([
             'vehicle_id' => $record->vehicle_id,
             'maintenance_record_id' => $record->id,
-            'expense_number' => 'EXP-' . date('Ymd') . '-' . str_pad($record->id, 4, '0', STR_PAD_LEFT),
+            'expense_number' => 'EXP-'.date('Ymd').'-'.str_pad($record->id, 4, '0', STR_PAD_LEFT),
             'memo_number' => $record->memo_number,
             'transaction_date' => $record->date,
             'category' => $categoryMap[$record->type] ?? 'service_berkala',
-            'title' => ($record->item_name ?: $record->type_label) . ' - ' . ($vehicle ? $vehicle->plate_number : ''),
+            'title' => ($record->item_name ?: $record->type_label).' - '.($vehicle ? $vehicle->plate_number : ''),
             'amount' => $record->cost,
             'recipient_vendor' => $record->workshop_name ?: 'Bengkel / Vendor Rekanan',
             'description' => $record->description,
@@ -558,10 +581,12 @@ class MaintenanceController extends Controller
         $expense = Expense::where('maintenance_record_id', $maintenance->id)->first();
 
         // Extract files
-        $files = is_array($maintenance->proof_files) 
-            ? $maintenance->proof_files 
+        $files = is_array($maintenance->proof_files)
+            ? $maintenance->proof_files
             : (is_string($maintenance->proof_files) ? json_decode($maintenance->proof_files, true) : []);
-        if (!is_array($files)) $files = [];
+        if (! is_array($files)) {
+            $files = [];
+        }
 
         $vehicleAnglePhotos = [];
         $complaintPhotos = [];
@@ -610,13 +635,19 @@ class MaintenanceController extends Controller
 
         foreach ($descLines as $line) {
             $trimmed = trim($line);
-            if (empty($trimmed)) continue;
+            if (empty($trimmed)) {
+                continue;
+            }
 
             if (str_starts_with($trimmed, '[PIC Pengaju:') || str_starts_with($trimmed, '[PIC:')) {
                 $content = trim($trimmed, '[]');
                 if (preg_match('/PIC(?: Pengaju)?:\s*([^-]+?)(?:\s*-\s*Telp:\s*(.*))?$/i', $content, $pm)) {
-                    if (empty($structuredData['pic_name'])) $structuredData['pic_name'] = trim($pm[1] ?? '');
-                    if (empty($structuredData['pic_phone'])) $structuredData['pic_phone'] = trim($pm[2] ?? '');
+                    if (empty($structuredData['pic_name'])) {
+                        $structuredData['pic_name'] = trim($pm[1] ?? '');
+                    }
+                    if (empty($structuredData['pic_phone'])) {
+                        $structuredData['pic_phone'] = trim($pm[2] ?? '');
+                    }
                 }
             } elseif (str_starts_with($trimmed, '[Kondisi Operasional:') || str_contains($trimmed, 'Kondisi Operasional:') || str_starts_with($trimmed, '[Kondisi:')) {
                 $content = trim($trimmed, '[]');
@@ -673,7 +704,7 @@ class MaintenanceController extends Controller
                 } elseif (str_starts_with($trimmed, 'Uraian:')) {
                     $currentComplaint['description'] = trim(substr($trimmed, 7));
                 } else {
-                    $currentComplaint['description'] .= ($currentComplaint['description'] ? "\n" : '') . $trimmed;
+                    $currentComplaint['description'] .= ($currentComplaint['description'] ? "\n" : '').$trimmed;
                 }
             } else {
                 $cleanDescLines[] = $line;
@@ -687,13 +718,13 @@ class MaintenanceController extends Controller
         $cleanDescription = trim(implode("\n", $cleanDescLines));
 
         return view('maintenance.show', compact(
-            'maintenance', 
-            'expense', 
-            'vehicleAnglePhotos', 
-            'complaintPhotos', 
-            'generalDocs', 
-            'structuredData', 
-            'complaintBlocks', 
+            'maintenance',
+            'expense',
+            'vehicleAnglePhotos',
+            'complaintPhotos',
+            'generalDocs',
+            'structuredData',
+            'complaintBlocks',
             'cleanDescription'
         ));
     }
