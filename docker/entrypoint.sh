@@ -59,7 +59,12 @@ else
   echo "Database already seeded (${USER_COUNT} users), skipping seeder."
 fi
 
+# Ensure stale Vite dev server hot file is never present in container
+rm -f public/hot
+
 php artisan storage:link 2>/dev/null || true
-chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+chown -R www-data:www-data storage bootstrap/cache public/build 2>/dev/null || true
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+chmod -R 755 public 2>/dev/null || true
 
 exec apache2-foreground
