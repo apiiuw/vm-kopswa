@@ -1,58 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# VM-Kopswa — Sistem Monitoring Kendaraan
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi monitoring armada kendaraan sewa operasional kebun milik **PT Swadharma Utama
+Prima (SUP)** untuk klien seperti PTPN I Regional 7: data armada, STNK/BPKB & pajak,
+service & maintenance, asuransi/klaim, anggaran (plafond), kas masuk/keluar, portal
+klien (layanan & tiket), serta export laporan PDF & Excel.
 
-## About Laravel
+> Codebase aplikasi dijalankan apa adanya (tanpa perubahan code) — repo ini hanya
+> menambahkan file containerisasi (`Dockerfile`, `docker-compose.yml`, `helmchart/`).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Layer    | Teknologi |
+|----------|-----------|
+| Backend  | Laravel 13 (PHP 8.3) |
+| Database | MySQL 8.0 |
+| Frontend | Blade + Tailwind CSS 4 (Vite), Chart.js, SweetAlert2, Lucide |
+| Web server (container) | Apache 2 (mod_rewrite) |
+| Export | barryvdh/laravel-dompdf, phpoffice/phpspreadsheet |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Struktur Modul
 
-## Learning Laravel
+- **Dashboard** (`/`) — ringkasan armada & keuangan
+- **Vendors** (`/vendors`) — multi-vendor/klien + lokasi kebun
+- **Vehicles** (`/vehicles`) — data armada + file STNK/BPKB
+- **Maintenance** (`/maintenance`) — service, ban, accu, sparepart
+- **Documents** (`/documents`) — STNK, pajak 5 tahunan, blokir Polda
+- **Insurance** (`/insurance`) — asuransi & klaim
+- **Financial** (`/financial`) — anggaran, pemasukan, pengeluaran
+- **Exports** (`/exports/*`) — laporan PDF & Excel
+- **Client portal** (`/client/*`) — dashboard, tiket layanan realtime, daftar kendaraan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Menjalankan dengan Docker Compose
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Prasyarat: Docker + Docker Compose, dan network eksternal `autodev-net`:
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```sh
+docker network create autodev-net   # sekali saja, jika belum ada
+docker compose -p vm-kopswa up -d --build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Aplikasi tersedia di container **`vm-kopswa-app`** (port 80, via network `autodev-net`).
+Database MySQL berjalan di container `vm-kopswa-db` dengan volume persisten
+`vm-kopswa_db_data`. Uploads dipetakan ke
+`/project/autodev-py/data_sharing/vm-kopswa:/app/uploads`.
 
-## Contributing
+Saat pertama start, entrypoint otomatis menjalankan `migrate --force` dan
+`db:seed` (hanya jika tabel users masih kosong), sehingga data tetap ada
+setelah `down`/`up`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```sh
+docker compose -p vm-kopswa logs -f   # lihat log
+docker compose -p vm-kopswa down      # hentikan
+```
 
-## Code of Conduct
+## Akun Default (dari `database/seeders/DatabaseSeeder.php`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Email | Password | Peran |
+|-------|----------|-------|
+| `info@ptsup.co.id` | `password123` | Admin internal PT SUP |
+| `pic.reg7@ptpn.id` | `password123` | Klien (PTPN I Regional 7) |
 
-## Security Vulnerabilities
+## Deploy ke Kubernetes (Helm)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```sh
+helm install vm-kopswa ./helmchart
+```
 
-## License
+`helmchart/values.yaml` mengatur `global.ingress.enabled`,
+`global.ingress.host`, `global.ingress.tlsSecret`, serta
+`services.vm-kopswa-app` / `services.vm-kopswa-db` (image + port).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Variabel Environment (service `vm-kopswa-app`)
+
+`APP_NAME`, `APP_ENV`, `APP_DEBUG`, `APP_URL`, `DB_HOST` (default `vm-kopswa-db`),
+`DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.

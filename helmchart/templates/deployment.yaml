@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-vm-kopswa-app
+  labels:
+    app: vm-kopswa-app
+spec:
+  replicas: {{ .Values.services.vm-kopswa-app.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: vm-kopswa-app
+  template:
+    metadata:
+      labels:
+        app: vm-kopswa-app
+    spec:
+      containers:
+        - name: vm-kopswa-app
+          image: {{ .Values.services.vm-kopswa-app.image }}
+          ports:
+            - containerPort: {{ .Values.services.vm-kopswa-app.port }}
+          env:
+            {{- range $k, $v := .Values.services.vm-kopswa-app.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-vm-kopswa-db
+  labels:
+    app: vm-kopswa-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vm-kopswa-db
+  template:
+    metadata:
+      labels:
+        app: vm-kopswa-db
+    spec:
+      containers:
+        - name: vm-kopswa-db
+          image: {{ .Values.services.vm-kopswa-db.image }}
+          ports:
+            - containerPort: {{ .Values.services.vm-kopswa-db.port }}
+          env:
+            {{- range $k, $v := .Values.services.vm-kopswa-db.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-vm-kopswa-db-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-vm-kopswa-db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,0 +1,56 @@
+networks:
+  autodev-net:
+    external: true
+
+volumes:
+  vm-kopswa_db_data:
+
+services:
+  vm-kopswa-app:
+    container_name: vm-kopswa-app
+    image: vm-kopswa-vm-kopswa-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    restart: always
+    depends_on:
+      vm-kopswa-db:
+        condition: service_healthy
+    environment:
+      APP_NAME: VM-Kopswa
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: http://vm-kopswa-app
+      DB_HOST: vm-kopswa-db
+      DB_PORT: "3306"
+      DB_DATABASE: vm_kopswa
+      DB_USERNAME: vm_kopswa
+      DB_PASSWORD: vm_kopswa_secret
+    volumes:
+      - /project/autodev-py/data_sharing/vm-kopswa:/app/uploads
+    networks:
+      - autodev-net
+
+  vm-kopswa-db:
+    container_name: vm-kopswa-db
+    image: mysql:8.0
+    expose:
+      - "3306"
+    restart: always
+    environment:
+      MYSQL_DATABASE: vm_kopswa
+      MYSQL_USER: vm_kopswa
+      MYSQL_PASSWORD: vm_kopswa_secret
+      MYSQL_ROOT_PASSWORD: vm_kopswa_root_secret
+    volumes:
+      - vm-kopswa_db_data:/var/lib/mysql
+    networks:
+      - autodev-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

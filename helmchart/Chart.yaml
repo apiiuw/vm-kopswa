@@ -1,0 +1,6 @@
+apiVersion: v2
+name: vm-kopswa
+description: Vehicle Monitoring KopsWA (PT SUP) — Laravel application Helm chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
