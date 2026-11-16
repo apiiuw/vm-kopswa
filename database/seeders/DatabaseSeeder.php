@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Location;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +17,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'PT Perkebunan Nusantara I Regional 7',
             'code' => 'PTPN-7',
             'contract_number' => 'TNP/TT/KTR/0075/2025',
-            'client_name' => 'PT Swadharma Utama Prima (Penyedia)',
+            'client_name' => 'Koperasi Swadharma (Penyedia)',
             'project_name' => 'Pengadaan Sewa 76 Unit Sepeda Motor Operasional Kebun',
             'pic_name' => 'Bambang Irawan (Pengawas Unit Sewa)',
             'phone' => '021-8293812 / 0812-3456-7890',
@@ -27,9 +28,9 @@ class DatabaseSeeder extends Seeder
             'notes' => 'Kontrak sewa 70 unit Honda CRF 150 L dan 6 unit Honda Supra X 125 periode 36 bulan.',
         ]);
 
-        // 2. Akun Login 1: Admin Internal PT SUP
+        // 2. Akun Login 1: Admin Internal Koperasi Swadharma
         User::create([
-            'name' => 'Administrator PT SUP',
+            'name' => 'Administrator Koperasi Swadharma',
             'email' => 'info@ptsup.co.id',
             'password' => Hash::make('password123'),
             'category' => 'internal',
@@ -59,13 +60,12 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($locations as $loc) {
-            \App\Models\Location::create([
+            Location::create([
                 'vendor_id' => $vendor->id,
                 'name' => $loc['name'],
                 'code' => $loc['code'],
-                'manager_name' => 'Manajer ' . $loc['name'],
+                'manager_name' => 'Manajer '.$loc['name'],
             ]);
         }
     }
 }
-

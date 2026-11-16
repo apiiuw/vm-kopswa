@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Portal Layanan Klien') | PT Swadharma Utama Prima</title>
+    <title>@yield('title', 'Portal Layanan Klien') | Koperasi Swadharma</title>
     
     <!-- Favicon / Icon -->
     <link rel="icon" type="image/png" href="{{ asset('img/icon/kopswa-icon.png') }}">
@@ -141,7 +141,7 @@
     <footer class="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
-                <span class="font-bold text-[#015471]">PT Swadharma Utama Prima</span>
+                <span class="font-bold text-[#015471]">Koperasi Swadharma</span>
                 <span>&bull;</span>
                 <span>Layanan Portal Klien Sewa Armada Motor</span>
             </div>

@@ -44,7 +44,7 @@
                     @if($currentVendor)
                         Menampilkan monitoring armada sewa khusus klien <strong>{{ $currentVendor->name }}</strong> (No. Kontrak: {{ $currentVendor->contract_number ?: '-' }}).
                     @else
-                        Menampilkan seluruh unit motor sewaan PT SUP yang tersebar di semua klien mitra.
+                        Menampilkan seluruh unit motor sewaan Koperasi Swadharma yang tersebar di semua klien mitra.
                     @endif
                 </p>
             </div>
@@ -271,7 +271,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-800 mb-1">Penyedia Armada (Vendor)</label>
-                    <input type="text" name="client_name" id="vendorClientName" value="PT Swadharma Utama Prima (Penyedia)" placeholder="PT Swadharma Utama Prima" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
+                    <input type="text" name="client_name" id="vendorClientName" value="Koperasi Swadharma (Penyedia)" placeholder="Koperasi Swadharma" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
                 </div>
             </div>
 
@@ -342,7 +342,7 @@
         document.getElementById('vendorName').value = '';
         document.getElementById('vendorCode').value = '';
         document.getElementById('vendorContractNumber').value = '';
-        document.getElementById('vendorClientName').value = 'PT Swadharma Utama Prima (Penyedia)';
+        document.getElementById('vendorClientName').value = 'Koperasi Swadharma (Penyedia)';
         document.getElementById('vendorProjectName').value = '';
         document.getElementById('vendorPicName').value = '';
         document.getElementById('vendorPhone').value = '';
@@ -363,7 +363,7 @@
         document.getElementById('vendorName').value = v.name || '';
         document.getElementById('vendorCode').value = v.code || '';
         document.getElementById('vendorContractNumber').value = v.contract_number || '';
-        document.getElementById('vendorClientName').value = v.client_name || 'PT Swadharma Utama Prima (Penyedia)';
+        document.getElementById('vendorClientName').value = v.client_name || 'Koperasi Swadharma (Penyedia)';
         document.getElementById('vendorProjectName').value = v.project_name || '';
         document.getElementById('vendorPicName').value = v.pic_name || '';
         document.getElementById('vendorPhone').value = v.phone || '';

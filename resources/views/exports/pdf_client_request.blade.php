@@ -129,7 +129,7 @@
     <table class="header-table">
         <tr>
             <td style="width: 65%;">
-                <div class="company-name">{{ $clientRequest->vendor ? $clientRequest->vendor->name : 'PT SWADHARMA UTAMA PRIMA' }}</div>
+                <div class="company-name">{{ $clientRequest->vendor ? $clientRequest->vendor->name : 'KOPERASI SWADHARMA' }}</div>
                 <div class="doc-title">FORMULIR PERMOHONAN LAYANAN ARMADA</div>
                 <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
                     Nomor Tiket: <strong style="color: #015471;">#REQ-{{ str_pad($clientRequest->id, 4, '0', STR_PAD_LEFT) }}</strong> &bull; 
@@ -331,10 +331,10 @@
     </div>
     @endif
 
-    <!-- Catatan Tanggapan Admin / Internal PT SUP -->
+    <!-- Catatan Tanggapan Admin / Internal Koperasi Swadharma -->
     @if($clientRequest->admin_response)
     <div class="section-box" style="border-left: 3.5px solid #015471; background: #f8fafc;">
-        <div class="section-header" style="background: transparent;">Tanggapan / Verifikasi Admin PT SUP</div>
+        <div class="section-header" style="background: transparent;">Tanggapan / Verifikasi Admin Koperasi Swadharma</div>
         <div class="section-body" style="font-size: 9.5px; color: #1e293b;">
             {!! nl2br(e($clientRequest->admin_response)) !!}
         </div>

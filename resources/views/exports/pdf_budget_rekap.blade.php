@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Rekapitulasi Anggaran Operasional Kendaraan PT SUP</title>
+    <title>Rekapitulasi Anggaran Operasional Kendaraan Koperasi Swadharma</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -67,7 +67,7 @@
 <body>
 
     <div class="header">
-        <div class="company-title">{{ $vendor ? $vendor->name : 'PT SWADHARMA UTAMA PRIMA' }}</div>
+        <div class="company-title">{{ $vendor ? $vendor->name : 'KOPERASI SWADHARMA' }}</div>
         @if(($tab ?? 'overview') === 'incomes')
             <div class="doc-title">REKAPITULASI PENAGIHAN SEWA ARMADA BULANAN (INCOMES)</div>
             <div class="sub-title">
@@ -275,7 +275,7 @@
         </table>
 
         <div style="font-size: 8px; color: #475569; margin-top: 10px;">
-            <em>Catatan: Sisa plafon anggaran operasional sebesar Rp {{ number_format($remainingBudget, 0, ',', '.') }} mencukupi rata-rata pengeluaran operasional lapangan hingga akhir masa kontrak Mei 2028 sesuai persetujuan Direksi PT SUP.</em>
+            <em>Catatan: Sisa plafon anggaran operasional sebesar Rp {{ number_format($remainingBudget, 0, ',', '.') }} mencukupi rata-rata pengeluaran operasional lapangan hingga akhir masa kontrak Mei 2028 sesuai persetujuan Pengurus Koperasi Swadharma.</em>
         </div>
     @endif
 
@@ -291,7 +291,7 @@
                 </td>
                 <td style="width: 50%;">
                     Dibuat Oleh,<br>
-                    <strong>PT Swadharma Utama Prima</strong>
+                    <strong>Koperasi Swadharma</strong>
                     <br><br><br><br>
                     <u><strong>Siti Khodijah / Tim Operasional</strong></u><br>
                     Pengelola Armada Proyek

@@ -64,7 +64,7 @@
 <body>
 
     <div class="header">
-        <div class="company-title">{{ $vehicle->vendor ? $vehicle->vendor->name : 'PT SWADHARMA UTAMA PRIMA' }}</div>
+        <div class="company-title">{{ $vehicle->vendor ? $vehicle->vendor->name : 'KOPERASI SWADHARMA' }}</div>
         <div class="doc-title">KARTU RIWAYAT PEMELIHARAAN KENDARAAN (VEHICLE HISTORY CARD)</div>
         <div style="font-size: 9px; color: #64748b;">
             @if($vehicle->vendor && $vehicle->vendor->contract_number)

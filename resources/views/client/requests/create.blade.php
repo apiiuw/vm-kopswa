@@ -359,7 +359,7 @@
                             <i data-lucide="refresh-cw" class="w-5 h-5 text-[#FF7A3D] shrink-0"></i>
                             <div class="text-xs">
                                 <span class="font-bold text-slate-900 block">Permohonan Drop Unit Motor Cadangan</span>
-                                <span class="text-slate-600">Tim operasional PT SUP akan menyiapkan armada pengganti ke lokasi kebun/proyek Anda.</span>
+                                <span class="text-slate-600">Tim operasional Koperasi Swadharma akan menyiapkan armada pengganti ke lokasi kebun/proyek Anda.</span>
                             </div>
                         </div>
 
@@ -845,7 +845,7 @@
                                 <div>
                                     <strong class="text-slate-800 font-bold block mb-0.5">Panduan Lampiran:</strong>
                                     <p id="attachmentGuideText" class="text-[11px] text-slate-500 leading-relaxed">
-                                        Pastikan 4 sudut foto kendaraan terunggah dengan jelas dan plat nomor terbaca untuk mempercepat verifikasi persetujuan oleh tim PT SUP.
+                                        Pastikan 4 sudut foto kendaraan terunggah dengan jelas dan plat nomor terbaca untuk mempercepat verifikasi persetujuan oleh tim Koperasi Swadharma.
                                     </p>
                                 </div>
                             </div>
@@ -2049,7 +2049,7 @@
                             <div><strong class="text-slate-500">Armada Kendaraan:</strong> <span class="font-bold text-slate-900">${vehicleLabel}</span></div>
                             <div><strong class="text-slate-500">Jenis Pengajuan:</strong> <span class="font-bold text-[#015471]">${typeLabel}</span></div>
                             <div><strong class="text-slate-500">Total Estimasi Biaya:</strong> <span class="font-black text-[#FF7A3D] font-mono">${totalCostText}</span></div>
-                            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-200">Pengajuan Anda akan diteruskan ke tim operasional PT SUP untuk ditinjau dan disetujui.</p>
+                            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-200">Pengajuan Anda akan diteruskan ke tim operasional Koperasi Swadharma untuk ditinjau dan disetujui.</p>
                         </div>
                     `,
                     icon: 'question',

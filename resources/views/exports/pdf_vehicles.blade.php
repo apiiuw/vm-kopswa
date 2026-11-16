@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Daftar 76 Unit Armada Sepeda Motor PT SUP</title>
+    <title>Daftar 76 Unit Armada Sepeda Motor Koperasi Swadharma</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -47,7 +47,7 @@
 <body>
 
     <div class="header">
-        <div class="company-title">{{ $vendor ? $vendor->name : 'PT SWADHARMA UTAMA PRIMA' }}</div>
+        <div class="company-title">{{ $vendor ? $vendor->name : 'KOPERASI SWADHARMA' }}</div>
         <div class="doc-title">DAFTAR INVENTARIS ARMADA KENDARAAN OPERASIONAL</div>
         <div style="font-size: 8px; color: #64748b;">
             @if($vendor && $vendor->contract_number)

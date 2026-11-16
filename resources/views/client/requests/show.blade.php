@@ -1,6 +1,6 @@
 @extends('layouts.client')
 
-@section('title', 'Detail Pengajuan & Respon Tim SUP')
+@section('title', 'Detail Pengajuan & Respon Tim Koperasi Swadharma')
 
 @section('content')
 @php
@@ -490,7 +490,7 @@
                                     <div>
                                         <span class="text-slate-400 block text-[10px] font-bold uppercase mb-0.5">Nama Bengkel / AHASS:</span>
                                         <div class="font-bold text-slate-900 text-sm leading-snug">
-                                            {{ $clientRequest->workshop_name ?: 'Bengkel Rekanan SUP' }}
+                                            {{ $clientRequest->workshop_name ?: 'Bengkel Rekanan Koperasi Swadharma' }}
                                         </div>
                                         @if(!empty($structuredData['workshop_phone']))
                                             <div class="text-xs text-slate-500 font-mono flex items-center gap-1.5 mt-1">
@@ -660,16 +660,16 @@
 
         </div>
 
-        <!-- Right Column: Status & Respon Admin PT SUP (5 Cols) -->
+        <!-- Right Column: Status & Respon Admin Koperasi Swadharma (5 Cols) -->
         <div class="lg:col-span-5 space-y-6 sticky top-6">
 
-            <!-- Card: Tanggapan Tim Operasional PT SUP -->
+            <!-- Card: Tanggapan Tim Operasional Koperasi Swadharma -->
             <div class="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4">
                 <div class="flex items-center gap-2.5 text-[#015471]">
                     <div class="w-8 h-8 rounded-xl bg-[#015471]/10 text-[#015471] flex items-center justify-center">
                         <i data-lucide="message-square" class="w-4 h-4 text-[#FF7A3D]"></i>
                     </div>
-                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Respon Tim Helpdesk PT SUP</h3>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">Respon Tim Helpdesk Koperasi Swadharma</h3>
                 </div>
 
                 @if($clientRequest->admin_response)
@@ -687,7 +687,7 @@
                         <i data-lucide="clock" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
                         <div>
                             <span class="font-bold block">Sedang Menunggu Review:</span>
-                            Tim helpdesk & teknis PT SUP akan segera memeriksa laporan ini dan memberikan status tindak lanjut.
+                            Tim helpdesk & teknis Koperasi Swadharma akan segera memeriksa laporan ini dan memberikan status tindak lanjut.
                         </div>
                     </div>
                 @endif

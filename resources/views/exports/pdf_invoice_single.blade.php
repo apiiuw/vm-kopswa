@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Invoice {{ $income->invoice_number }} - PT Swadharma Utama Prima</title>
+    <title>Invoice {{ $income->invoice_number }} - Koperasi Swadharma</title>
     <style>
         @page {
             margin: 28px 30px;
@@ -167,11 +167,11 @@
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
             <td style="width: 58%; vertical-align: top;">
-                <div class="company-name">PT Swadharma Utama Prima</div>
+                <div class="company-name">Koperasi Swadharma</div>
                 <div class="company-tagline">Solusi Monitoring & Manajemen Armada Kendaraan Operasional</div>
                 <div class="company-address">
                     Gedung Menara Prima, Jl. DR. Ide Anak Agung Gde Agung, Kuningan, Jakarta Selatan<br>
-                    Telp: (021) 5290-0000 | Email: invoice@ptsup.co.id | Web: https://ptsup.co.id
+                    Telp: (021) 5290-0000 | Email: info@swadharma.co.id | Web: https://swadharma.co.id
                 </div>
             </td>
             <td style="width: 42%; vertical-align: top; text-align: right;">
@@ -313,7 +313,7 @@
                         </tr>
                         <tr>
                             <td style="color: #64748b; border: none;">Atas Nama:</td>
-                            <td style="border: none; font-weight: bold;">PT SWADHARMA UTAMA PRIMA</td>
+                            <td style="border: none; font-weight: bold;">KOPERASI SWADHARMA</td>
                         </tr>
                     </table>
                     <div style="color: #64748b; font-size: 8px; font-style: italic;">

@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientRequest;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Vehicle;
-use App\Models\ClientRequest;
-use App\Models\MaintenanceRecord;
-use App\Models\InsuranceClaim;
 
 class ClientPortalController extends Controller
 {
@@ -19,12 +17,12 @@ class ClientPortalController extends Controller
     public function dashboard()
     {
         $vendorId = $this->getClientVendorId();
-        
+
         $vehiclesQuery = Vehicle::query();
         if ($vendorId) {
             $vehiclesQuery->where('vendor_id', $vendorId);
         }
-        
+
         $totalVehicles = (clone $vehiclesQuery)->count();
         $activeVehicles = (clone $vehiclesQuery)->where('status', 'active')->count();
         $maintenanceVehicles = (clone $vehiclesQuery)->where('status', 'maintenance')->count();
@@ -58,7 +56,7 @@ class ClientPortalController extends Controller
     public function indexRequests(Request $request)
     {
         $perPage = in_array((int) $request->get('per_page', 10), [10, 15, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
-        
+
         $query = ClientRequest::with(['vehicle.location'])->where('user_id', Auth::id());
 
         if ($request->filled('status')) {
@@ -142,7 +140,7 @@ class ClientPortalController extends Controller
                     $path = $file->store('client_proofs', 'public');
                     $uploadedFiles[] = [
                         'path' => $path,
-                        'name' => "{$label} - " . $file->getClientOriginalName(),
+                        'name' => "{$label} - ".$file->getClientOriginalName(),
                         'size' => $file->getSize(),
                     ];
                 }
@@ -167,15 +165,15 @@ class ClientPortalController extends Controller
         foreach ($request->allFiles() as $key => $files) {
             if (str_starts_with($key, 'complaint_photos_')) {
                 $complaintNum = str_replace('complaint_photos_', '', $key);
-                $complaintIdx = is_numeric($complaintNum) ? ((int)$complaintNum + 1) : $complaintNum;
+                $complaintIdx = is_numeric($complaintNum) ? ((int) $complaintNum + 1) : $complaintNum;
                 $fileList = is_array($files) ? $files : [$files];
                 foreach ($fileList as $file) {
                     if ($file && $file->isValid()) {
                         $path = $file->store('client_proofs', 'public');
                         $uploadedFiles[] = [
                             'path' => $path,
-                            'name' => "Foto Keluhan #{$complaintIdx} - " . $file->getClientOriginalName(),
-                            'complaint_index' => (int)$complaintNum,
+                            'name' => "Foto Keluhan #{$complaintIdx} - ".$file->getClientOriginalName(),
+                            'complaint_index' => (int) $complaintNum,
                             'size' => $file->getSize(),
                         ];
                     }
@@ -186,17 +184,17 @@ class ClientPortalController extends Controller
         // Format title or description if specific category selected
         $title = $validated['title'];
         $description = $validated['description'];
-        
+
         // Append Workshop and Mechanic details if provided
         $workshopDetails = [];
-        if (!empty($validated['workshop_phone'])) {
+        if (! empty($validated['workshop_phone'])) {
             $workshopDetails[] = "Telp Bengkel: {$validated['workshop_phone']}";
         }
-        if (!empty($validated['mechanic_name'])) {
-            $workshopDetails[] = "Mekanik: {$validated['mechanic_name']}" . (!empty($validated['mechanic_phone']) ? " (Telp: {$validated['mechanic_phone']})" : '');
+        if (! empty($validated['mechanic_name'])) {
+            $workshopDetails[] = "Mekanik: {$validated['mechanic_name']}".(! empty($validated['mechanic_phone']) ? " (Telp: {$validated['mechanic_phone']})" : '');
         }
-        if (!empty($workshopDetails)) {
-            $description = "[" . implode(" | ", $workshopDetails) . "]\n" . $description;
+        if (! empty($workshopDetails)) {
+            $description = '['.implode(' | ', $workshopDetails)."]\n".$description;
         }
 
         // Append Vehicle Technical Status Info if provided
@@ -207,29 +205,29 @@ class ClientPortalController extends Controller
             'sudah_di_bengkel' => 'Unit Sudah Masuk / Menginap di Bengkel',
             'unit_hilang' => 'Unit Hilang / Tidak di Tempat (TLO)',
         ];
-        $opStatus = !empty($validated['vehicle_operational_status']) ? ($statusLabels[$validated['vehicle_operational_status']] ?? $validated['vehicle_operational_status']) : null;
-        
+        $opStatus = ! empty($validated['vehicle_operational_status']) ? ($statusLabels[$validated['vehicle_operational_status']] ?? $validated['vehicle_operational_status']) : null;
+
         $techInfo = [];
         if ($opStatus) {
             $techInfo[] = "Kondisi Operasional: {$opStatus}";
         }
-        if (!empty($validated['vehicle_current_location'])) {
+        if (! empty($validated['vehicle_current_location'])) {
             $techInfo[] = "Posisi Unit: {$validated['vehicle_current_location']}";
         }
-        if (!empty($validated['vehicle_condition_notes'])) {
+        if (! empty($validated['vehicle_condition_notes'])) {
             $techInfo[] = "Catatan Fisik: {$validated['vehicle_condition_notes']}";
         }
-        if (!empty($techInfo)) {
-            $description = "[" . implode(" | ", $techInfo) . "]\n" . $description;
+        if (! empty($techInfo)) {
+            $description = '['.implode(' | ', $techInfo)."]\n".$description;
         }
 
         // Append PIC details to description if provided
-        if (!empty($validated['pic_name'])) {
-            $picInfo = "[PIC Pengaju: {$validated['pic_name']}" . (!empty($validated['pic_phone']) ? " - Telp: {$validated['pic_phone']}" : '') . "]";
-            $description = $picInfo . "\n" . $description;
+        if (! empty($validated['pic_name'])) {
+            $picInfo = "[PIC Pengaju: {$validated['pic_name']}".(! empty($validated['pic_phone']) ? " - Telp: {$validated['pic_phone']}" : '').']';
+            $description = $picInfo."\n".$description;
         }
 
-        if (!empty($validated['repair_category']) && $validated['request_type'] === 'perbaikan_servis') {
+        if (! empty($validated['repair_category']) && $validated['request_type'] === 'perbaikan_servis') {
             $categoryLabels = [
                 'servis_berkala' => 'Servis Berkala & Tune Up',
                 'ganti_ban' => 'Penggantian Ban',
@@ -237,7 +235,7 @@ class ClientPortalController extends Controller
                 'sparepart_fast_moving' => 'Penggantian Sparepart Fast Moving',
             ];
             $catLabel = $categoryLabels[$validated['repair_category']] ?? $validated['repair_category'];
-            $description = "[Kategori: {$catLabel}]\n" . $description;
+            $description = "[Kategori: {$catLabel}]\n".$description;
         }
 
         $clientRequest = ClientRequest::create([
@@ -265,7 +263,7 @@ class ClientPortalController extends Controller
             Vehicle::where('id', $validated['vehicle_id'])->update(['status' => 'replaced']);
         }
 
-        return redirect()->route('client.requests.show', $clientRequest)->with('success', 'Pengajuan berhasil dikirim dan tersinkronisasi ke sistem monitoring PT SUP!');
+        return redirect()->route('client.requests.show', $clientRequest)->with('success', 'Pengajuan berhasil dikirim dan tersinkronisasi ke sistem monitoring Koperasi Swadharma!');
     }
 
     public function showRequest(ClientRequest $clientRequest)
@@ -276,6 +274,7 @@ class ClientPortalController extends Controller
         }
 
         $clientRequest->load(['vehicle.location', 'vendor', 'user']);
+
         return view('client.requests.show', compact('clientRequest'));
     }
 
@@ -283,7 +282,7 @@ class ClientPortalController extends Controller
     {
         $vendorId = $this->getClientVendorId();
         $perPage = in_array((int) $request->get('per_page', 10), [10, 15, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
-        
+
         $query = Vehicle::with(['location', 'vendor']);
         if ($vendorId) {
             $query->where('vendor_id', $vendorId);
@@ -295,10 +294,10 @@ class ClientPortalController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('plate_number', 'like', "%{$search}%")
-                  ->orWhere('model_name', 'like', "%{$search}%")
-                  ->orWhere('brand', 'like', "%{$search}%");
+                    ->orWhere('model_name', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%");
             });
         }
 

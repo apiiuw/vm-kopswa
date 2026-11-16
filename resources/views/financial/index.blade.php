@@ -534,7 +534,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block font-bold text-black mb-1">Nomor Memo</label>
-                    <input type="text" name="memo_number" placeholder="SUP/LPG/..." class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono focus:outline-[#015471] text-black">
+                    <input type="text" name="memo_number" placeholder="KOPSWA/LPG/..." class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono focus:outline-[#015471] text-black">
                 </div>
                 <div>
                     <label class="block font-bold text-black mb-1">Journal Entry (Buku Besar)</label>

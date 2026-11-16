@@ -177,7 +177,7 @@
                                     Nomor Memo Pengajuan Internal
                                 </label>
                                 <input type="text" name="memo_number" id="memo_number" value="{{ old('memo_number') }}" 
-                                    placeholder="SUP/LPG/MEMO/..." 
+                                    placeholder="KOPSWA/LPG/MEMO/..." 
                                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
                             </div>
 

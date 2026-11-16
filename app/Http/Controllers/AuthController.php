@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -13,6 +14,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -25,7 +27,8 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('dashboard'))->with('success', 'Selamat datang kembali di Sistem Monitoring Kendaraan PT SUP!');
+
+            return redirect()->intended(route('dashboard'))->with('success', 'Selamat datang kembali di Sistem Monitoring Kendaraan Koperasi Swadharma!');
         }
 
         return back()->withErrors([
@@ -45,7 +48,7 @@ class AuthController extends Controller
     public function usersIndex(Request $request)
     {
         $perPage = in_array((int) $request->get('per_page', 10), [10, 15, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
-        
+
         $query = User::with('vendor')->orderBy('id', 'asc');
 
         if ($request->filled('category')) {
@@ -57,7 +60,7 @@ class AuthController extends Controller
         }
 
         $users = $query->paginate($perPage)->withQueryString();
-        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $vendors = Vendor::orderBy('name')->get();
 
         $stats = [
             'total' => User::count(),
@@ -70,8 +73,9 @@ class AuthController extends Controller
 
     public function createUser(Request $request)
     {
-        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $vendors = Vendor::orderBy('name')->get();
         $defaultCategory = $request->get('category', 'internal');
+
         return view('users.create', compact('vendors', 'defaultCategory'));
     }
 
@@ -93,7 +97,7 @@ class AuthController extends Controller
             'vendor_id' => $validated['category'] === 'klien' ? $validated['vendor_id'] : null,
         ]);
 
-        return redirect()->route('users.index')->with('success', 'Akun pengguna (' . ($validated['category'] === 'klien' ? 'Klien' : 'Internal PT SUP') . ') berhasil ditambahkan!');
+        return redirect()->route('users.index')->with('success', 'Akun pengguna ('.($validated['category'] === 'klien' ? 'Klien' : 'Internal Koperasi Swadharma').') berhasil ditambahkan!');
     }
 
     public function destroyUser(User $user)
@@ -103,6 +107,7 @@ class AuthController extends Controller
         }
 
         $user->delete();
+
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus!');
     }
 }

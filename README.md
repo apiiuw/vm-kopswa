@@ -2,8 +2,8 @@
 
 <!-- Updated: 2026-11-16 15:46 WIB -->
 
-Aplikasi monitoring armada kendaraan sewa operasional kebun milik **PT Swadharma Utama
-Prima (SUP)** untuk klien seperti PTPN I Regional 7: data armada, STNK/BPKB & pajak,
+Aplikasi monitoring armada kendaraan sewa operasional kebun milik **Koperasi Swadharma**
+untuk klien seperti PTPN I Regional 7: data armada, STNK/BPKB & pajak,
 service & maintenance, asuransi/klaim, anggaran (plafond), kas masuk/keluar, portal
 klien (layanan & tiket), serta export laporan PDF & Excel.
 
@@ -59,7 +59,7 @@ docker compose -p vm-kopswa down      # hentikan
 
 | Email | Password | Peran |
 |-------|----------|-------|
-| `info@ptsup.co.id` | `password123` | Admin internal PT SUP |
+| `info@ptsup.co.id` | `password123` | Admin internal Koperasi Swadharma |
 | `pic.reg7@ptpn.id` | `password123` | Klien (PTPN I Regional 7) |
 
 ## Deploy ke Kubernetes (Helm)

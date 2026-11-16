@@ -481,7 +481,7 @@
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                         <span class="text-slate-500">Klien / Vendor Terkait:</span>
                         <span class="font-bold text-[#FF7A3D]">
-                            {{ $maintenance->vehicle && $maintenance->vehicle->vendor ? $maintenance->vehicle->vendor->name : 'PT SUP Internal' }}
+                            {{ $maintenance->vehicle && $maintenance->vehicle->vendor ? $maintenance->vehicle->vendor->name : 'Internal Koperasi Swadharma' }}
                         </span>
                     </div>
 

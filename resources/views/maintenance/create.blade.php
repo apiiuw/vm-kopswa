@@ -637,7 +637,7 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">
                                     Nomor Memo / SPK / Referensi Servis
                                 </label>
-                                <input type="text" name="memo_number" id="memo_number" value="{{ old('memo_number') }}" placeholder="Contoh: MEMO/SUP/WS/2026/089 atau #REQ-0001" class="w-full text-xs font-mono font-bold px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 bg-white shadow-2xs">
+                                <input type="text" name="memo_number" id="memo_number" value="{{ old('memo_number') }}" placeholder="Contoh: MEMO/KOPSWA/WS/2026/089 atau #REQ-0001" class="w-full text-xs font-mono font-bold px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] text-slate-900 bg-white shadow-2xs">
                             </div>
                         </div>
                     </div>

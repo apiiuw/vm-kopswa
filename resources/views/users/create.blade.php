@@ -21,7 +21,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-slate-500 mt-1">
-                        Pemberian hak akses login sistem untuk staf internal operasional PT SUP maupun akun perwakilan Klien Mitra
+                        Pemberian hak akses login sistem untuk staf internal operasional Koperasi Swadharma maupun akun perwakilan Klien Mitra
                     </p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                         </div>
                         <div>
                             <h2 class="text-sm font-bold text-slate-900">Peran & Kategori Hak Akses</h2>
-                            <p class="text-[11px] text-slate-500">Tentukan apakah pengguna adalah staf internal PT SUP atau perwakilan klien mitra</p>
+                            <p class="text-[11px] text-slate-500">Tentukan apakah pengguna adalah staf internal Koperasi Swadharma atau perwakilan klien mitra</p>
                         </div>
                     </div>
 
@@ -75,7 +75,7 @@
                             <label class="flex items-start gap-3.5 p-4 rounded-2xl border-2 border-slate-200 cursor-pointer hover:border-[#015471]/50 hover:bg-slate-50 transition has-[:checked]:border-[#015471] has-[:checked]:bg-[#015471]/5">
                                 <input type="radio" name="category" value="internal" id="category_internal" onchange="toggleCategoryVendor()" {{ old('category', $defaultCategory ?? 'internal') === 'internal' ? 'checked' : '' }} class="mt-1 text-[#015471] focus:ring-[#015471]">
                                 <div>
-                                    <span class="font-bold text-slate-900 text-sm block">Internal PT SUP</span>
+                                    <span class="font-bold text-slate-900 text-sm block">Internal Koperasi Swadharma</span>
                                     <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
                                         Hak akses penuh mengelola operasional armada, input servis, keuangan, STNK, asuransi, dan approval tiket klien.
                                     </p>
@@ -147,7 +147,7 @@
                                     <i data-lucide="mail" class="w-4 h-4"></i>
                                 </span>
                                 <input type="email" name="email" id="email" value="{{ old('email') }}" required 
-                                    placeholder="nama@ptsup.co.id / klien@pertamina.com"
+                                    placeholder="nama@swadharma.co.id / klien@pertamina.com"
                                     class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
                             </div>
                             <span class="text-[11px] text-slate-400 mt-1 block">Email harus unik dan belum terdaftar di sistem</span>
@@ -194,7 +194,7 @@
                     <div class="space-y-3.5 text-xs text-white/80 leading-relaxed">
                         <div class="p-3.5 rounded-2xl bg-white/10 border border-white/15 space-y-1.5">
                             <span class="font-bold text-white flex items-center gap-2">
-                                <i data-lucide="users" class="w-4 h-4 text-[#FF7A3D]"></i> Akun Internal SUP
+                                <i data-lucide="users" class="w-4 h-4 text-[#FF7A3D]"></i> Akun Internal Koperasi Swadharma
                             </span>
                             <p class="text-[11px] text-white/70">
                                 Pengguna internal dapat mengakses seluruh modul: dashboard komparasi, data armada, servis, pengeluaran kas, STNK, dan manajemen proyek.

@@ -69,7 +69,7 @@
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
             <span class="text-xs font-semibold text-slate-500">Pengajuan Menunggu Review</span>
             <span class="text-2xl font-black text-amber-600 block mt-1">{{ $pendingRequests }}</span>
-            <span class="text-[11px] text-slate-400 mt-1 block">Tim SUP akan memproses</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">Tim Koperasi Swadharma akan memproses</span>
         </div>
 
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
@@ -90,7 +90,7 @@
                         <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
                         <div>
                             <h2 class="text-sm font-black text-slate-900">Status Pengajuan Realtime</h2>
-                            <p class="text-[11px] text-slate-500">Live monitoring respon penanganan dari PT SUP</p>
+                            <p class="text-[11px] text-slate-500">Live monitoring respon penanganan dari Koperasi Swadharma</p>
                         </div>
                     </div>
                     <a href="{{ route('client.requests.index') }}" class="text-xs font-bold text-[#015471] hover:underline flex items-center gap-1">

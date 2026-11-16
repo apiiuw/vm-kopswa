@@ -515,7 +515,7 @@
                                     <div>
                                         <span class="text-slate-400 block text-[10px] font-bold uppercase mb-0.5">Nama Bengkel / AHASS:</span>
                                         <div class="font-bold text-slate-900 text-sm leading-snug">
-                                            {{ $clientRequest->workshop_name ?: 'Bengkel Rekanan SUP' }}
+                                            {{ $clientRequest->workshop_name ?: 'Bengkel Rekanan Koperasi Swadharma' }}
                                         </div>
                                         @if(!empty($structuredData['workshop_phone']))
                                             <div class="text-xs text-slate-500 font-mono flex items-center gap-1.5 mt-1">
@@ -693,7 +693,7 @@
 
         </div>
 
-        <!-- RIGHT COLUMN: Respon Admin PT SUP & Ringkasan Status (5 Cols) -->
+        <!-- RIGHT COLUMN: Respon Admin Koperasi Swadharma & Ringkasan Status (5 Cols) -->
         <div class="lg:col-span-5 space-y-6 sticky top-6">
 
             <!-- Card 1: Form Respon & Tindak Lanjut Admin -->
@@ -747,7 +747,7 @@
                                 <input type="checkbox" name="sync_to_insurance" value="1" checked class="mt-0.5 rounded text-rose-600 focus:ring-rose-500">
                                 <div>
                                     <span class="font-bold text-rose-900 block">Otomatis Buat Klaim Asuransi TLO</span>
-                                    <span class="text-[11px] text-rose-600">Catat otomatis ke daftar Klaim Asuransi Kehilangan PT SUP.</span>
+                                    <span class="text-[11px] text-rose-600">Catat otomatis ke daftar Klaim Asuransi Kehilangan Koperasi Swadharma.</span>
                                 </div>
                             </label>
                         </div>

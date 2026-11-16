@@ -337,7 +337,7 @@
                                 Nomor BAST (Berita Acara Serah Terima)
                             </label>
                             <input type="text" name="bast_number" id="bast_number" value="{{ old('bast_number') }}" 
-                                placeholder="Contoh: BAST/OPS/SUP/2026/..." 
+                                placeholder="Contoh: BAST/OPS/KOPSWA/2026/..." 
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
                             <span class="text-[11px] text-slate-400 mt-1 block">Rujukan nomor surat serah terima fisik unit</span>
                         </div>

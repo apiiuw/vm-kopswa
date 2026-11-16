@@ -20,7 +20,7 @@
                             Internal & Klien Mitra
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Kelola akun staf internal PT SUP dan akun perwakilan Klien Mitra dari daftar vendor/proyek</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelola akun staf internal Koperasi Swadharma dan akun perwakilan Klien Mitra dari daftar vendor/proyek</p>
                 </div>
             </div>
 
@@ -69,7 +69,7 @@
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-xs font-bold text-slate-500">Internal PT SUP</span>
+                <span class="text-xs font-bold text-slate-500">Internal Koperasi Swadharma</span>
                 <span class="text-2xl font-black text-[#015471] block mt-1">{{ $stats['internal'] ?? 0 }}</span>
                 <span class="text-[11px] text-slate-400 mt-0.5 block">Hak akses penuh (Full Access)</span>
             </div>
@@ -112,7 +112,7 @@
                     <span class="text-xs font-semibold text-slate-600">Kategori:</span>
                     <select name="category" onchange="document.getElementById('filterForm').submit()" class="text-xs font-bold bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-[#015471] focus:outline-hidden cursor-pointer shadow-2xs">
                         <option value="">Semua Kategori</option>
-                        <option value="internal" {{ request('category') === 'internal' ? 'selected' : '' }}>Internal PT SUP</option>
+                        <option value="internal" {{ request('category') === 'internal' ? 'selected' : '' }}>Internal Koperasi Swadharma</option>
                         <option value="klien" {{ request('category') === 'klien' ? 'selected' : '' }}>Klien</option>
                     </select>
                 </div>
@@ -195,7 +195,7 @@
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#e6f0f3] text-[#015471] border border-[#015471]/20">
-                                        <i data-lucide="shield" class="w-3.5 h-3.5 text-[#015471]"></i> Internal PT SUP
+                                        <i data-lucide="shield" class="w-3.5 h-3.5 text-[#015471]"></i> Internal Koperasi Swadharma
                                     </span>
                                 @endif
                             </td>
@@ -212,7 +212,7 @@
                                 @elseif(($u->category ?? 'internal') === 'klien')
                                     <span class="text-[11px] text-slate-400 italic">Belum dihubungkan ke Klien</span>
                                 @else
-                                    <span class="text-[11px] text-slate-400 font-medium">— PT Swadharma Utama Prima —</span>
+                                    <span class="text-[11px] text-slate-400 font-medium">— Koperasi Swadharma —</span>
                                 @endif
                             </td>
 
@@ -296,8 +296,8 @@
                     <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-[#015471] has-[:checked]:bg-[#015471]/5">
                         <input type="radio" name="category" value="internal" id="category_internal" onchange="toggleCategoryVendor()" {{ old('category', 'internal') === 'internal' ? 'checked' : '' }} class="text-[#015471] focus:ring-[#015471]">
                         <div>
-                            <span class="font-bold text-slate-900 block">Internal PT SUP</span>
-                            <span class="text-[10px] text-slate-500">Staf & Manajemen SUP</span>
+                            <span class="font-bold text-slate-900 block">Internal Koperasi Swadharma</span>
+                            <span class="text-[10px] text-slate-500">Staf & Manajemen Koperasi Swadharma</span>
                         </div>
                     </label>
 

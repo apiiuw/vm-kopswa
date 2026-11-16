@@ -16,14 +16,14 @@
                     @if($currentVendor)
                         Klien Sewa: {{ $currentVendor->name }} ({{ $currentVendor->code }})
                     @else
-                        Platform Monitoring Armada Sewa PT SUP - Multi Klien
+                        Platform Monitoring Armada Sewa Koperasi Swadharma - Multi Klien
                     @endif
                 </div>
                 <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">
                     @if($currentVendor)
                         {{ $currentVendor->project_name ?? 'Monitoring Operasional Armada Kendaraan' }}
                     @else
-                        Monitoring Keseluruhan Armada Sewa PT SUP
+                        Monitoring Keseluruhan Armada Sewa Koperasi Swadharma
                     @endif
                 </h2>
                 <p class="text-slate-200 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
@@ -36,7 +36,7 @@
                             | Periode: {{ $currentVendor->contract_start_date->format('d M Y') }} s.d. {{ $currentVendor->contract_end_date->format('d M Y') }}
                         @endif
                     @else
-                        Mengawasi seluruh sepeda motor sewaan PT SUP, pemeliharaan berkala, dokumen STNK/pajak, klaim asuransi, dan realisasi anggaran operasional pada setiap klien mitra.
+                        Mengawasi seluruh sepeda motor sewaan Koperasi Swadharma, pemeliharaan berkala, dokumen STNK/pajak, klaim asuransi, dan realisasi anggaran operasional pada setiap klien mitra.
                     @endif
                 </p>
             </div>
@@ -158,7 +158,7 @@
                     <p class="text-xs text-slate-600">Penerimaan sewa bulanan vs pengeluaran operasional perawatan armada</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="downloadChartImage('cashflowChart', 'Grafik_Tren_Arus_Kas_SUP')" 
+                    <button onclick="downloadChartImage('cashflowChart', 'Grafik_Tren_Arus_Kas_Koperasi_Swadharma')" 
                             class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
                         <i data-lucide="download" class="w-3.5 h-3.5 text-[#015471]"></i> Download PNG
                     </button>
@@ -262,7 +262,7 @@
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">Perbandingan nominal anggaran tender dengan kas riil terserap</p>
                 </div>
-                <button onclick="downloadChartImage('budgetVsActualChart', 'Komparasi_Pagu_vs_Realisasi_SUP')" 
+                <button onclick="downloadChartImage('budgetVsActualChart', 'Komparasi_Pagu_vs_Realisasi_Koperasi_Swadharma')" 
                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs self-start sm:self-auto">
                     <i data-lucide="download" class="w-3.5 h-3.5 text-[#015471]"></i> Download PNG
                 </button>
@@ -284,7 +284,7 @@
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">Historis pengeluaran bulanan gabungan (Servis, Ban, Accu & Sparepart)</p>
                 </div>
-                <button onclick="downloadChartImage('maintenanceTrendChart', 'Grafik_Tren_Biaya_Perawatan_SUP')" 
+                <button onclick="downloadChartImage('maintenanceTrendChart', 'Grafik_Tren_Biaya_Perawatan_Koperasi_Swadharma')" 
                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs self-start sm:self-auto">
                     <i data-lucide="download" class="w-3.5 h-3.5 text-[#FF7A3D]"></i> Download PNG
                 </button>
@@ -635,7 +635,7 @@
                     {
                         label: 'Pendapatan Terbayar (Lunas)',
                         data: incomePaidData,
-                        backgroundColor: '#015471', // Biru Navy Khas SUP
+                        backgroundColor: '#015471', // Biru Navy Khas Koperasi Swadharma
                         borderRadius: 6,
                     },
                     {
@@ -647,7 +647,7 @@
                     {
                         label: 'Pengeluaran Operasional (Rp)',
                         data: expenseData,
-                        backgroundColor: '#FF7A3D', // Oranye SUP
+                        backgroundColor: '#FF7A3D', // Oranye Koperasi Swadharma
                         borderRadius: 6,
                     }
                 ]

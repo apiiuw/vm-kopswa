@@ -48,7 +48,7 @@
                     <div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vendor Kontrak Aktif</span>
                         <span class="text-xs font-black text-slate-900">{{ $currentVendor->name }} ({{ $currentVendor->code }})</span>
-                        <span class="text-[11px] text-slate-500 block">Klien: {{ $currentVendor->client_name ?: 'Internal PT SUP' }}</span>
+                        <span class="text-[11px] text-slate-500 block">Klien: {{ $currentVendor->client_name ?: 'Internal Koperasi Swadharma' }}</span>
                     </div>
                 </div>
                 <input type="hidden" name="vendor_id" value="{{ $currentVendor->id }}">
@@ -223,7 +223,7 @@
                 <label class="block text-xs font-bold text-slate-800 mb-1.5">
                     Catatan / Dasar Memo Anggaran
                 </label>
-                <textarea name="notes" rows="3" placeholder="Contoh: Dokumen Acuan Tender Sewa Kendaraan 70 Unit (36 Bulan) Memo Internal 2026 - 2028 PT SUP..."
+                <textarea name="notes" rows="3" placeholder="Contoh: Dokumen Acuan Tender Sewa Kendaraan 70 Unit (36 Bulan) Memo Internal 2026 - 2028 Koperasi Swadharma..."
                           class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-[#015471] focus:outline-hidden">{{ old('notes') }}</textarea>
             </div>
         </div>
