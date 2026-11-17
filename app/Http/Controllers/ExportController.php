@@ -108,13 +108,14 @@ class ExportController extends Controller
     // Export Budget & Financial Records to Excel
     public function exportFinancialExcel()
     {
+        $activeVendorId = session('active_vendor_id');
         $spreadsheet = new Spreadsheet;
 
         // Sheet 1: Realisasi Biaya vs Plafon Anggaran
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Realisasi Anggaran');
 
-        $sheet->setCellValue('A1', 'PT SWADHARMA UTAMA PRIMA');
+        $sheet->setCellValue('A1', 'KOPERASI SWADHARMA');
         $sheet->setCellValue('A2', 'MONITORING ANGGARAN & BIAYA OPERASIONAL KENDARAAN');
         $sheet->setCellValue('A3', 'PROYEK SEWA MOTOR PTPN I REGIONAL 7 (36 BULAN)');
 
@@ -126,11 +127,13 @@ class ExportController extends Controller
             $col++;
         }
 
-        $budgets = Budget::all();
+        $budgets = Budget::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->get();
         $row = 6;
         $no = 1;
         foreach ($budgets as $b) {
-            $spent = Expense::where('category', $b->category)->sum('amount');
+            $spent = Expense::where('category', $b->category)
+                ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+                ->sum('amount');
             $rem = $b->total_budget_36m - $spent;
 
             $sheet->setCellValue('A'.$row, $no++);
@@ -155,7 +158,10 @@ class ExportController extends Controller
             $col++;
         }
 
-        $expenses = Expense::with('vehicle')->orderBy('transaction_date', 'asc')->get();
+        $expenses = Expense::with('vehicle')
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('transaction_date', 'asc')
+            ->get();
         $row = 2;
         $no = 1;
         foreach ($expenses as $e) {
@@ -183,7 +189,9 @@ class ExportController extends Controller
             $col++;
         }
 
-        $incomes = Income::orderBy('invoice_date', 'asc')->get();
+        $incomes = Income::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('invoice_date', 'asc')
+            ->get();
         $row = 2;
         $no = 1;
         foreach ($incomes as $inc) {
@@ -215,6 +223,7 @@ class ExportController extends Controller
     // Export Vehicles to Excel
     public function exportVehiclesExcel()
     {
+        $activeVendorId = session('active_vendor_id');
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Armada Motor');
@@ -227,7 +236,10 @@ class ExportController extends Controller
             $col++;
         }
 
-        $vehicles = Vehicle::with('location')->orderBy('id', 'asc')->get();
+        $vehicles = Vehicle::with('location')
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('id', 'asc')
+            ->get();
         $row = 2;
         $no = 1;
         foreach ($vehicles as $v) {

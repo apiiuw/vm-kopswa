@@ -1,34 +1,39 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\VehicleController;
-use App\Http\Controllers\MaintenanceController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\InsuranceController;
-use App\Http\Controllers\FinancialController;
-use App\Http\Controllers\ExportController;
+use App\Http\Controllers\AdminClientRequestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClientPortalController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\FinancialController;
+use App\Http\Controllers\InsuranceController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VendorController;
+use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Internal Protected Routes (All internal roles have equal full permissions)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Entrypoint Dashboard (automatically redirects klien users to Client Portal)
+Route::middleware(['auth'])->get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+// Internal Protected Routes (Only internal staff)
+Route::middleware(['auth', 'category:internal'])->group(function () {
 
     // Vendors Module (Multi-Vendor)
     Route::resource('vendors', VendorController::class)->except(['create', 'show', 'edit']);
     Route::post('/vendors/switch', [VendorController::class, 'switchVendor'])->name('vendors.switch');
 
     // Locations Module (Wilayah / Kebun per Klien)
-    Route::post('/locations', [\App\Http\Controllers\LocationController::class, 'store'])->name('locations.store');
-    Route::put('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'update'])->name('locations.update');
-    Route::delete('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'destroy'])->name('locations.destroy');
-    Route::get('/vendors/{vendor}/locations', [\App\Http\Controllers\LocationController::class, 'byVendor'])->name('vendors.locations');
+    Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
+    Route::put('/locations/{location}', [LocationController::class, 'update'])->name('locations.update');
+    Route::delete('/locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
+    Route::get('/vendors/{vendor}/locations', [LocationController::class, 'byVendor'])->name('vendors.locations');
 
     // Vehicles Module
     Route::resource('vehicles', VehicleController::class);
@@ -38,10 +43,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Documents & Taxes Module (STNK, Pajak 5 Tahunan, Blokir Polda)
     Route::post('/documents/{document}/pay-tax', [DocumentController::class, 'payTax'])->name('documents.payTax');
-    Route::resource('documents', DocumentController::class)->except(['edit', 'update']);
+    Route::resource('documents', DocumentController::class)->except(['edit', 'update', 'show']);
 
     // Insurance & Loss Claims Module
-    Route::resource('insurance', InsuranceController::class)->except(['edit']);
+    Route::resource('insurance', InsuranceController::class)->except(['edit', 'show']);
 
     // Financial & Cashflow Module (Incomes, Expenses, Budget Plafond)
     Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
@@ -75,19 +80,19 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Management for Client Requests (Layanan & Tiket Klien)
     Route::prefix('admin/client-requests')->name('admin.client-requests.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\AdminClientRequestController::class, 'index'])->name('index');
-        Route::get('/{clientRequest}', [\App\Http\Controllers\AdminClientRequestController::class, 'show'])->name('show');
-        Route::patch('/{clientRequest}/status', [\App\Http\Controllers\AdminClientRequestController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/', [AdminClientRequestController::class, 'index'])->name('index');
+        Route::get('/{clientRequest}', [AdminClientRequestController::class, 'show'])->name('show');
+        Route::patch('/{clientRequest}/status', [AdminClientRequestController::class, 'updateStatus'])->name('updateStatus');
     });
+});
 
-    // Client Portal Routes (Top Navigation, No Sidebar, Realtime Service & Loss Requests)
-    Route::prefix('client')->name('client.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\ClientPortalController::class, 'dashboard'])->name('dashboard');
-        Route::get('/requests', [\App\Http\Controllers\ClientPortalController::class, 'indexRequests'])->name('requests.index');
-        Route::get('/requests/create', [\App\Http\Controllers\ClientPortalController::class, 'createRequest'])->name('requests.create');
-        Route::post('/requests', [\App\Http\Controllers\ClientPortalController::class, 'storeRequest'])->name('requests.store');
-        Route::get('/requests/{clientRequest}', [\App\Http\Controllers\ClientPortalController::class, 'showRequest'])->name('requests.show');
-        Route::get('/requests-realtime', [\App\Http\Controllers\ClientPortalController::class, 'realtimeStatusJson'])->name('requests.realtime');
-        Route::get('/vehicles', [\App\Http\Controllers\ClientPortalController::class, 'vehiclesIndex'])->name('vehicles.index');
-    });
+// Client Portal Routes (Top Navigation, No Sidebar, Realtime Service & Loss Requests)
+Route::middleware(['auth', 'category:klien'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/requests', [ClientPortalController::class, 'indexRequests'])->name('requests.index');
+    Route::get('/requests/create', [ClientPortalController::class, 'createRequest'])->name('requests.create');
+    Route::post('/requests', [ClientPortalController::class, 'storeRequest'])->name('requests.store');
+    Route::get('/requests/{clientRequest}', [ClientPortalController::class, 'showRequest'])->name('requests.show');
+    Route::get('/requests-realtime', [ClientPortalController::class, 'realtimeStatusJson'])->name('requests.realtime');
+    Route::get('/vehicles', [ClientPortalController::class, 'vehiclesIndex'])->name('vehicles.index');
 });

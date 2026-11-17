@@ -3,11 +3,15 @@ set -e
 
 cd /var/www/html
 
-# Shared uploads volume: /app/uploads -> storage/app/public (Laravel public disk)
+# Shared uploads volume: symlink storage/app/public -> /app/uploads for full persistence
 mkdir -p /app/uploads
-mkdir -p storage/app/public
-# Mirror shared uploads into the public disk without deleting existing files
-cp -rn /app/uploads/. storage/app/public/ 2>/dev/null || true
+mkdir -p storage/app
+if [ -d storage/app/public ] && [ ! -L storage/app/public ]; then
+  cp -rn storage/app/public/. /app/uploads/ 2>/dev/null || true
+  rm -rf storage/app/public
+fi
+ln -sfn /app/uploads storage/app/public
+chown -R www-data:www-data /app/uploads 2>/dev/null || true
 
 # Generate .env on first boot from container environment (never touches repo code)
 if [ ! -f .env ]; then

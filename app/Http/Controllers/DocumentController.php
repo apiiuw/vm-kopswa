@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\VehicleDocument;
-use App\Models\Vehicle;
 use App\Models\Expense;
+use App\Models\Vehicle;
+use App\Models\VehicleDocument;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
@@ -16,7 +16,7 @@ class DocumentController extends Controller
         $activeVendorId = session('active_vendor_id');
 
         if ($activeVendorId) {
-            $query->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $query->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -31,7 +31,7 @@ class DocumentController extends Controller
 
         if ($request->filter === 'expiring_soon') {
             $query->where('expiry_date', '<=', Carbon::now()->addDays(30))
-                  ->where('expiry_date', '>=', Carbon::now());
+                ->where('expiry_date', '>=', Carbon::now());
         } elseif ($request->filter === 'expired') {
             $query->where('expiry_date', '<', Carbon::now());
         }
@@ -47,7 +47,7 @@ class DocumentController extends Controller
 
         $docStatsQ = VehicleDocument::query();
         if ($activeVendorId) {
-            $docStatsQ->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $docStatsQ->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -79,6 +79,7 @@ class DocumentController extends Controller
         }
         $vehicles = $vehicleQuery->get();
         $selectedVehicleId = $request->vehicle_id;
+
         return view('documents.create', compact('vehicles', 'selectedVehicleId'));
     }
 
@@ -108,11 +109,12 @@ class DocumentController extends Controller
 
             Expense::create([
                 'vehicle_id' => $doc->vehicle_id,
+                'vendor_id' => $vehicle?->vendor_id ?? session('active_vendor_id'),
                 'vehicle_document_id' => $doc->id,
-                'expense_number' => 'EXP-DOC-' . date('Ymd') . '-' . str_pad($doc->id, 4, '0', STR_PAD_LEFT),
+                'expense_number' => 'EXP-DOC-'.date('Ymd').'-'.str_pad($doc->id, 4, '0', STR_PAD_LEFT),
                 'transaction_date' => $doc->issue_date ?: date('Y-m-d'),
                 'category' => $cat,
-                'title' => 'Biaya ' . $doc->type_label . ' - ' . ($vehicle ? $vehicle->plate_number : ''),
+                'title' => 'Biaya '.$doc->type_label.' - '.($vehicle ? $vehicle->plate_number : ''),
                 'amount' => $doc->cost,
                 'recipient_vendor' => 'Samsat / Kepolisian / Instansi',
                 'description' => $doc->notes,
@@ -144,7 +146,7 @@ class DocumentController extends Controller
             'expiry_date' => $validated['next_expiry_date'],
             'cost' => $validated['cost'],
             'file_path' => $validated['file_path'] ?? $document->file_path,
-            'notes' => $validated['notes'] ? ($document->notes ? $document->notes . "\n" . $validated['notes'] : $validated['notes']) : $document->notes,
+            'notes' => $validated['notes'] ? ($document->notes ? $document->notes."\n".$validated['notes'] : $validated['notes']) : $document->notes,
         ]);
 
         // Update vehicle tax date if applicable
@@ -159,20 +161,21 @@ class DocumentController extends Controller
 
         // Create Expense Entry in Cashflow
         if ($validated['cost'] > 0) {
-            $cat = in_array($document->document_type, ['stnk', 'pajak_tahunan', 'plat_5_tahunan']) 
-                ? 'pajak_stnk' 
+            $cat = in_array($document->document_type, ['stnk', 'pajak_tahunan', 'plat_5_tahunan'])
+                ? 'pajak_stnk'
                 : ($document->document_type === 'asuransi' ? 'asuransi' : 'overhead_admin');
 
             Expense::create([
                 'vehicle_id' => $document->vehicle_id,
+                'vendor_id' => $vehicle?->vendor_id ?? session('active_vendor_id'),
                 'vehicle_document_id' => $document->id,
-                'expense_number' => 'EXP-TAX-' . date('Ymd') . '-' . str_pad($document->id, 4, '0', STR_PAD_LEFT),
+                'expense_number' => 'EXP-TAX-'.date('Ymd').'-'.str_pad($document->id, 4, '0', STR_PAD_LEFT),
                 'transaction_date' => $validated['paid_date'],
                 'category' => $cat,
-                'title' => 'Pembayaran ' . $document->type_label . ' (' . ($vehicle ? $vehicle->plate_number : '') . ')',
+                'title' => 'Pembayaran '.$document->type_label.' ('.($vehicle ? $vehicle->plate_number : '').')',
                 'amount' => $validated['cost'],
                 'recipient_vendor' => 'Samsat / Bapenda',
-                'description' => 'Pelunasan/Perpanjangan Pajak s/d ' . Carbon::parse($validated['next_expiry_date'])->format('d/m/Y') . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
+                'description' => 'Pelunasan/Perpanjangan Pajak s/d '.Carbon::parse($validated['next_expiry_date'])->format('d/m/Y').($validated['notes'] ? ' - '.$validated['notes'] : ''),
             ]);
         }
 

@@ -119,6 +119,11 @@ class ClientPortalController extends Controller
         ]);
 
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
+        $clientVendorId = $this->getClientVendorId();
+        if ($clientVendorId && (int) $vehicle->vendor_id !== (int) $clientVendorId) {
+            abort(403, 'Anda tidak memiliki akses untuk mengajukan permohonan pada unit kendaraan ini.');
+        }
+
         if ($vehicle->status === 'lost') {
             return back()->withInput()->with('error', 'Unit kendaraan ini berstatus hilang (TLO) dan tidak dapat diajukan servis atau permohonan baru.');
         }

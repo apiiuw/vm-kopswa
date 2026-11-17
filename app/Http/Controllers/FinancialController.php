@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Income;
-use App\Models\Expense;
 use App\Models\Budget;
-use App\Models\Vehicle;
+use App\Models\Expense;
+use App\Models\Income;
 use App\Models\MaintenanceRecord;
-use Carbon\Carbon;
+use App\Models\Vehicle;
+use App\Models\Vendor;
+use Illuminate\Http\Request;
 
 class FinancialController extends Controller
 {
@@ -73,7 +73,7 @@ class FinancialController extends Controller
         // 1. Calculate detailed spent from Maintenance Records (handles multi-item requests like Service + Ban + Aki)
         $mRecordQuery = MaintenanceRecord::query();
         if ($activeVendorId) {
-            $mRecordQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $mRecordQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -92,7 +92,7 @@ class FinancialController extends Controller
             $recCost = (float) $rec->cost;
             $complaints = $rec->parsed_complaints;
 
-            if (!empty($complaints) && count($complaints) > 0) {
+            if (! empty($complaints) && count($complaints) > 0) {
                 $hasParsedCost = false;
                 foreach ($complaints as $c) {
                     $itemCost = (float) str_replace(['.', ','], '', $c['cost'] ?? '0');
@@ -115,8 +115,8 @@ class FinancialController extends Controller
                     }
                 }
 
-                if (!$hasParsedCost) {
-                    $mainCat = match($rec->type) {
+                if (! $hasParsedCost) {
+                    $mainCat = match ($rec->type) {
                         'ganti_ban' => 'ban',
                         'ganti_accu' => 'accu',
                         'sparepart' => 'sparepart',
@@ -126,7 +126,7 @@ class FinancialController extends Controller
                     $maintenanceCategoryCosts[$mainCat] += $recCost;
                 }
             } else {
-                $mainCat = match($rec->type) {
+                $mainCat = match ($rec->type) {
                     'ganti_ban' => 'ban',
                     'ganti_accu' => 'accu',
                     'sparepart' => 'sparepart',
@@ -148,11 +148,15 @@ class FinancialController extends Controller
             if (isset($maintenanceCategoryCosts[$key])) {
                 // Also add any direct Expense not tied to maintenance_record_id
                 $directExpenseQ = Expense::where('category', $key)->whereNull('maintenance_record_id');
-                if ($activeVendorId) $directExpenseQ->where('vendor_id', $activeVendorId);
+                if ($activeVendorId) {
+                    $directExpenseQ->where('vendor_id', $activeVendorId);
+                }
                 $spent = $maintenanceCategoryCosts[$key] + $directExpenseQ->sum('amount');
             } else {
                 $spentQ = Expense::where('category', $key);
-                if ($activeVendorId) $spentQ->where('vendor_id', $activeVendorId);
+                if ($activeVendorId) {
+                    $spentQ->where('vendor_id', $activeVendorId);
+                }
                 $spent = $spentQ->sum('amount');
             }
 
@@ -205,13 +209,13 @@ class FinancialController extends Controller
         $activeVendorId = session('active_vendor_id');
         $currentVendor = null;
         if ($activeVendorId) {
-            $currentVendor = \App\Models\Vendor::find($activeVendorId);
+            $currentVendor = Vendor::find($activeVendorId);
         }
-        if (!$currentVendor) {
-            $currentVendor = \App\Models\Vendor::first();
+        if (! $currentVendor) {
+            $currentVendor = Vendor::first();
         }
 
-        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $vendors = Vendor::orderBy('name')->get();
 
         // Ambil unit riil dari database (per vendor jika aktif, atau keseluruhan armada)
         $vehicleQuery = Vehicle::query();
@@ -219,28 +223,28 @@ class FinancialController extends Controller
             $vehicleQuery->where('vendor_id', $currentVendor->id);
         }
 
-        $crfCount = (clone $vehicleQuery)->where(function($q) {
+        $crfCount = (clone $vehicleQuery)->where(function ($q) {
             $q->where('vehicle_type', 'honda_crf_150')
-              ->orWhere('model_name', 'like', '%CRF%');
+                ->orWhere('model_name', 'like', '%CRF%');
         })->where('status', '!=', 'lost')->count();
 
-        $supraCount = (clone $vehicleQuery)->where(function($q) {
+        $supraCount = (clone $vehicleQuery)->where(function ($q) {
             $q->where('vehicle_type', 'honda_supra_x_125')
-              ->orWhere('model_name', 'like', '%SUPRA%');
+                ->orWhere('model_name', 'like', '%SUPRA%');
         })->where('status', '!=', 'lost')->count();
 
         // Ambil tarif sewa rata-rata/terbaru dari database untuk masing-masing model
-        $crfSample = (clone $vehicleQuery)->where(function($q) {
+        $crfSample = (clone $vehicleQuery)->where(function ($q) {
             $q->where('vehicle_type', 'honda_crf_150')
-              ->orWhere('model_name', 'like', '%CRF%');
+                ->orWhere('model_name', 'like', '%CRF%');
         })->where('rental_price_per_month', '>', 0)->first();
-        $crfRate = $crfSample ? (float)$crfSample->rental_price_per_month : 1570000;
+        $crfRate = $crfSample ? (float) $crfSample->rental_price_per_month : 1570000;
 
-        $supraSample = (clone $vehicleQuery)->where(function($q) {
+        $supraSample = (clone $vehicleQuery)->where(function ($q) {
             $q->where('vehicle_type', 'honda_supra_x_125')
-              ->orWhere('model_name', 'like', '%SUPRA%');
+                ->orWhere('model_name', 'like', '%SUPRA%');
         })->where('rental_price_per_month', '>', 0)->first();
-        $supraRate = $supraSample ? (float)$supraSample->rental_price_per_month : 860000;
+        $supraRate = $supraSample ? (float) $supraSample->rental_price_per_month : 860000;
 
         $totalUnits = $crfCount + $supraCount;
 
@@ -248,12 +252,12 @@ class FinancialController extends Controller
         $vehicles = (clone $vehicleQuery)->with('location')->orderBy('model_name')->orderBy('plate_number')->get();
 
         return view('financial.income.create', compact(
-            'currentVendor', 
-            'vendors', 
-            'crfCount', 
-            'supraCount', 
-            'crfRate', 
-            'supraRate', 
+            'currentVendor',
+            'vendors',
+            'crfCount',
+            'supraCount',
+            'crfRate',
+            'supraRate',
             'totalUnits',
             'vehicles'
         ));
@@ -266,49 +270,49 @@ class FinancialController extends Controller
         $vehicleQuery = Vehicle::with('location')->orderBy('plate_number');
 
         if ($activeVendorId) {
-            $currentVendor = \App\Models\Vendor::find($activeVendorId);
+            $currentVendor = Vendor::find($activeVendorId);
             $vehicleQuery->where('vendor_id', $activeVendorId);
         }
 
         $vehicles = $vehicleQuery->get();
-        $vendors = \App\Models\Vendor::orderBy('name')->get();
+        $vendors = Vendor::orderBy('name')->get();
 
         $categories = [
             'service_berkala' => [
                 'label' => 'Service Berkala & Pelumas',
-                'desc' => 'Ganti oli mesin, tune-up berkala, filter udara, dan servis rutin berkala.'
+                'desc' => 'Ganti oli mesin, tune-up berkala, filter udara, dan servis rutin berkala.',
             ],
             'ban' => [
                 'label' => 'Penggantian Ban',
-                'desc' => 'Ban luar depan, ban luar belakang, ban dalam, dan pentil tubeless.'
+                'desc' => 'Ban luar depan, ban luar belakang, ban dalam, dan pentil tubeless.',
             ],
             'accu' => [
                 'label' => 'Penggantian Accu (Aki)',
-                'desc' => 'Aki kering/basah maintenance free, klem aki, dan kelistrikan pengisian.'
+                'desc' => 'Aki kering/basah maintenance free, klem aki, dan kelistrikan pengisian.',
             ],
             'sparepart' => [
                 'label' => 'Sparepart & Fast Moving',
-                'desc' => 'Kampas rem depan/belakang, busi, rantai, gir paket, v-belt, bearing roda.'
+                'desc' => 'Kampas rem depan/belakang, busi, rantai, gir paket, v-belt, bearing roda.',
             ],
             'motor_pengganti' => [
                 'label' => 'Sewa Motor Pengganti (Temporary)',
-                'desc' => 'Biaya unit sewa sementara selama unit kontrak dalam perbaikan bengkel.'
+                'desc' => 'Biaya unit sewa sementara selama unit kontrak dalam perbaikan bengkel.',
             ],
             'pajak_stnk' => [
                 'label' => 'Pajak STNK & Plat Kendaraan',
-                'desc' => 'PKB tahunan, SWDKLLJ, cek fisik, dan perpanjangan STNK 5 tahunan.'
+                'desc' => 'PKB tahunan, SWDKLLJ, cek fisik, dan perpanjangan STNK 5 tahunan.',
             ],
             'asuransi' => [
                 'label' => 'Asuransi Kendaraan (TLO / All Risk)',
-                'desc' => 'Premi asuransi tahunan, biaya klaim risiko insiden atau kehilangan total.'
+                'desc' => 'Premi asuransi tahunan, biaya klaim risiko insiden atau kehilangan total.',
             ],
             'legalitas_kepolisian' => [
                 'label' => 'Legalitas Kepolisian / Blokir Polda',
-                'desc' => 'Biaya cabut berkas, buka blokir Polda/Lantas, surat rekomendasi, dan legalitas.'
+                'desc' => 'Biaya cabut berkas, buka blokir Polda/Lantas, surat rekomendasi, dan legalitas.',
             ],
             'overhead_admin' => [
                 'label' => 'Transportasi, Administrasi & Operasional',
-                'desc' => 'Biaya logistik towing/antar unit, supervisi lapangan, materai, dan administrasi.'
+                'desc' => 'Biaya logistik towing/antar unit, supervisi lapangan, materai, dan administrasi.',
             ],
         ];
 
@@ -349,7 +353,7 @@ class FinancialController extends Controller
         ]));
 
         return redirect()->route('financial.index', ['tab' => 'incomes'])
-            ->with('success', 'Tagihan sewa ' . $income->invoice_number . ' berhasil diterbitkan!')
+            ->with('success', 'Tagihan sewa '.$income->invoice_number.' berhasil diterbitkan!')
             ->with('auto_download_invoice_id', $income->id);
     }
 
@@ -372,10 +376,10 @@ class FinancialController extends Controller
             $validated['proof_file'] = $request->file('proof_file')->store('expenses', 'public');
         }
 
-        $validated['expense_number'] = 'EXP-' . date('Ymd') . '-' . rand(100, 999);
+        $validated['expense_number'] = 'EXP-'.date('Ymd').'-'.rand(100, 999);
 
         if (empty($validated['vendor_id'])) {
-            if (!empty($validated['vehicle_id'])) {
+            if (! empty($validated['vehicle_id'])) {
                 $veh = Vehicle::find($validated['vehicle_id']);
                 $validated['vendor_id'] = $veh?->vendor_id;
             } elseif (session('active_vendor_id')) {
@@ -386,6 +390,13 @@ class FinancialController extends Controller
         Expense::create($validated);
 
         return redirect()->route('financial.index', ['tab' => 'expenses'])->with('success', 'Pengeluaran operasional berhasil dicatat!');
+    }
+
+    public function destroyExpense(Expense $expense)
+    {
+        $expense->delete();
+
+        return redirect()->route('financial.index', ['tab' => 'expenses'])->with('success', 'Catatan pengeluaran kas berhasil dihapus!');
     }
 
     public function updateIncomeStatus(Request $request, Income $income)
@@ -403,8 +414,8 @@ class FinancialController extends Controller
     public function createBudget()
     {
         $activeVendorId = session('active_vendor_id');
-        $vendors = \App\Models\Vendor::orderBy('name')->get();
-        $currentVendor = $activeVendorId ? \App\Models\Vendor::find($activeVendorId) : null;
+        $vendors = Vendor::orderBy('name')->get();
+        $currentVendor = $activeVendorId ? Vendor::find($activeVendorId) : null;
 
         // Default categories configuration with presets
         $categoryPresets = [
@@ -413,63 +424,63 @@ class FinancialController extends Controller
                 'target' => 'CRF 150 & Supra X',
                 'monthly_rate' => 83333,
                 'qty' => 70,
-                'desc' => 'Pergantian oli mesin, pelumas, tune-up berkala per kilometer dan pengecekan umum.'
+                'desc' => 'Pergantian oli mesin, pelumas, tune-up berkala per kilometer dan pengecekan umum.',
             ],
             'ban' => [
                 'label' => 'Penggantian Ban (Depan / Belakang)',
                 'target' => 'CRF 150 & Supra X',
                 'monthly_rate' => 50000,
                 'qty' => 70,
-                'desc' => 'Ban luar & dalam depan/belakang dan jasa penggantian ban aus.'
+                'desc' => 'Ban luar & dalam depan/belakang dan jasa penggantian ban aus.',
             ],
             'accu' => [
                 'label' => 'Penggantian Accu / Aki Kering',
                 'target' => 'CRF 150 & Supra X',
                 'monthly_rate' => 15000,
                 'qty' => 70,
-                'desc' => 'Penggantian aki kering/basah untuk kelistrikan dan electric starter.'
+                'desc' => 'Penggantian aki kering/basah untuk kelistrikan dan electric starter.',
             ],
             'sparepart' => [
                 'label' => 'Sparepart & Fast Moving Lainnya',
                 'target' => 'CRF 150 & Supra X',
                 'monthly_rate' => 35000,
                 'qty' => 70,
-                'desc' => 'Rantai, gear set, kanvas rem depan/belakang, busi, dan suku cadang aus.'
+                'desc' => 'Rantai, gear set, kanvas rem depan/belakang, busi, dan suku cadang aus.',
             ],
             'motor_pengganti' => [
                 'label' => 'Biaya Unit Motor Pengganti (Temporary)',
                 'target' => 'Semua Unit Operasional',
                 'monthly_rate' => 10000,
                 'qty' => 70,
-                'desc' => 'Alokasi armada pengganti bila unit operasional mengalami perbaikan berat/insiden.'
+                'desc' => 'Alokasi armada pengganti bila unit operasional mengalami perbaikan berat/insiden.',
             ],
             'pajak_stnk' => [
                 'label' => 'Pajak Kendaraan & STNK Tahunan',
                 'target' => 'CRF 150 & Supra X',
                 'monthly_rate' => 30000,
                 'qty' => 70,
-                'desc' => 'PKB tahunan, SWDKLLJ, dan pengesahan STNK 1 tahunan.'
+                'desc' => 'PKB tahunan, SWDKLLJ, dan pengesahan STNK 1 tahunan.',
             ],
             'asuransi' => [
                 'label' => 'Premi Asuransi Kendaraan (TLO)',
                 'target' => 'Semua Unit Operasional',
                 'monthly_rate' => 25000,
                 'qty' => 70,
-                'desc' => 'Proteksi kehilangan total unit (Total Loss Only) & klaim insiden operasional.'
+                'desc' => 'Proteksi kehilangan total unit (Total Loss Only) & klaim insiden operasional.',
             ],
             'legalitas_kepolisian' => [
                 'label' => 'Legalitas, Kepolisian & Dokumen',
                 'target' => 'Semua Unit Operasional',
                 'monthly_rate' => 5000,
                 'qty' => 70,
-                'desc' => 'Biaya pengurusan surat izin, rekomendasi lantas, atau administrasi kepolisian.'
+                'desc' => 'Biaya pengurusan surat izin, rekomendasi lantas, atau administrasi kepolisian.',
             ],
             'overhead_admin' => [
                 'label' => 'Transportasi, Operasional & Administrasi',
                 'target' => 'Semua Unit Operasional',
                 'monthly_rate' => 10000,
                 'qty' => 70,
-                'desc' => 'Overhead operasional kantor, monitoring lapangan, logistik, dan administrasi.'
+                'desc' => 'Overhead operasional kantor, monitoring lapangan, logistik, dan administrasi.',
             ],
         ];
 

@@ -561,6 +561,7 @@ class MaintenanceController extends Controller
         // Automatically sync to Expense ledger
         Expense::create([
             'vehicle_id' => $record->vehicle_id,
+            'vendor_id' => $vehicle?->vendor_id ?? session('active_vendor_id'),
             'maintenance_record_id' => $record->id,
             'expense_number' => 'EXP-'.date('Ymd').'-'.str_pad($record->id, 4, '0', STR_PAD_LEFT),
             'memo_number' => $record->memo_number,
