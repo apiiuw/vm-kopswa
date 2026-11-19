@@ -123,14 +123,15 @@
             </button>
         </div>
 
-        <!-- Multi-Client Selector Badge in Sidebar -->
-        <div class="px-3.5 py-3 mx-3 my-2.5 rounded-xl bg-[#014760] border border-[#026c91] text-xs">
+        <!-- Multi-Contract Selector Badge in Sidebar (with Searchable Dropdown) -->
+        <div class="px-3.5 py-3 mx-3 my-2.5 rounded-xl bg-[#014760] border border-[#026c91] text-xs relative">
             <form action="{{ route('vendors.switch') }}" method="POST" id="vendorSwitchForm" class="space-y-1.5">
                 @csrf
+                <input type="hidden" name="vendor_id" id="sidebarVendorIdInput" value="{{ $activeVendorId ?? 'all' }}">
                 <div class="flex items-center justify-between text-slate-200">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5 whitespace-nowrap">
-                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#FF7A3D] shrink-0"></i>
-                        <span>Filter Klien Sewa</span>
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#FF7A3D] shrink-0"></i>
+                        <span>Filter Kontrak Sewa</span>
                     </span>
                     @if($currentVendor)
                         <span class="px-1.5 py-0.5 rounded text-[9px] bg-[#FF7A3D] text-white font-bold whitespace-nowrap">{{ $currentVendor->code }}</span>
@@ -139,22 +140,74 @@
                     @endif
                 </div>
 
-                <select name="vendor_id" onchange="document.getElementById('vendorSwitchForm').submit()" class="w-full bg-[#003447] border border-[#026c91] text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#FF7A3D]">
-                    <option value="all" {{ empty($activeVendorId) ? 'selected' : '' }}>-- Semua Klien (Gabungan) --</option>
-                    @foreach($globalVendors as $v)
-                        <option value="{{ $v->id }}" {{ $activeVendorId == $v->id ? 'selected' : '' }}>
-                            {{ $v->name }} ({{ $v->code }})
-                        </option>
-                    @endforeach
-                </select>
+                <!-- Trigger Button -->
+                <button type="button" onclick="toggleContractDropdown()" class="w-full bg-[#003447] border border-[#026c91] hover:border-[#FF7A3D] text-white text-xs rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 text-left transition">
+                    <span class="truncate font-semibold">
+                        @if($currentVendor)
+                            {{ $currentVendor->contract_number ?: $currentVendor->code }} — {{ $currentVendor->name }}
+                        @else
+                            -- Semua Kontrak (Gabungan) --
+                        @endif
+                    </span>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-300 shrink-0"></i>
+                </button>
+
+                <!-- Searchable Dropdown Panel -->
+                <div id="contractDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white text-slate-900 rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                    <div class="p-2 border-b border-slate-100 bg-slate-50">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                            <input type="text" id="contractSearchInput" onkeyup="filterSidebarContracts()" placeholder="Cari no. kontrak / klien..." class="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-[#015471] text-slate-900 bg-white">
+                        </div>
+                    </div>
+                    <div class="max-h-56 overflow-y-auto divide-y divide-slate-100" id="contractOptionsList">
+                        <button type="button" onclick="selectSidebarContract('all')" class="contract-option w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition {{ empty($activeVendorId) ? 'bg-[#015471]/10 font-bold text-[#015471]' : 'text-slate-700' }}" data-search="semua kontrak gabungan">
+                            -- Semua Kontrak (Gabungan) --
+                        </button>
+                        @foreach($globalVendors as $v)
+                            <button type="button" onclick="selectSidebarContract('{{ $v->id }}')" class="contract-option w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition {{ $activeVendorId == $v->id ? 'bg-[#015471]/10 font-bold text-[#015471]' : 'text-slate-800' }}" data-search="{{ strtolower(($v->contract_number ?? '') . ' ' . $v->code . ' ' . $v->name) }}">
+                                <div class="font-mono font-bold text-[11px] text-[#015471] truncate">{{ $v->contract_number ?: $v->code }}</div>
+                                <div class="text-[10px] text-slate-500 truncate">{{ $v->name }}</div>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
 
                 @if($currentVendor && $currentVendor->contract_number)
-                    <p class="text-[10px] text-slate-300 truncate pt-0.5" title="No. Kontrak: {{ $currentVendor->contract_number }}">
-                        No: <span class="font-mono text-white">{{ $currentVendor->contract_number }}</span>
+                    <p class="text-[10px] text-slate-300 truncate pt-0.5" title="Klien: {{ $currentVendor->name }}">
+                        Klien: <span class="text-white font-semibold">{{ $currentVendor->name }}</span>
                     </p>
                 @endif
             </form>
         </div>
+
+        <script>
+            function toggleContractDropdown() {
+                const menu = document.getElementById('contractDropdownMenu');
+                menu.classList.toggle('hidden');
+                if (!menu.classList.contains('hidden')) {
+                    setTimeout(() => document.getElementById('contractSearchInput').focus(), 50);
+                }
+            }
+            function filterSidebarContracts() {
+                const q = document.getElementById('contractSearchInput').value.toLowerCase();
+                document.querySelectorAll('#contractOptionsList .contract-option').forEach(btn => {
+                    const hay = btn.dataset.search || '';
+                    btn.style.display = hay.includes(q) ? '' : 'none';
+                });
+            }
+            function selectSidebarContract(val) {
+                document.getElementById('sidebarVendorIdInput').value = val;
+                document.getElementById('vendorSwitchForm').submit();
+            }
+            document.addEventListener('click', function(e) {
+                const form = document.getElementById('vendorSwitchForm');
+                const menu = document.getElementById('contractDropdownMenu');
+                if (form && menu && !form.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        </script>
 
         <!-- Navigation Links -->
         <nav class="flex-1 overflow-y-auto px-3 py-2 space-y-1 text-sm font-medium sidebar-scroll">
@@ -165,12 +218,22 @@
 
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Klien & Kontrak Sewa</div>
 
+            <a href="{{ route('clients.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('clients.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="building-2" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Master Klien</span>
+            </a>
+
             <a href="{{ route('vendors.index') }}" class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('vendors.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <div class="flex items-center gap-3 min-w-0">
-                    <i data-lucide="building-2" class="w-4 h-4 shrink-0"></i>
-                    <span class="whitespace-nowrap">Klien Proyek Sewa</span>
+                    <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+                    <span class="whitespace-nowrap">Kontrak Sewa</span>
                 </div>
                 <span class="px-2 py-0.5 text-[10px] font-bold rounded-full shrink-0 {{ request()->routeIs('vendors.*') ? 'bg-white text-[#FF7A3D]' : 'bg-[#013e54] text-white' }}">{{ $globalVendors->count() }}</span>
+            </a>
+
+            <a href="{{ route('bast.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('bast.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="file-signature" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">BAST & Serah Terima</span>
             </a>
 
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Layanan & Permohonan Klien</div>
@@ -187,16 +250,16 @@
                 @endif
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Armada & Operasional</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Aset & Operasional</div>
 
             <a href="{{ route('vehicles.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('vehicles.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
-                <i data-lucide="bike" class="w-4 h-4 shrink-0"></i>
-                <span class="whitespace-nowrap">Data Armada</span>
+                <i data-lucide="car" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Data Aset & Unit</span>
             </a>
 
             <a href="{{ route('maintenance.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('maintenance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <i data-lucide="wrench" class="w-4 h-4 shrink-0"></i>
-                <span class="whitespace-nowrap">Servis & Pemeliharaan</span>
+                <span class="whitespace-nowrap">Servis & Pengganti</span>
             </a>
 
             <a href="{{ route('documents.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('documents.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
@@ -206,21 +269,26 @@
 
             <a href="{{ route('insurance.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors {{ request()->routeIs('insurance.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <i data-lucide="shield-alert" class="w-4 h-4 shrink-0"></i>
-                <span class="whitespace-nowrap">Asuransi & Klaim</span>
+                <span class="whitespace-nowrap">Polis Asuransi & Klaim</span>
             </a>
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Keuangan & Anggaran</div>
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Keuangan & Pajak</div>
 
             <a href="{{ route('financial.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('financial.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <i data-lucide="wallet" class="w-4 h-4 shrink-0"></i>
-                <span class="whitespace-nowrap">Pendapatan & Kas</span>
+                <span class="whitespace-nowrap">Keuangan & Coretax</span>
             </a>
 
             <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap">Pengaturan</div>
 
             <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('users.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
                 <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
-                <span class="whitespace-nowrap">Pengguna Internal</span>
+                <span class="whitespace-nowrap">Pengguna & Akses</span>
+            </a>
+
+            <a href="{{ route('integrations.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors whitespace-nowrap {{ request()->routeIs('integrations.*') ? 'bg-[#FF7A3D] text-white font-bold shadow-sm' : 'text-slate-100 hover:bg-[#01435b] hover:text-white' }}">
+                <i data-lucide="plug-zap" class="w-4 h-4 shrink-0"></i>
+                <span class="whitespace-nowrap">Integrasi API</span>
             </a>
         </nav>
 
@@ -272,40 +340,31 @@
             </div>
 
             <!-- Right: Action Buttons & Context Info -->
-            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                <!-- Quick Action Exports Dropdown -->
-                <div class="relative group">
-                    <button class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#013e54] text-white transition shadow-xs">
-                        <i data-lucide="download" class="w-4 h-4 text-[#FF7A3D]"></i>
-                        <span class="hidden sm:inline">Ekspor Laporan</span>
-                        <span class="sm:hidden">Ekspor</span>
-                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-80"></i>
-                    </button>
-                    <div class="absolute right-0 mt-1.5 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 hidden group-hover:block group-focus-within:block z-50">
-                        <a href="{{ route('exports.budgetPdf') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-black hover:bg-[#e6f0f3] hover:text-[#015471] font-medium transition">
-                            <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i>
-                            <span>PDF Rekap Anggaran</span>
-                        </a>
-                        <a href="{{ route('exports.vehiclesPdf') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-black hover:bg-[#e6f0f3] hover:text-[#015471] font-medium transition">
-                            <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i>
-                            <span>PDF Daftar Armada</span>
-                        </a>
-                        <div class="border-t border-slate-100 my-1"></div>
-                        <a href="{{ route('exports.financialExcel') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-black hover:bg-[#e6f0f3] hover:text-[#015471] font-medium transition">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i>
-                            <span>Excel Kas & Realisasi Anggaran</span>
-                        </a>
-                        <a href="{{ route('exports.vehiclesExcel') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-black hover:bg-[#e6f0f3] hover:text-[#015471] font-medium transition">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i>
-                            <span>Excel Master Data Kendaraan</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0"></div>
         </header>
 
         <!-- Page Content Scroll Area -->
         <main class="flex-1 overflow-y-auto bg-white p-3.5 sm:p-6">
+            @if(isset($currentVendor) && $currentVendor && !request()->routeIs('vendors.*'))
+                <div class="mb-4 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2 text-amber-900">
+                        <i data-lucide="filter" class="w-4 h-4 text-[#FF7A3D] shrink-0"></i>
+                        <span>
+                            Sedang memfilter data khusus kontrak: <strong>{{ $currentVendor->name }}</strong>
+                            @if($currentVendor->contract_number)
+                                (<span class="font-mono">{{ $currentVendor->contract_number }}</span>)
+                            @endif
+                        </span>
+                    </div>
+                    <form action="{{ route('vendors.switch') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="vendor_id" value="all">
+                        <button type="submit" class="px-3 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold hover:bg-amber-100 transition text-[11px]">
+                            Tampilkan Semua Kontrak
+                        </button>
+                    </form>
+                </div>
+            @endif
             @yield('content')
         </main>
     </div>

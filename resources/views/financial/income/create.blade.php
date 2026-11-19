@@ -117,23 +117,55 @@
                                 Nama Klien / Instansi Rekanan <span class="text-[#FF7A3D]">*</span>
                             </label>
                             <input type="text" name="client_name" id="client_name" 
-                                value="{{ old('client_name', $currentVendor ? ($currentVendor->client_name ?: $currentVendor->name) : 'PT Pertamina EP Regional 2') }}" 
+                                value="{{ old('client_name', $currentVendor ? ($currentVendor->client?->name ?: $currentVendor->name) : '') }}" 
+                                placeholder="Nama perusahaan klien / instansi..."
                                 required 
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block font-bold text-slate-700 mb-1.5">
-                                Hubungkan dengan Entitas Kontrak / Vendor (Opsional)
+                                Hubungkan dengan Entitas Kontrak Sewa (Otomatis Isi Nominal & Siklus)
                             </label>
-                            <select name="vendor_id" id="vendor_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
+                            <select name="vendor_id" id="vendor_id" onchange="syncContractToInvoice()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
                                 <option value="">-- Hubungkan dengan Kontrak Aktif / Otomatis --</option>
                                 @foreach($vendors as $v)
-                                    <option value="{{ $v->id }}" {{ (old('vendor_id', $currentVendor?->id) == $v->id) ? 'selected' : '' }}>
-                                        {{ $v->name }} ({{ $v->code }}) - Klien: {{ $v->client_name ?: 'Tidak spesifik' }}
+                                    @php
+                                        $monthlyContract = (float) $v->main_monthly_value + (float) $v->additional_monthly_value;
+                                    @endphp
+                                    <option value="{{ $v->id }}"
+                                        data-client="{{ $v->client?->name ?: $v->name }}"
+                                        data-contract="{{ $v->contract_number }}"
+                                        data-cycle="{{ $v->billing_cycle ?: 'bulanan' }}"
+                                        data-monthly="{{ $monthlyContract }}"
+                                        {{ (old('vendor_id', $currentVendor?->id) == $v->id) ? 'selected' : '' }}>
+                                        {{ $v->contract_number ?: $v->code }} — {{ $v->name }}
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">Nomor Kontrak</label>
+                            <input type="text" name="contract_number" id="contract_number" value="{{ old('contract_number', $currentVendor?->contract_number) }}" placeholder="Nomor kontrak sewa..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#015471]">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">Siklus Penagihan</label>
+                            <select name="billing_cycle" id="billing_cycle" onchange="syncContractToInvoice(true)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#015471]">
+                                <option value="bulanan" {{ old('billing_cycle', $currentVendor?->billing_cycle) === 'bulanan' ? 'selected' : '' }}>1 Bulan (Bulanan)</option>
+                                <option value="triwulanan" {{ old('billing_cycle', $currentVendor?->billing_cycle) === 'triwulanan' ? 'selected' : '' }}>3 Bulan (Triwulan)</option>
+                                <option value="semesteran" {{ old('billing_cycle', $currentVendor?->billing_cycle) === 'semesteran' ? 'selected' : '' }}>6 Bulan (Semester)</option>
+                                <option value="tahunan" {{ old('billing_cycle', $currentVendor?->billing_cycle) === 'tahunan' ? 'selected' : '' }}>12 Bulan (Tahunan)</option>
+                                <option value="2_tahunan" {{ old('billing_cycle', $currentVendor?->billing_cycle) === '2_tahunan' ? 'selected' : '' }}>24 Bulan (2 Tahunan)</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1.5">
+                                Nominal DPP Kontrak / Custom (Rp) <span class="text-[11px] font-normal text-slate-400">(Isi jika kontrak menggunakan tarif mobil/fotokopi/dispenser atau tarif kontrak langsung; biarkan 0 untuk pakai hitungan CRF/Supra di bawah)</span>
+                            </label>
+                            <input type="number" name="custom_gross_amount" id="custom_gross_amount" oninput="recalculateInvoice()" value="{{ old('custom_gross_amount', 0) }}" min="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#015471]/30 bg-[#015471]/5 font-mono font-bold text-[#015471] focus:outline-none focus:ring-2 focus:ring-[#015471]">
                         </div>
                     </div>
                 </div>
@@ -472,7 +504,8 @@
 
         const crfSubtotal = crfCount * crfRate;
         const supraSubtotal = supraCount * supraRate;
-        const dpp = crfSubtotal + supraSubtotal;
+        const customGross = parseFloat(document.getElementById('custom_gross_amount')?.value || 0);
+        const dpp = customGross > 0 ? customGross : (crfSubtotal + supraSubtotal);
         const ppn = dpp * 0.11;
         const totalInvoice = dpp + ppn;
         const pph23 = dpp * 0.02;
@@ -553,10 +586,31 @@
         });
     }
 
+    function syncContractToInvoice(cycleOnly = false) {
+        const sel = document.getElementById('vendor_id');
+        const opt = sel?.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        if (!cycleOnly) {
+            if (opt.dataset.client) document.getElementById('client_name').value = opt.dataset.client;
+            if (opt.dataset.contract) document.getElementById('contract_number').value = opt.dataset.contract;
+            if (opt.dataset.cycle) document.getElementById('billing_cycle').value = opt.dataset.cycle;
+        }
+
+        const cycle = document.getElementById('billing_cycle')?.value || 'bulanan';
+        const mult = { bulanan: 1, triwulanan: 3, semesteran: 6, tahunan: 12, '2_tahunan': 24 }[cycle] || 1;
+        const monthly = parseFloat(opt.dataset.monthly || 0);
+        if (monthly > 0) {
+            document.getElementById('custom_gross_amount').value = Math.round(monthly * mult);
+        }
+        recalculateInvoice();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('crf_count').addEventListener('input', recalculateFromInputs);
         document.getElementById('supra_count').addEventListener('input', recalculateFromInputs);
         syncChecklistToCounts();
+        syncContractToInvoice();
         togglePaymentDate();
     });
 </script>

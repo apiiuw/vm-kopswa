@@ -12,7 +12,16 @@
             <h2 class="text-xl font-black text-black tracking-tight">Manajemen Klien & Kontrak Sewa</h2>
             <p class="text-xs text-slate-500 mt-0.5">Kelola seluruh klien penyewa armada motor, nomor kontrak tender, dan alokasi unit sewa</p>
         </div>
-        <div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('exports.vendorsPdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
+                <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i> Ekspor PDF
+            </a>
+            <a href="{{ route('exports.vendorsExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel
+            </a>
+            <a href="{{ route('exports.persewaanExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition" title="Download 2 Sheet: Data Kontrak & Data Kdr Kontrak">
+                <i data-lucide="download" class="w-4 h-4"></i> Excel qryPersewaan
+            </a>
             <button onclick="openCreateVendorModal()" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition">
                 <i data-lucide="plus" class="w-4 h-4"></i> Tambah Klien / Kontrak Baru
             </button>
@@ -74,6 +83,8 @@
                         <th class="px-6 py-4 min-w-[220px]">Nomor Kontrak</th>
                         <th class="px-6 py-4 min-w-[360px]">Nama Proyek Tender</th>
                         <th class="px-6 py-4 min-w-[260px]">Periode Kontrak Sewa</th>
+                        <th class="px-6 py-4 text-right min-w-[210px]">Nilai Kontrak</th>
+                        <th class="px-6 py-4 text-center min-w-[160px]">Jenis Pembayaran</th>
                         <th class="px-6 py-4 min-w-[260px]">PIC / Kontak Klien</th>
                         <th class="px-6 py-4 text-center min-w-[140px]">Armada Disewa</th>
                         <th class="px-6 py-4 text-center min-w-[120px]">Status</th>
@@ -128,6 +139,55 @@
                                         <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#015471]"></i>
                                         <span>{{ $v->contract_start_date->format('d/m/Y') }} – {{ $v->contract_end_date->format('d/m/Y') }}</span>
                                     </div>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
+                                <div class="text-[10px] text-slate-500 mt-1 space-x-2">
+                                    @if($v->contract_date)
+                                        <span>Tgl: <strong class="text-slate-700">{{ $v->contract_date->format('d/m/Y') }}</strong></span>
+                                    @endif
+                                    @if($v->duration_months)
+                                        <span>Tenor: <strong class="text-slate-700">{{ $v->duration_months }} Bln</strong></span>
+                                    @endif
+                                    <span>• {{ $v->billing_cycle_label }}</span>
+                                </div>
+                            </td>
+
+                            <!-- Nilai Kontrak -->
+                            <td class="px-6 py-4 text-right align-top whitespace-nowrap font-mono">
+                                @if((float) $v->contract_value > 0)
+                                    <div class="font-bold text-slate-900 text-xs">
+                                        Rp {{ number_format($v->contract_value, 0, ',', '.') }}
+                                    </div>
+                                    @if((float) $v->main_monthly_value > 0 || (float) $v->additional_contract_value > 0)
+                                        <div class="text-[10px] text-slate-500 mt-0.5">
+                                            Utama: Rp {{ number_format($v->main_monthly_value, 0, ',', '.') }}/bln
+                                            @if((float) $v->additional_contract_value > 0)
+                                                <br><span class="text-[#FF7A3D]">+Tambahan: Rp {{ number_format($v->additional_contract_value, 0, ',', '.') }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
+                            </td>
+
+                            <!-- Jenis Pembayaran -->
+                            <td class="px-6 py-4 text-center align-top whitespace-nowrap">
+                                @php
+                                    $payBadge = match($v->payment_method) {
+                                        'qris' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                        'va' => 'bg-sky-50 text-sky-700 border-sky-200',
+                                        'transfer' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'giro' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                        'cash' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                        default => null,
+                                    };
+                                @endphp
+                                @if($payBadge)
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border {{ $payBadge }}">
+                                        {{ $v->payment_method_label }}
+                                    </span>
                                 @else
                                     <span class="text-slate-400">-</span>
                                 @endif
@@ -190,19 +250,13 @@
                                         @endif
                                     </form>
 
-                                    <!-- Manage Locations Button -->
-                                    <button onclick="openManageLocationsModal({{ json_encode($v) }})" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-xl border border-emerald-200 hover:border-emerald-500 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/80 transition shadow-2xs" title="Kelola Wilayah Kebun / Pos Operasional">
-                                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                        <span class="text-[11px]">{{ $v->locations_count }} Kebun</span>
-                                    </button>
-
                                     <!-- Edit Button -->
                                     <button onclick="openEditVendorModal({{ json_encode($v) }})" class="p-1.5 text-slate-500 hover:text-[#015471] rounded-xl hover:bg-slate-100 transition" title="Edit Vendor">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <form action="{{ route('vendors.destroy', $v) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus vendor ini?');" class="inline">
+                                    <form action="{{ route('vendors.destroy', $v) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kontrak ini? Seluruh kendaraan terkait akan menjadi Standby di Pool.');" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition" title="Hapus Vendor">
@@ -214,7 +268,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-12 text-slate-400">
+                            <td colspan="10" class="text-center py-12 text-slate-400">
                                 <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
                                 <span class="text-sm font-semibold block">Belum ada data vendor terdaftar</span>
                                 <span class="text-xs text-slate-400 mt-1 block">Silakan klik tombol "Tambah Vendor Baru" di atas untuk menambahkan.</span>
@@ -253,14 +307,29 @@
             @csrf
             <div id="methodField"></div>
 
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="block font-bold text-slate-800">Pilih Perusahaan Klien <span class="text-[#FF7A3D]">*</span></label>
+                    <a href="{{ route('clients.index') }}" class="text-[11px] font-bold text-[#015471] hover:underline">+ Kelola Master Klien</a>
+                </div>
+                <select name="client_id" id="vendorClientId" required onchange="syncClientInfoToContract()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-black font-semibold">
+                    <option value="">-- Pilih Klien --</option>
+                    @foreach($clients ?? [] as $cl)
+                        <option value="{{ $cl->id }}" data-name="{{ $cl->name }}" data-npwp="{{ $cl->npwp }}" data-pic="{{ $cl->pic_name }}" data-phone="{{ $cl->phone }}" data-email="{{ $cl->email }}">
+                            {{ $cl->name }} ({{ $cl->code }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block font-bold text-slate-800 mb-1">Nama Klien / Perusahaan Penyewa <span class="text-[#FF7A3D]">*</span></label>
-                    <input type="text" name="name" id="vendorName" required placeholder="PT Perkebunan Nusantara I Regional 7" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
+                    <label class="block font-bold text-slate-800 mb-1">Alias / Nama Tampilan Kontrak</label>
+                    <input type="text" name="name" id="vendorName" placeholder="Otomatis mengikuti nama klien" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-800 mb-1">Kode Klien <span class="text-[#FF7A3D]">*</span></label>
-                    <input type="text" name="code" id="vendorCode" required placeholder="PTPN-7 / AGRO" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black uppercase font-mono transition">
+                    <label class="block font-bold text-slate-800 mb-1">Kode Kontrak <span class="text-[#FF7A3D]">*</span></label>
+                    <input type="text" name="code" id="vendorCode" required placeholder="Contoh: KTR-2026-01" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black uppercase font-mono transition">
                 </div>
             </div>
 
@@ -277,7 +346,7 @@
 
             <div>
                 <label class="block font-bold text-slate-800 mb-1">Nama Proyek / Tender Sewa</label>
-                <input type="text" name="project_name" id="vendorProjectName" placeholder="Pengadaan Sewa 76 Unit Sepeda Motor Operasional..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
+                <input type="text" name="project_name" id="vendorProjectName" placeholder="Contoh: Pengadaan Sewa Unit Operasional..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -291,18 +360,26 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div>
-                    <label class="block font-bold text-slate-800 mb-1">Tanggal Mulai Kontrak</label>
+                    <label class="block font-bold text-slate-800 mb-1">Tanggal Kontrak</label>
+                    <input type="date" name="contract_date" id="vendorContractDate" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Tanggal Mulai (PrdAwal)</label>
                     <input type="date" name="contract_start_date" id="vendorStartDate" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-800 mb-1">Tanggal Selesai Kontrak</label>
+                    <label class="block font-bold text-slate-800 mb-1">Tanggal Selesai (PrdAkhir)</label>
                     <input type="date" name="contract_end_date" id="vendorEndDate" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Jangka Waktu (Bulan)</label>
+                    <input type="number" name="duration_months" id="vendorDurationMonths" min="1" placeholder="36" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
+                </div>
                 <div>
                     <label class="block font-bold text-slate-800 mb-1">Email Klien</label>
                     <input type="email" name="email" id="vendorEmail" placeholder="operasional@klien.co.id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black transition">
@@ -314,6 +391,61 @@
                         <option value="inactive">Selesai / Nonaktif</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Siklus Penagihan / Cara Bayar</label>
+                    <select name="billing_cycle" id="vendorBillingCycle" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black bg-white transition">
+                        <option value="bulanan">1 Bulan (Bulanan)</option>
+                        <option value="triwulanan">3 Bulan (Triwulan)</option>
+                        <option value="semesteran">6 Bulan (Semester)</option>
+                        <option value="tahunan">12 Bulan (Tahunan)</option>
+                        <option value="2_tahunan">24 Bulan (2 Tahunan)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Jenis Pembayaran</label>
+                    <select name="payment_method" id="vendorPaymentMethod" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black bg-white transition">
+                        <option value="">-- Pilih Jenis Pembayaran --</option>
+                        <option value="qris">QRIS</option>
+                        <option value="va">Virtual Account (VA)</option>
+                        <option value="transfer">Transfer Bank</option>
+                        <option value="giro">Giro / Cek</option>
+                        <option value="cash">Tunai (Cash)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <div class="text-[11px] font-extrabold text-[#015471] uppercase tracking-wider">Rincian Nilai Kontrak Sewa (Rp)</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nilai Kontrak Utama</label>
+                        <input type="number" step="0.01" min="0" name="main_contract_value" id="vendorMainContractValue" oninput="recalcVendorContractTotal()" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-black font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nilai Bulanan Utama</label>
+                        <input type="number" step="0.01" min="0" name="main_monthly_value" id="vendorMainMonthlyValue" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-black font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nilai Kontrak Tambahan</label>
+                        <input type="number" step="0.01" min="0" name="additional_contract_value" id="vendorAdditionalContractValue" oninput="recalcVendorContractTotal()" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-black font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nilai Bulanan Tambahan</label>
+                        <input type="number" step="0.01" min="0" name="additional_monthly_value" id="vendorAdditionalMonthlyValue" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-black font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-800 mb-1">Nilai Kontrak Total (Utama + Tambahan)</label>
+                    <input type="number" step="0.01" min="0" name="contract_value" id="vendorContractValue" value="0" class="w-full px-3.5 py-2 rounded-xl border border-[#015471]/30 bg-white text-[#015471] font-bold font-mono">
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-800 mb-1">NPWP Klien (Untuk Faktur Pajak Coretax)</label>
+                <input type="text" name="npwp" id="vendorNpwp" placeholder="01.234.567.8-901.000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#015471] focus:ring-2 focus:ring-[#015471]/20 outline-none text-black font-mono transition">
             </div>
 
             <div>
@@ -335,10 +467,11 @@
 
 <script>
     function openCreateVendorModal() {
-        document.getElementById('modalTitle').innerText = 'Tambah Klien / Kontrak Sewa Baru';
+        document.getElementById('modalTitle').innerText = 'Tambah Kontrak Sewa Baru';
         document.getElementById('vendorForm').action = "{{ route('vendors.store') }}";
         document.getElementById('methodField').innerHTML = '';
         
+        document.getElementById('vendorClientId').value = '';
         document.getElementById('vendorName').value = '';
         document.getElementById('vendorCode').value = '';
         document.getElementById('vendorContractNumber').value = '';
@@ -347,19 +480,41 @@
         document.getElementById('vendorPicName').value = '';
         document.getElementById('vendorPhone').value = '';
         document.getElementById('vendorEmail').value = '';
+        document.getElementById('vendorContractDate').value = '';
         document.getElementById('vendorStartDate').value = '';
         document.getElementById('vendorEndDate').value = '';
+        document.getElementById('vendorDurationMonths').value = '';
         document.getElementById('vendorStatus').value = 'active';
+        document.getElementById('vendorBillingCycle').value = 'bulanan';
+        document.getElementById('vendorPaymentMethod').value = '';
+        document.getElementById('vendorMainContractValue').value = 0;
+        document.getElementById('vendorMainMonthlyValue').value = 0;
+        document.getElementById('vendorAdditionalContractValue').value = 0;
+        document.getElementById('vendorAdditionalMonthlyValue').value = 0;
+        document.getElementById('vendorContractValue').value = 0;
+        document.getElementById('vendorNpwp').value = '';
         document.getElementById('vendorNotes').value = '';
 
         document.getElementById('vendorModal').classList.remove('hidden');
     }
 
+    function syncClientInfoToContract() {
+        const sel = document.getElementById('vendorClientId');
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+        document.getElementById('vendorName').value = opt.dataset.name || '';
+        document.getElementById('vendorNpwp').value = opt.dataset.npwp || '';
+        document.getElementById('vendorPicName').value = opt.dataset.pic || '';
+        document.getElementById('vendorPhone').value = opt.dataset.phone || '';
+        document.getElementById('vendorEmail').value = opt.dataset.email || '';
+    }
+
     function openEditVendorModal(v) {
-        document.getElementById('modalTitle').innerText = 'Edit Klien & Kontrak: ' + v.name;
+        document.getElementById('modalTitle').innerText = 'Edit Kontrak: ' + (v.contract_number || v.name);
         document.getElementById('vendorForm').action = "/vendors/" + v.id;
         document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
 
+        document.getElementById('vendorClientId').value = v.client_id || '';
         document.getElementById('vendorName').value = v.name || '';
         document.getElementById('vendorCode').value = v.code || '';
         document.getElementById('vendorContractNumber').value = v.contract_number || '';
@@ -368,139 +523,32 @@
         document.getElementById('vendorPicName').value = v.pic_name || '';
         document.getElementById('vendorPhone').value = v.phone || '';
         document.getElementById('vendorEmail').value = v.email || '';
+        document.getElementById('vendorContractDate').value = v.contract_date ? v.contract_date.substring(0, 10) : '';
         document.getElementById('vendorStartDate').value = v.contract_start_date ? v.contract_start_date.substring(0, 10) : '';
         document.getElementById('vendorEndDate').value = v.contract_end_date ? v.contract_end_date.substring(0, 10) : '';
+        document.getElementById('vendorDurationMonths').value = v.duration_months || '';
         document.getElementById('vendorStatus').value = v.status || 'active';
+        document.getElementById('vendorBillingCycle').value = v.billing_cycle || 'bulanan';
+        document.getElementById('vendorPaymentMethod').value = v.payment_method || '';
+        document.getElementById('vendorMainContractValue').value = v.main_contract_value || 0;
+        document.getElementById('vendorMainMonthlyValue').value = v.main_monthly_value || 0;
+        document.getElementById('vendorAdditionalContractValue').value = v.additional_contract_value || 0;
+        document.getElementById('vendorAdditionalMonthlyValue').value = v.additional_monthly_value || 0;
+        document.getElementById('vendorContractValue').value = v.contract_value || 0;
+        document.getElementById('vendorNpwp').value = v.npwp || '';
         document.getElementById('vendorNotes').value = v.notes || '';
 
         document.getElementById('vendorModal').classList.remove('hidden');
     }
 
+    function recalcVendorContractTotal() {
+        const main = parseFloat(document.getElementById('vendorMainContractValue').value) || 0;
+        const add = parseFloat(document.getElementById('vendorAdditionalContractValue').value) || 0;
+        document.getElementById('vendorContractValue').value = main + add;
+    }
+
     function closeVendorModal() {
         document.getElementById('vendorModal').classList.add('hidden');
     }
-
-    // Kelola Wilayah / Kebun per Klien Modal
-    let currentVendorData = null;
-
-    function openManageLocationsModal(vendor) {
-        currentVendorData = vendor;
-        document.getElementById('manageLocVendorName').innerText = vendor.name + ' (' + vendor.code + ')';
-        document.getElementById('newLocVendorId').value = vendor.id;
-        document.getElementById('newLocName').value = '';
-        document.getElementById('newLocCode').value = '';
-        document.getElementById('newLocManager').value = '';
-
-        renderLocationsList(vendor.locations || []);
-        document.getElementById('manageLocationsModal').classList.remove('hidden');
-        lucide.createIcons();
-    }
-
-    function closeManageLocationsModal() {
-        document.getElementById('manageLocationsModal').classList.add('hidden');
-    }
-
-    function renderLocationsList(locations) {
-        const container = document.getElementById('locationsListContainer');
-        if (!locations || locations.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-8 text-slate-400">
-                    <i data-lucide="map-pin-off" class="w-8 h-8 mx-auto mb-1.5 opacity-40"></i>
-                    <p class="text-xs font-semibold">Belum ada wilayah kebun untuk klien ini</p>
-                    <p class="text-[10px] text-slate-400">Gunakan form di bawah untuk menambahkan kebun baru</p>
-                </div>
-            `;
-            lucide.createIcons();
-            return;
-        }
-
-        let html = '<div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">';
-        locations.forEach(loc => {
-            html += `
-                <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition bg-white">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-900">${loc.name}</span>
-                            ${loc.code ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-600">${loc.code}</span>` : ''}
-                        </div>
-                        <div class="flex items-center gap-3 text-[11px] text-slate-500 mt-0.5">
-                            <span>PIC: ${loc.manager_name || '-'}</span>
-                            <span>•</span>
-                            <span class="text-[#015471] font-semibold">${loc.vehicles_count ?? 0} Unit Terdaftar</span>
-                        </div>
-                    </div>
-                    <div>
-                        <form action="/locations/${loc.id}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kebun ini?')" class="inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Hapus Kebun">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        lucide.createIcons();
-    }
 </script>
-
-<!-- Modal Kelola Kebun / Lokasi Klien -->
-<div id="manageLocationsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 transition-all flex flex-col max-h-[90vh]">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <i data-lucide="map-pin" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Kelola Wilayah Kebun / Pos</h3>
-                    <p class="text-[11px] text-slate-500 font-semibold" id="manageLocVendorName">Klien</p>
-                </div>
-            </div>
-            <button type="button" onclick="closeManageLocationsModal()" class="text-slate-400 hover:text-slate-600 p-1">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-
-        <!-- Daftar Kebun Eksisting -->
-        <div class="py-4 overflow-y-auto flex-1 space-y-3">
-            <h4 class="text-xs font-bold text-slate-700 flex items-center justify-between">
-                <span>Daftar Wilayah Kebun Terdaftar</span>
-            </h4>
-            <div id="locationsListContainer">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-
-        <!-- Form Tambah Kebun Baru -->
-        <div class="pt-4 border-t border-slate-100 bg-slate-50/60 -mx-6 -mb-6 p-6 rounded-b-2xl">
-            <h4 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
-                <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-[#015471]"></i>
-                <span>Tambah Kebun Baru untuk Klien Ini</span>
-            </h4>
-            <form action="{{ route('locations.store') }}" method="POST" class="space-y-3">
-                @csrf
-                <input type="hidden" name="vendor_id" id="newLocVendorId">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div class="sm:col-span-2">
-                        <input type="text" name="name" id="newLocName" required placeholder="Nama Kebun (misal: Kebun Bergen)" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white">
-                    </div>
-                    <div>
-                        <input type="text" name="code" id="newLocCode" placeholder="Kode (BERGEN)" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white uppercase">
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <input type="text" name="manager_name" id="newLocManager" placeholder="Nama Manajer / Pengawas Kebun (Opsional)" class="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#015471] bg-white">
-                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-[#015471] hover:bg-[#023e54] text-white transition flex items-center gap-1.5 shrink-0">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                        <span>Tambah</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection

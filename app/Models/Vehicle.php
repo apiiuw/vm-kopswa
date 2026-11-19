@@ -13,6 +13,19 @@ class Vehicle extends Model
     protected $casts = [
         'tax_annual_date' => 'date',
         'tax_5year_date' => 'date',
+        'acquisition_date' => 'date',
+        'sold_date' => 'date',
+        'rental_price_per_month' => 'decimal:2',
+        'total_contract_value' => 'decimal:2',
+        'additional_contract_value' => 'decimal:2',
+        'additional_monthly_value' => 'decimal:2',
+        'invoice_value' => 'decimal:2',
+        'acquisition_value' => 'decimal:2',
+        'ppn_pm' => 'decimal:2',
+        'dealer_discount' => 'decimal:2',
+        'residual_value' => 'decimal:2',
+        'residual_percentage' => 'decimal:2',
+        'sold_price' => 'decimal:2',
     ];
 
     public function setUserHolderAttribute($value): void
@@ -101,21 +114,123 @@ class Vehicle extends Model
         return $this->hasMany(Expense::class);
     }
 
+    public function handoverDocuments(): HasMany
+    {
+        return $this->hasMany(HandoverDocument::class);
+    }
+
+    public function insurancePolicies(): HasMany
+    {
+        return $this->hasMany(InsurancePolicy::class);
+    }
+
+    public function getAssetTypeLabelAttribute(): string
+    {
+        return match ($this->asset_type) {
+            'mobil' => 'Mobil',
+            'motor' => 'Motor',
+            'fotocopy' => 'Mesin Fotocopy',
+            'dispenser' => 'Dispenser',
+            default => ucfirst($this->asset_type ?: 'Motor'),
+        };
+    }
+
     public function getVehicleTypeLabelAttribute(): string
     {
-        return $this->vehicle_type === 'honda_crf_150' ? 'Honda CRF 150 L' : 'Honda Supra X 125';
+        if (in_array($this->asset_type, ['fotocopy', 'dispenser'], true)) {
+            return $this->asset_type_label.' - '.($this->model_name ?: $this->brand);
+        }
+
+        return match ($this->vehicle_type) {
+            'honda_crf_150' => 'Honda CRF 150 L',
+            'honda_supra_x_125' => 'Honda Supra X 125',
+            default => trim(($this->brand ? $this->brand.' ' : '').($this->model_name ?: $this->vehicle_type)),
+        };
     }
 
     public function getStatusBadgeAttribute(): array
     {
         return match ($this->status) {
-            'active' => ['label' => 'Aktif Beroperasi', 'class' => 'bg-emerald-100 text-emerald-800 border-emerald-200'],
+            'active' => ['label' => 'Aktif Disewa', 'class' => 'bg-emerald-100 text-emerald-800 border-emerald-200'],
+            'standby' => ['label' => 'Aktif Standby', 'class' => 'bg-sky-100 text-sky-800 border-sky-200'],
             'maintenance' => ['label' => 'Dalam Perbaikan / Servis', 'class' => 'bg-amber-100 text-amber-800 border-amber-200'],
             'replaced' => ['label' => 'Unit Pengganti Aktif', 'class' => 'bg-blue-100 text-blue-800 border-blue-200'],
+            'sold' => ['label' => 'Dijual / Terjual', 'class' => 'bg-slate-200 text-slate-800 border-slate-300'],
             'lost' => ['label' => 'Hilang (Proses Polis)', 'class' => 'bg-rose-100 text-rose-800 border-rose-200'],
             'claimed' => ['label' => 'Klaim Asuransi Selesai', 'class' => 'bg-purple-100 text-purple-800 border-purple-200'],
             default => ['label' => ucfirst($this->status), 'class' => 'bg-slate-100 text-slate-800 border-slate-200'],
         };
+    }
+
+    public function getMonthlyDepreciationAttribute(): float
+    {
+        $acquisition = (float) ($this->acquisition_value ?: $this->invoice_value ?: 0);
+        $residual = (float) ($this->residual_value ?? 0);
+        $life = max(1, (int) ($this->useful_life_months ?: 48));
+
+        if ($acquisition <= $residual) {
+            return 0.0;
+        }
+
+        return round(($acquisition - $residual) / $life, 2);
+    }
+
+    public function getElapsedDepreciationMonthsAttribute(): int
+    {
+        if (! $this->acquisition_date) {
+            return 0;
+        }
+
+        $endDate = $this->sold_date && $this->status === 'sold' ? $this->sold_date : now();
+        $months = (int) $this->acquisition_date->diffInMonths($endDate);
+        $life = max(1, (int) ($this->useful_life_months ?: 48));
+
+        return max(0, min($life, $months));
+    }
+
+    public function getAccumulatedDepreciationAttribute(): float
+    {
+        return round($this->monthly_depreciation * $this->elapsed_depreciation_months, 2);
+    }
+
+    public function getBookValueAttribute(): float
+    {
+        $acquisition = (float) ($this->acquisition_value ?: $this->invoice_value ?: 0);
+        $residual = (float) ($this->residual_value ?? 0);
+
+        return max($residual, round($acquisition - $this->accumulated_depreciation, 2));
+    }
+
+    public static function assetCodePrefix(string $assetType): string
+    {
+        return match ($assetType) {
+            'mobil' => 'KOPSWA-MBL-',
+            'fotocopy' => 'KOPSWA-FC-',
+            'dispenser' => 'KOPSWA-DSP-',
+            default => 'KOPSWA-MTR-',
+        };
+    }
+
+    public static function generateNextAssetCode(string $assetType): string
+    {
+        $prefix = self::assetCodePrefix($assetType);
+
+        $existingCodes = self::where('asset_type', $assetType)
+            ->whereNotNull('asset_code')
+            ->where('asset_code', 'like', $prefix.'%')
+            ->pluck('asset_code');
+
+        $maxNum = 0;
+        foreach ($existingCodes as $code) {
+            if (preg_match('/(\d+)$/', (string) $code, $m)) {
+                $maxNum = max($maxNum, (int) $m[1]);
+            }
+        }
+
+        $countOfType = self::where('asset_type', $assetType)->count();
+        $nextNum = max($maxNum, $countOfType) + 1;
+
+        return $prefix.str_pad((string) $nextNum, 3, '0', STR_PAD_LEFT);
     }
 
     public function getIconNameAttribute(): string

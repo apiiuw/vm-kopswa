@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Vehicle;
 use App\Models\Budget;
+use App\Models\ClientRequest;
 use App\Models\Expense;
 use App\Models\Income;
-use App\Models\MaintenanceRecord;
-use App\Models\VehicleDocument;
 use App\Models\InsuranceClaim;
+use App\Models\InsurancePolicy;
+use App\Models\Location;
+use App\Models\MaintenanceRecord;
+use App\Models\Vehicle;
+use App\Models\VehicleDocument;
+use App\Models\Vendor;
 use Carbon\Carbon;
-
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -35,9 +39,20 @@ class DashboardController extends Controller
         $crfCount = (clone $vehicleQuery)->where('vehicle_type', 'honda_crf_150')->count();
         $supraCount = (clone $vehicleQuery)->where('vehicle_type', 'honda_supra_x_125')->count();
         $activeCount = (clone $vehicleQuery)->where('status', 'active')->count();
+        $standbyCount = (clone $vehicleQuery)->where('status', 'standby')->count();
         $maintenanceCount = (clone $vehicleQuery)->where('status', 'maintenance')->count();
         $replacedCount = (clone $vehicleQuery)->where('status', 'replaced')->count();
+        $soldCount = (clone $vehicleQuery)->where('status', 'sold')->count();
         $lostCount = (clone $vehicleQuery)->where('status', 'lost')->count();
+
+        $assetTypeCounts = [
+            'mobil' => (clone $vehicleQuery)->where('asset_type', 'mobil')->count(),
+            'motor' => (clone $vehicleQuery)->where('asset_type', 'motor')->count(),
+            'fotocopy' => (clone $vehicleQuery)->where('asset_type', 'fotocopy')->count(),
+            'dispenser' => (clone $vehicleQuery)->where('asset_type', 'dispenser')->count(),
+        ];
+
+        $totalBookValue = (clone $vehicleQuery)->get()->sum(fn ($v) => $v->book_value);
 
         // 2. Financial Metrics
         $budgetQuery = Budget::query();
@@ -94,7 +109,7 @@ class DashboardController extends Controller
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '<=', Carbon::now()->addDays(60));
         if ($activeVendorId) {
-            $expiringDocsQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $expiringDocsQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -103,7 +118,7 @@ class DashboardController extends Controller
         // 5. Recent Maintenances
         $recentMaintenancesQuery = MaintenanceRecord::with(['vehicle.location', 'vehicle.vendor']);
         if ($activeVendorId) {
-            $recentMaintenancesQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $recentMaintenancesQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -114,14 +129,14 @@ class DashboardController extends Controller
 
         $claimsQuery = InsuranceClaim::with(['vehicle.vendor']);
         if ($activeVendorId) {
-            $claimsQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $claimsQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
         $recentClaims = $claimsQuery->orderBy('incident_date', 'desc')->take(3)->get();
 
         // 7. Monthly Cashflow Data for Chart (Dipisah: Terbayar / Lunas & Tertagih / Pending)
-        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        $driver = DB::getDriverName();
         $dateIncomeFormat = $driver === 'sqlite' ? "strftime('%Y-%m', invoice_date)" : "DATE_FORMAT(invoice_date, '%Y-%m')";
         $dateExpenseFormat = $driver === 'sqlite' ? "strftime('%Y-%m', transaction_date)" : "DATE_FORMAT(transaction_date, '%Y-%m')";
 
@@ -147,8 +162,8 @@ class DashboardController extends Controller
 
         // Combine unique months
         $allMonths = array_values(array_unique(array_merge(
-            array_keys($monthlyIncomesPaid), 
-            array_keys($monthlyIncomesPending), 
+            array_keys($monthlyIncomesPaid),
+            array_keys($monthlyIncomesPending),
             array_keys($monthlyExpenses)
         )));
         sort($allMonths);
@@ -160,13 +175,13 @@ class DashboardController extends Controller
 
         foreach ($allMonths as $m) {
             $chartLabels[] = Carbon::createFromFormat('Y-m', $m)->translatedFormat('M Y');
-            $chartIncomePaidData[] = (float)($monthlyIncomesPaid[$m] ?? 0);
-            $chartIncomePendingData[] = (float)($monthlyIncomesPending[$m] ?? 0);
-            $chartExpenseData[] = (float)($monthlyExpenses[$m] ?? 0);
+            $chartIncomePaidData[] = (float) ($monthlyIncomesPaid[$m] ?? 0);
+            $chartIncomePendingData[] = (float) ($monthlyIncomesPending[$m] ?? 0);
+            $chartExpenseData[] = (float) ($monthlyExpenses[$m] ?? 0);
         }
 
         // 8. Location Vehicle Distribution
-        $locations = \App\Models\Location::withCount(['vehicles' => function($q) use ($activeVendorId) {
+        $locations = Location::withCount(['vehicles' => function ($q) use ($activeVendorId) {
             if ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             }
@@ -181,12 +196,12 @@ class DashboardController extends Controller
             ->orderBy('month', 'asc')
             ->pluck('total', 'month')
             ->toArray();
-        
+
         $maintTrendLabels = [];
         $maintTrendData = [];
         foreach ($allMonths as $m) {
             $maintTrendLabels[] = Carbon::createFromFormat('Y-m', $m)->translatedFormat('M Y');
-            $maintTrendData[] = (float)($maintMonthly[$m] ?? 0);
+            $maintTrendData[] = (float) ($maintMonthly[$m] ?? 0);
         }
 
         // 10. Comparative Absorption Analytics (Budget vs Actual per Category)
@@ -198,7 +213,7 @@ class DashboardController extends Controller
             'motor_pengganti' => 'Unit Pengganti',
             'pajak_stnk' => 'Pajak STNK',
             'asuransi' => 'Asuransi (TLO)',
-            'overhead_admin' => 'Admin & Operasional'
+            'overhead_admin' => 'Admin & Operasional',
         ];
         $compareLabels = [];
         $compareBudgetData = [];
@@ -206,8 +221,8 @@ class DashboardController extends Controller
         $compareAbsorptionPercent = [];
 
         foreach ($comparisonCategories as $key => $label) {
-            $b = (float)($budgetByCategory[$key] ?? 0);
-            $e = (float)($expensesByCategory[$key] ?? 0);
+            $b = (float) ($budgetByCategory[$key] ?? 0);
+            $e = (float) ($expensesByCategory[$key] ?? 0);
             $compareLabels[] = $label;
             $compareBudgetData[] = $b;
             $compareExpenseData[] = $e;
@@ -216,18 +231,18 @@ class DashboardController extends Controller
 
         // 11. Request Status Breakdown
         $requestStatusCounts = [
-            'menunggu_review' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'menunggu_review')->count(),
-            'diproses' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'diproses')->count(),
-            'unit_dikirim' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'unit_dikirim')->count(),
-            'selesai' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'selesai')->count(),
-            'ditolak' => \App\Models\ClientRequest::when($activeVendorId, fn($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'ditolak')->count(),
+            'menunggu_review' => ClientRequest::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'menunggu_review')->count(),
+            'diproses' => ClientRequest::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'diproses')->count(),
+            'unit_dikirim' => ClientRequest::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'unit_dikirim')->count(),
+            'selesai' => ClientRequest::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'selesai')->count(),
+            'ditolak' => ClientRequest::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))->where('status', 'ditolak')->count(),
         ];
 
         // 12. Top 5 Costliest Maintenance Vehicles
         $topVehicleCosts = MaintenanceRecord::selectRaw('vehicle_id, SUM(cost) as total_spent, COUNT(id) as total_records')
             ->whereNotNull('vehicle_id')
-            ->when($activeVendorId, function($q) use ($activeVendorId) {
-                $q->whereHas('vehicle', fn($v) => $v->where('vendor_id', $activeVendorId));
+            ->when($activeVendorId, function ($q) use ($activeVendorId) {
+                $q->whereHas('vehicle', fn ($v) => $v->where('vendor_id', $activeVendorId));
             })
             ->groupBy('vehicle_id')
             ->orderByDesc('total_spent')
@@ -238,26 +253,56 @@ class DashboardController extends Controller
         $topVehicleLabels = [];
         $topVehicleData = [];
         foreach ($topVehicleCosts as $tvc) {
-            $topVehicleLabels[] = ($tvc->vehicle ? $tvc->vehicle->plate_number : 'ID #' . $tvc->vehicle_id) . ' (' . ($tvc->vehicle ? $tvc->vehicle->model_name : '') . ')';
-            $topVehicleData[] = (float)$tvc->total_spent;
+            $topVehicleLabels[] = ($tvc->vehicle ? $tvc->vehicle->plate_number : 'ID #'.$tvc->vehicle_id).' ('.($tvc->vehicle ? $tvc->vehicle->model_name : '').')';
+            $topVehicleData[] = (float) $tvc->total_spent;
         }
 
         // 13. Recent Client Requests
-        $clientRequestsQuery = \App\Models\ClientRequest::with(['vehicle', 'vendor', 'user']);
+        $clientRequestsQuery = ClientRequest::with(['vehicle', 'vendor', 'user']);
         if ($activeVendorId) {
             $clientRequestsQuery->where('vendor_id', $activeVendorId);
         }
         $recentClientRequests = $clientRequestsQuery->latest()->take(5)->get();
-        $pendingClientRequestsCount = \App\Models\ClientRequest::where('status', 'menunggu_review')->count();
+        $pendingClientRequestsCount = ClientRequest::where('status', 'menunggu_review')->count();
+
+        // 14. Expiring Insurance Policies & Contract Billing Summary
+        $expiringPolicies = InsurancePolicy::with(['vehicle', 'vendor'])
+            ->where('status', 'active')
+            ->where('end_date', '<=', Carbon::now()->addDays(60))
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('end_date', 'asc')
+            ->take(5)
+            ->get();
+
+        $contractBillingSummary = Vendor::withCount('vehicles')
+            ->when($activeVendorId, fn ($q) => $q->where('id', $activeVendorId))
+            ->get()
+            ->map(function ($v) {
+                $billed = Income::where('vendor_id', $v->id)->where('income_type', 'sewa')->sum('total_amount_with_ppn');
+                $paid = Income::where('vendor_id', $v->id)->where('income_type', 'sewa')->where('status', 'lunas')->sum('total_amount_with_ppn');
+
+                return [
+                    'vendor' => $v,
+                    'billed' => (float) $billed,
+                    'paid' => (float) $paid,
+                    'unpaid' => max(0, (float) $billed - (float) $paid),
+                ];
+            });
 
         return view('dashboard.index', compact(
             'totalVehicles',
             'crfCount',
             'supraCount',
             'activeCount',
+            'standbyCount',
             'maintenanceCount',
             'replacedCount',
+            'soldCount',
             'lostCount',
+            'assetTypeCounts',
+            'totalBookValue',
+            'expiringPolicies',
+            'contractBillingSummary',
             'totalContractValue',
             'totalBudgetOperasional',
             'totalExpense',

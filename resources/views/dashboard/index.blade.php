@@ -57,6 +57,9 @@
                         <a href="{{ route('exports.vehiclesExcel') }}" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold hover:bg-slate-50 transition text-slate-900">
                             <i data-lucide="table" class="w-4 h-4 text-[#015471]"></i> Ekspor Data Armada (Excel)
                         </a>
+                        <a href="{{ route('exports.persewaanExcel') }}" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold hover:bg-slate-50 transition text-emerald-700">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> Format qryPersewaan (.xlsx)
+                        </a>
                         <div class="border-t border-slate-100 my-1"></div>
                         <button onclick="window.print()" class="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold hover:bg-slate-50 transition text-slate-700 text-left">
                             <i data-lucide="printer" class="w-4 h-4 text-slate-500"></i> Cetak Tampilan Halaman
@@ -79,36 +82,39 @@
         <!-- Card 1: Total Armada -->
         <div class="bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm hover:border-[#015471]/40 transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#015471] uppercase tracking-wider">Total Armada Motor</span>
+                <span class="text-xs font-bold text-[#015471] uppercase tracking-wider">Total Aset & Armada</span>
                 <div class="w-9 h-9 rounded-xl bg-[#e6f0f3] text-[#015471] flex items-center justify-center">
-                    <i data-lucide="bike" class="w-5 h-5"></i>
+                    <i data-lucide="car" class="w-5 h-5"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-black font-mono">{{ $totalVehicles }}</span>
                 <span class="text-xs font-semibold text-slate-500">Unit</span>
             </div>
-            <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-black">
-                <span class="font-medium">{{ $crfCount }} Honda CRF 150</span>
-                <span class="font-bold text-[#015471]">{{ $supraCount }} Supra X 125</span>
+            <div class="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-[11px] text-black">
+                <span>Mobil: <strong>{{ $assetTypeCounts['mobil'] ?? 0 }}</strong></span>
+                <span>Motor: <strong>{{ $assetTypeCounts['motor'] ?? 0 }}</strong></span>
+                <span>Fotocopy: <strong>{{ $assetTypeCounts['fotocopy'] ?? 0 }}</strong></span>
+                <span>Dispenser: <strong>{{ $assetTypeCounts['dispenser'] ?? 0 }}</strong></span>
             </div>
         </div>
 
         <!-- Card 2: Status Operasional -->
         <div class="bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm hover:border-[#015471]/40 transition">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#015471] uppercase tracking-wider">Kondisi Operasional</span>
+                <span class="text-xs font-bold text-[#015471] uppercase tracking-wider">Status Operasional Unit</span>
                 <div class="w-9 h-9 rounded-xl bg-[#FF7A3D]/10 text-[#FF7A3D] flex items-center justify-center">
                     <i data-lucide="check-circle" class="w-5 h-5"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-[#FF7A3D] font-mono">{{ $activeCount }}</span>
-                <span class="text-xs font-semibold text-slate-500">Unit Normal</span>
+                <span class="text-xs font-semibold text-slate-500">Aktif Disewa</span>
             </div>
-            <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div class="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-[11px]">
+                <span class="text-sky-700 font-bold">{{ $standbyCount ?? 0 }} Standby</span>
                 <span class="text-amber-700 font-bold">{{ $maintenanceCount }} Servis</span>
-                <span class="text-[#015471] font-bold">{{ $replacedCount }} Pengganti</span>
+                <span class="text-slate-700 font-bold">{{ $soldCount ?? 0 }} Dijual</span>
                 <span class="text-rose-700 font-bold">{{ $lostCount }} Hilang</span>
             </div>
         </div>
@@ -144,6 +150,70 @@
             <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
                 <span>Lunas: <strong class="text-[#015471] font-mono">Rp {{ number_format($totalIncomePaid, 0, ',', '.') }}</strong></span>
                 <span>Tagihan: <strong class="text-[#FF7A3D] font-mono">Rp {{ number_format($totalIncomePending, 0, ',', '.') }}</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monitoring Penagihan per Kontrak & Nilai Buku Aset + Polis Asuransi -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h3 class="font-bold text-black text-sm">Monitoring Penagihan & Status Pembayaran per Kontrak</h3>
+                    <p class="text-[11px] text-slate-500">Ringkasan total yang sudah ditagih, terbayar (lunas), dan sisa piutang per kontrak sewa</p>
+                </div>
+                <span class="text-[11px] font-bold text-[#015471] bg-[#015471]/10 px-2.5 py-1 rounded-lg">
+                    Nilai Buku Aset: Rp {{ number_format($totalBookValue ?? 0, 0, ',', '.') }}
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-2.5">No. Kontrak / Klien</th>
+                            <th class="px-3 py-2.5">Termin</th>
+                            <th class="px-3 py-2.5 text-right">Total Ditagih</th>
+                            <th class="px-3 py-2.5 text-right">Sudah Dibayar</th>
+                            <th class="px-3 py-2.5 text-right">Sisa Piutang</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($contractBillingSummary ?? [] as $row)
+                            <tr>
+                                <td class="px-3 py-2.5">
+                                    <div class="font-bold text-slate-900">{{ $row['vendor']->contract_number ?: $row['vendor']->code }}</div>
+                                    <div class="text-[10px] text-slate-500">{{ $row['vendor']->name }} ({{ $row['vendor']->vehicles_count }} unit)</div>
+                                </td>
+                                <td class="px-3 py-2.5 font-semibold text-[#015471]">{{ $row['vendor']->billing_cycle_label }}</td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold">Rp {{ number_format($row['billed'], 0, ',', '.') }}</td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold text-emerald-700">Rp {{ number_format($row['paid'], 0, ',', '.') }}</td>
+                                <td class="px-3 py-2.5 text-right font-mono font-bold {{ $row['unpaid'] > 0 ? 'text-[#FF7A3D]' : 'text-slate-400' }}">Rp {{ number_format($row['unpaid'], 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="lg:col-span-4 bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-black text-sm">Polis Asuransi Jatuh Tempo</h3>
+                <a href="{{ route('insurance.index', ['tab' => 'policies']) }}" class="text-[11px] font-bold text-[#015471] hover:underline">Kelola Polis</a>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                @forelse($expiringPolicies ?? [] as $pol)
+                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-slate-900 font-mono">{{ $pol->policy_number }}</div>
+                            <div class="text-[11px] text-slate-600">{{ $pol->insurance_company }} &bull; {{ $pol->vehicle?->plate_number ?: 'Fleet' }}</div>
+                        </div>
+                        <span class="text-[11px] font-bold text-rose-700 font-mono">{{ $pol->end_date->format('d/m/Y') }}</span>
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                        Tidak ada polis asuransi yang jatuh tempo dalam 60 hari ke depan.
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>

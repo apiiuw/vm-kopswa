@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\InsuranceClaim;
+use App\Models\InsurancePolicy;
 use App\Models\Vehicle;
+use App\Models\Vendor;
+use Illuminate\Http\Request;
 
 class InsuranceController extends Controller
 {
@@ -14,7 +16,7 @@ class InsuranceController extends Controller
         $activeVendorId = session('active_vendor_id');
 
         if ($activeVendorId) {
-            $query->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $query->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -30,7 +32,7 @@ class InsuranceController extends Controller
 
         $statsQuery = InsuranceClaim::query();
         if ($activeVendorId) {
-            $statsQuery->whereHas('vehicle', function($q) use ($activeVendorId) {
+            $statsQuery->whereHas('vehicle', function ($q) use ($activeVendorId) {
                 $q->where('vendor_id', $activeVendorId);
             });
         }
@@ -42,7 +44,23 @@ class InsuranceController extends Controller
             'pending_count' => (clone $statsQuery)->whereIn('status', ['draft', 'diajukan', 'diverifikasi'])->count(),
         ];
 
-        return view('insurance.index', compact('claims', 'vehicles', 'stats', 'perPage'));
+        $policyQuery = InsurancePolicy::with(['vehicle', 'vendor'])->orderBy('end_date', 'asc');
+        if ($activeVendorId) {
+            $policyQuery->where('vendor_id', $activeVendorId);
+        }
+        $policies = $policyQuery->get();
+
+        $policyStats = [
+            'total' => $policies->count(),
+            'active' => $policies->where('status', 'active')->count(),
+            'expiring_soon' => $policies->where('status', 'active')->filter(fn ($p) => $p->end_date && $p->end_date->lte(now()->addDays(45)))->count(),
+            'total_premium' => $policies->sum('premium_amount'),
+        ];
+
+        $vendors = Vendor::orderBy('name')->get();
+        $tab = $request->get('tab', 'policies');
+
+        return view('insurance.index', compact('claims', 'vehicles', 'stats', 'perPage', 'policies', 'policyStats', 'vendors', 'tab'));
     }
 
     public function create()
@@ -53,6 +71,7 @@ class InsuranceController extends Controller
             $vehicleQuery->where('vendor_id', $activeVendorId);
         }
         $vehicles = $vehicleQuery->get();
+
         return view('insurance.create', compact('vehicles'));
     }
 
@@ -108,6 +127,7 @@ class InsuranceController extends Controller
     public function destroy(InsuranceClaim $insurance)
     {
         $insurance->delete();
+
         return redirect()->route('insurance.index')->with('success', 'Data klaim berhasil dihapus!');
     }
 }

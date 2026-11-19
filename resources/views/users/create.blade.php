@@ -97,17 +97,17 @@
                     <!-- Dropdown Pilihan Klien (Muncul jika kategori Klien dipilih) -->
                     <div id="vendor_select_wrapper" class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-2 transition-all duration-300 {{ old('category', $defaultCategory ?? 'internal') === 'klien' ? '' : 'hidden' }}">
                         <label class="block font-bold text-slate-800 text-xs">
-                            Hubungkan ke Instansi / Perusahaan Klien (Vendor Project) <span class="text-[#FF7A3D]">*</span>
+                            Hubungkan ke Perusahaan Klien (Master Klien) <span class="text-[#FF7A3D]">*</span>
                         </label>
-                        <select name="vendor_id" id="vendor_id" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#FF7A3D] bg-white text-slate-900 cursor-pointer">
-                            <option value="">-- Pilih Perusahaan / Proyek Klien --</option>
-                            @foreach($vendors as $v)
-                                <option value="{{ $v->id }}" {{ old('vendor_id') == $v->id ? 'selected' : '' }}>
-                                    {{ $v->name }} {{ $v->client_name ? '— ' . $v->client_name : '' }} (Kode: {{ $v->code }})
+                        <select name="client_id" id="client_id" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#FF7A3D] bg-white text-slate-900 cursor-pointer">
+                            <option value="">-- Pilih Perusahaan Klien --</option>
+                            @foreach($clients ?? [] as $cl)
+                                <option value="{{ $cl->id }}" {{ old('client_id') == $cl->id ? 'selected' : '' }}>
+                                    {{ $cl->name }} (Kode: {{ $cl->code }})
                                 </option>
                             @endforeach
                         </select>
-                        <p class="text-[11px] text-slate-500">Akun klien hanya dapat melihat armada dan mengajukan tiket untuk unit yang terikat kontrak proyek ini.</p>
+                        <p class="text-[11px] text-slate-500">Akun klien otomatis dapat mengakses seluruh kontrak & unit milik perusahaan klien ini.</p>
                     </div>
                 </div>
 
@@ -234,7 +234,7 @@
     function toggleCategoryVendor() {
         const isClient = document.getElementById('category_klien').checked;
         const vendorSelectWrapper = document.getElementById('vendor_select_wrapper');
-        const vendorSelect = document.getElementById('vendor_id');
+        const vendorSelect = document.getElementById('client_id');
 
         if (isClient) {
             vendorSelectWrapper.classList.remove('hidden');

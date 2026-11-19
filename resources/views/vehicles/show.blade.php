@@ -16,6 +16,9 @@
 
         <!-- Action CTA Toolbar di Pojok Kanan Atas -->
         <div class="flex flex-wrap items-center gap-2.5">
+            <a href="{{ route('bast.index', ['vehicle_id' => $vehicle->id]) }}" class="inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl border border-[#015471]/30 text-[#015471] bg-[#015471]/5 hover:bg-[#015471]/10 transition shadow-2xs">
+                <i data-lucide="file-signature" class="w-4 h-4 text-[#015471]"></i> Terbitkan BAST
+            </a>
             <a href="{{ route('exports.vehicleCardPdf', $vehicle) }}" class="inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl border border-slate-300 text-slate-800 bg-white hover:bg-slate-50 transition shadow-2xs">
                 <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i> Kartu Riwayat PDF
             </a>
@@ -164,6 +167,30 @@
                 <span class="font-black text-[#FF7A3D] text-xs block mt-1">
                     Rp {{ number_format($totalMaintenanceCost, 0, ',', '.') }}
                 </span>
+            </div>
+        </div>
+
+        <!-- Valuasi Perolehan, Penyusutan & Sisa Nilai Buku -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 pt-4 border-t border-slate-100 text-xs">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-slate-500 block text-[10px] font-bold uppercase">Nilai Faktur</span>
+                <span class="font-bold font-mono text-slate-900 block mt-1">Rp {{ number_format($vehicle->invoice_value, 0, ',', '.') }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-slate-500 block text-[10px] font-bold uppercase">Nilai Perolehan</span>
+                <span class="font-bold font-mono text-slate-900 block mt-1">Rp {{ number_format($vehicle->acquisition_value, 0, ',', '.') }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-slate-500 block text-[10px] font-bold uppercase">Penyusutan / Bln</span>
+                <span class="font-bold font-mono text-amber-700 block mt-1">Rp {{ number_format($vehicle->monthly_depreciation, 0, ',', '.') }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-slate-500 block text-[10px] font-bold uppercase">Akum. Penyusutan</span>
+                <span class="font-bold font-mono text-rose-700 block mt-1">Rp {{ number_format($vehicle->accumulated_depreciation, 0, ',', '.') }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-[#015471]/5 border border-[#015471]/20">
+                <span class="text-[#015471] block text-[10px] font-black uppercase">Sisa Nilai Buku</span>
+                <span class="font-black font-mono text-[#015471] block mt-1">Rp {{ number_format($vehicle->book_value, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>

@@ -13,17 +13,20 @@
                 <span class="w-9 h-9 rounded-2xl bg-[#015471] text-white flex items-center justify-center shadow-xs">
                     <i data-lucide="truck" class="w-5 h-5 text-[#FF7A3D]"></i>
                 </span>
-                Armada Kendaraan Operasional
+                Armada & Aset Operasional
             </h2>
             <p class="text-xs text-slate-500 mt-1">
                 @if($currentVendor)
-                    Vendor: <strong class="text-[#015471]">{{ $currentVendor->name }}</strong> ({{ $vehicles->total() }} Unit Terdaftar)
+                    Kontrak: <strong class="text-[#015471]">{{ $currentVendor->name }}</strong> ({{ $vehicles->total() }} Unit Terdaftar)
                 @else
-                    Seluruh Armada Terdaftar dari Multi Vendor ({{ $vehicles->total() }} Unit)
+                    Seluruh Aset Terdaftar — Mobil: {{ $stats['mobil'] ?? 0 }}, Motor: {{ $stats['motor'] ?? 0 }}, Fotocopy: {{ $stats['fotocopy'] ?? 0 }}, Dispenser: {{ $stats['dispenser'] ?? 0 }}
                 @endif
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <button type="button" onclick="document.getElementById('importExcelModal').classList.remove('hidden')" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition">
+                <i data-lucide="upload" class="w-4 h-4"></i> Import Excel
+            </button>
             <a href="{{ route('exports.vehiclesPdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
                 <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i> Ekspor PDF
             </a>
@@ -31,7 +34,7 @@
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel
             </a>
             <a href="{{ route('vehicles.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition active:scale-95">
-                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Motor
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Unit/Aset
             </a>
         </div>
     </div>
@@ -127,12 +130,13 @@
             </div>
 
             <div>
-                <label class="block text-[11px] font-bold text-black mb-1">Kategori</label>
-                <select name="category" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-[#015471] text-black">
-                    <option value="">Semua Kategori</option>
-                    <option value="Roda 2 (Motor)" {{ request('category') == 'Roda 2 (Motor)' ? 'selected' : '' }}>Roda 2 (Motor)</option>
-                    <option value="Roda 4 (Mobil/Truk)" {{ request('category') == 'Roda 4 (Mobil/Truk)' ? 'selected' : '' }}>Roda 4 (Mobil/Truk)</option>
-                    <option value="Alat Berat" {{ request('category') == 'Alat Berat' ? 'selected' : '' }}>Alat Berat</option>
+                <label class="block text-[11px] font-bold text-black mb-1">Jenis Aset</label>
+                <select name="asset_type" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-[#015471] text-black">
+                    <option value="">Semua Jenis</option>
+                    <option value="mobil" {{ request('asset_type') == 'mobil' ? 'selected' : '' }}>Mobil</option>
+                    <option value="motor" {{ request('asset_type') == 'motor' ? 'selected' : '' }}>Motor</option>
+                    <option value="fotocopy" {{ request('asset_type') == 'fotocopy' ? 'selected' : '' }}>Mesin Fotocopy</option>
+                    <option value="dispenser" {{ request('asset_type') == 'dispenser' ? 'selected' : '' }}>Dispenser</option>
                 </select>
             </div>
 
@@ -150,9 +154,11 @@
                 <label class="block text-[11px] font-bold text-black mb-1">Status Unit</label>
                 <select name="status" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-[#015471] text-black">
                     <option value="">Semua Status</option>
-                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif Beroperasi</option>
+                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif Disewa</option>
+                    <option value="standby" {{ request('status') == 'standby' ? 'selected' : '' }}>Aktif Standby</option>
                     <option value="maintenance" {{ request('status') == 'maintenance' ? 'selected' : '' }}>Dalam Servis</option>
                     <option value="replaced" {{ request('status') == 'replaced' ? 'selected' : '' }}>Unit Pengganti Aktif</option>
+                    <option value="sold" {{ request('status') == 'sold' ? 'selected' : '' }}>Dijual / Terjual</option>
                     <option value="lost" {{ request('status') == 'lost' ? 'selected' : '' }}>Hilang / Polis</option>
                 </select>
             </div>
@@ -221,11 +227,11 @@
                 <thead class="bg-gradient-to-r from-[#e6f0f3] to-[#f4f8fa] border-b border-slate-200 text-[#015471] font-black uppercase tracking-wider text-[10px]">
                     <tr>
                         <th class="px-5 py-3.5 w-12 text-center">No</th>
-                        <th class="px-5 py-3.5">Plat Nomor</th>
-                        <th class="px-5 py-3.5">Kategori & Merk</th>
+                        <th class="px-5 py-3.5">Plat / Kode Aset</th>
+                        <th class="px-5 py-3.5">Jenis & Merk</th>
                         <th class="px-5 py-3.5">Model & Tipe</th>
-                        <th class="px-5 py-3.5">Pengguna Motor</th>
-                        <th class="px-5 py-3.5">Klien & Penempatan</th>
+                        <th class="px-5 py-3.5">Pengguna / PIC</th>
+                        <th class="px-5 py-3.5">Kontrak & Penempatan</th>
                         <th class="px-5 py-3.5">KM Terakhir Servis</th>
                         <th class="px-5 py-3.5">Jatuh Tempo Pajak</th>
                         <th class="px-5 py-3.5">Tarif Sewa</th>
@@ -252,8 +258,9 @@
                                 @endif
                             </td>
                             <td class="px-5 py-4">
-                                <span class="font-bold text-slate-900 block">{{ $v->brand ?: 'Honda' }}</span>
-                                <span class="text-[10px] text-slate-500">{{ $v->category ?: 'Roda 2 (Motor)' }}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#015471]/10 text-[#015471] inline-block mb-1">{{ $v->asset_type_label }}</span>
+                                <span class="font-bold text-slate-900 block">{{ $v->brand ?: '-' }}</span>
+                                <span class="text-[10px] text-slate-500">{{ $v->serial_number ? 'S/N: '.$v->serial_number : ($v->category ?: '-') }}</span>
                             </td>
                             <td class="px-5 py-4">
                                 <span class="font-black text-black block">{{ $v->model_name }}</span>
@@ -379,5 +386,41 @@
         @endif
     </div>
 
+</div>
+
+<!-- Modal Import Excel Massal -->
+<div id="importExcelModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900 text-sm">Import Massal Unit Aset (Excel)</h3>
+            <button type="button" onclick="document.getElementById('importExcelModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <form action="{{ route('vehicles.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+            @csrf
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                <strong class="text-slate-800 block">Format Kolom Excel/CSV (Baris 1 = Header):</strong>
+                <p class="font-mono">Plat/Kode Aset | Jenis (mobil/motor/fotocopy/dispenser) | Merk | Model | Tahun | Tarif Sewa/Bln | Nilai Perolehan | Status (active/standby/sold)</p>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Kontrak Sewa Tujuan</label>
+                <select name="vendor_id" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900">
+                    <option value="">-- Sesuai Filter Kontrak Aktif --</option>
+                    @foreach($vendors as $v)
+                        <option value="{{ $v->id }}" {{ $activeVendorId == $v->id ? 'selected' : '' }}>{{ $v->contract_number ?: $v->code }} — {{ $v->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">File Excel (.xlsx / .xls / .csv) *</label>
+                <input type="file" name="excel_file" accept=".xlsx,.xls,.csv" required class="w-full text-xs text-slate-700">
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="document.getElementById('importExcelModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-200 font-bold text-slate-700">Batal</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">Mulai Import</button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

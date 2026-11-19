@@ -18,6 +18,12 @@
             <p class="text-xs text-slate-500 mt-1">Pemantauan riwayat servis berkala, ganti ban, aki, dan suku cadang armada operasional</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <a href="{{ route('exports.maintenancePdf') }}" class="inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
+                <i data-lucide="file-text" class="w-4 h-4 text-[#FF7A3D]"></i> Ekspor PDF
+            </a>
+            <a href="{{ route('exports.maintenanceExcel') }}" class="inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-2xs transition">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#015471]"></i> Ekspor Excel
+            </a>
             <a href="{{ route('maintenance.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-[#FF7A3D] hover:bg-[#e56b32] text-white shadow-sm transition active:scale-95">
                 <i data-lucide="plus" class="w-4 h-4"></i> Catat Pemeliharaan / Servis
             </a>

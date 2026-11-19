@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class AuthController extends Controller
     {
         $perPage = in_array((int) $request->get('per_page', 10), [10, 15, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
 
-        $query = User::with('vendor')->orderBy('id', 'asc');
+        $query = User::with(['vendor', 'client'])->orderBy('id', 'asc');
 
         if ($request->filled('category')) {
             $query->where('category', $request->get('category'));
@@ -61,6 +62,7 @@ class AuthController extends Controller
 
         $users = $query->paginate($perPage)->withQueryString();
         $vendors = Vendor::orderBy('name')->get();
+        $clients = Client::orderBy('name')->get();
 
         $stats = [
             'total' => User::count(),
@@ -68,15 +70,16 @@ class AuthController extends Controller
             'klien' => User::where('category', 'klien')->count(),
         ];
 
-        return view('users.index', compact('users', 'vendors', 'perPage', 'stats'));
+        return view('users.index', compact('users', 'vendors', 'clients', 'perPage', 'stats'));
     }
 
     public function createUser(Request $request)
     {
         $vendors = Vendor::orderBy('name')->get();
+        $clients = Client::orderBy('name')->get();
         $defaultCategory = $request->get('category', 'internal');
 
-        return view('users.create', compact('vendors', 'defaultCategory'));
+        return view('users.create', compact('vendors', 'clients', 'defaultCategory'));
     }
 
     public function storeUser(Request $request)
@@ -86,15 +89,28 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'category' => 'required|in:internal,klien',
-            'vendor_id' => 'nullable|required_if:category,klien|exists:vendors,id',
+            'client_id' => 'nullable|exists:clients,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
         ]);
+
+        if ($validated['category'] === 'klien' && empty($validated['client_id']) && empty($validated['vendor_id'])) {
+            return back()->withInput()->withErrors(['client_id' => 'Silakan pilih Perusahaan Klien untuk akun portal klien.']);
+        }
+
+        $clientId = null;
+        $vendorId = null;
+        if ($validated['category'] === 'klien') {
+            $clientId = $validated['client_id'] ?: Vendor::where('id', $validated['vendor_id'])->value('client_id');
+            $vendorId = $validated['vendor_id'] ?: Vendor::where('client_id', $clientId)->value('id');
+        }
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'category' => $validated['category'],
-            'vendor_id' => $validated['category'] === 'klien' ? $validated['vendor_id'] : null,
+            'vendor_id' => $vendorId,
+            'client_id' => $clientId,
         ]);
 
         return redirect()->route('users.index')->with('success', 'Akun pengguna ('.($validated['category'] === 'klien' ? 'Klien' : 'Internal Koperasi Swadharma').') berhasil ditambahkan!');

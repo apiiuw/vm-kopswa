@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Budget;
+use App\Models\Client;
 use App\Models\ClientRequest;
 use App\Models\Expense;
 use App\Models\Income;
+use App\Models\InsurancePolicy;
+use App\Models\MaintenanceRecord;
 use App\Models\Vehicle;
+use App\Models\VehicleDocument;
 use App\Models\Vendor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -576,5 +583,379 @@ class ExportController extends Controller
         }
 
         return $pdf->stream($fileName);
+    }
+
+    public function exportClientsExcel(): StreamedResponse
+    {
+        [$headers, $rows] = $this->buildClientsExportData();
+
+        return $this->streamExcel('Master_Klien_Kopswa_'.date('Ymd').'.xlsx', [
+            ['title' => 'Master Data Klien', 'headers' => $headers, 'rows' => $rows],
+        ]);
+    }
+
+    public function exportClientsPdf()
+    {
+        [$headers, $rows, $summary] = $this->buildClientsExportData();
+
+        return $this->streamPdfRekap('Rekap Master Data Klien', 'Data Perusahaan Mitra & NPWP Coretax', $headers, $rows, $summary, 'Rekap_Master_Klien_'.date('Ymd').'.pdf');
+    }
+
+    public function exportVendorsExcel(): StreamedResponse
+    {
+        [$headers, $rows] = $this->buildVendorsExportData();
+
+        return $this->streamExcel('Data_Kontrak_Sewa_Kopswa_'.date('Ymd').'.xlsx', [
+            ['title' => 'Kontrak Sewa', 'headers' => $headers, 'rows' => $rows],
+        ]);
+    }
+
+    public function exportVendorsPdf()
+    {
+        [$headers, $rows, $summary] = $this->buildVendorsExportData();
+
+        return $this->streamPdfRekap('Rekap Data Kontrak Sewa', 'Daftar Kontrak, Nilai Sewa, Siklus & Metode Pembayaran', $headers, $rows, $summary, 'Rekap_Kontrak_Sewa_'.date('Ymd').'.pdf');
+    }
+
+    public function exportMaintenanceExcel(): StreamedResponse
+    {
+        [$headers, $rows] = $this->buildMaintenanceExportData();
+
+        return $this->streamExcel('Riwayat_Pemeliharaan_Kopswa_'.date('Ymd').'.xlsx', [
+            ['title' => 'Pemeliharaan & Servis', 'headers' => $headers, 'rows' => $rows],
+        ]);
+    }
+
+    public function exportMaintenancePdf()
+    {
+        [$headers, $rows, $summary] = $this->buildMaintenanceExportData();
+
+        return $this->streamPdfRekap('Rekap Pemeliharaan & Servis Unit', $this->activeVendorSubtitle(), $headers, $rows, $summary, 'Rekap_Pemeliharaan_'.date('Ymd').'.pdf');
+    }
+
+    public function exportDocumentsExcel(): StreamedResponse
+    {
+        [$headers, $rows] = $this->buildDocumentsExportData();
+
+        return $this->streamExcel('Dokumen_Pajak_STNK_Kopswa_'.date('Ymd').'.xlsx', [
+            ['title' => 'Dokumen & Pajak', 'headers' => $headers, 'rows' => $rows],
+        ]);
+    }
+
+    public function exportDocumentsPdf()
+    {
+        [$headers, $rows, $summary] = $this->buildDocumentsExportData();
+
+        return $this->streamPdfRekap('Rekap Dokumen & Pajak Kendaraan', $this->activeVendorSubtitle(), $headers, $rows, $summary, 'Rekap_Dokumen_Pajak_'.date('Ymd').'.pdf');
+    }
+
+    public function exportInsuranceExcel(): StreamedResponse
+    {
+        [$policyHeaders, $policyRows, $summary, $claimHeaders, $claimRows] = $this->buildInsuranceExportData();
+
+        return $this->streamExcel('Asuransi_Klaim_Kopswa_'.date('Ymd').'.xlsx', [
+            ['title' => 'Polis Asuransi', 'headers' => $policyHeaders, 'rows' => $policyRows],
+            ['title' => 'Klaim & Insiden', 'headers' => $claimHeaders, 'rows' => $claimRows],
+        ]);
+    }
+
+    public function exportInsurancePdf(Request $request)
+    {
+        [$policyHeaders, $policyRows, $summary, $claimHeaders, $claimRows] = $this->buildInsuranceExportData();
+        $tab = $request->get('tab', 'policies');
+
+        if ($tab === 'claims') {
+            return $this->streamPdfRekap('Rekap Klaim & Insiden Asuransi', $this->activeVendorSubtitle(), $claimHeaders, $claimRows, $summary, 'Rekap_Klaim_Asuransi_'.date('Ymd').'.pdf');
+        }
+
+        return $this->streamPdfRekap('Rekap Data Polis Asuransi Unit', $this->activeVendorSubtitle(), $policyHeaders, $policyRows, $summary, 'Rekap_Polis_Asuransi_'.date('Ymd').'.pdf');
+    }
+
+    // Export 2-Sheet Excel matching qryPersewaan.xlsx (Data Kontrak + Data Kdr Kontrak)
+    public function exportPersewaanExcel(): StreamedResponse
+    {
+        $activeVendorId = session('active_vendor_id');
+
+        $vendors = Vendor::with('client')
+            ->withCount('vehicles')
+            ->when($activeVendorId, fn ($q) => $q->where('id', $activeVendorId))
+            ->orderBy('id')
+            ->get();
+
+        $vehicles = Vehicle::with(['vendor.client'])
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('vendor_id')
+            ->orderBy('id')
+            ->get();
+
+        $kontrakHeaders = [
+            'NoKontrak', 'TglKontrak', 'PrdAwal', 'PrdAkhir', 'JangkaWaktu', 'CaraBayar',
+            'NilaiKontrakTotal', 'NilaiKontrakUtama', 'NilaiBulananUtama',
+            'NilaiKontrakTambahan', 'NilaiBulananTambahan', 'Penyewa', 'Alamat', 'TelpPenyewa', 'JumlahKdr',
+        ];
+
+        $kontrakRows = $vendors->map(function ($v) {
+            $caraBayar = match ($v->billing_cycle) {
+                'triwulanan' => '3 Bulan',
+                'semesteran' => '6 Bulan',
+                'tahunan' => '12 Bulan',
+                '2_tahunan' => '24 Bulan',
+                default => '1 Bulan',
+            };
+
+            return [
+                $v->contract_number ?: $v->code,
+                $v->contract_date?->format('d/m/Y') ?: '',
+                $v->contract_start_date?->format('d/m/Y') ?: '',
+                $v->contract_end_date?->format('d/m/Y') ?: '',
+                $v->duration_months ?: '',
+                $caraBayar,
+                (float) $v->contract_value,
+                (float) $v->main_contract_value,
+                (float) $v->main_monthly_value,
+                (float) $v->additional_contract_value,
+                (float) $v->additional_monthly_value,
+                $v->client?->name ?: $v->name,
+                $v->client?->address ?: '-',
+                $v->phone ?: ($v->client?->phone ?: '-'),
+                $v->vehicles_count,
+            ];
+        })->all();
+
+        $kdrHeaders = [
+            'NoKontrak', 'Pengguna', 'Jenis', 'Merk', 'Tipe', 'Item', 'Nopol',
+            'NilaiKontrak', 'NilaiKontrakBulanan', 'NilaiTambahan', 'NilaiTambahanBulanan',
+            'NoMesin', 'NoRangka', 'HargaBeli', 'Perolehan', 'PPnPM', 'Residu', 'PrdSusut',
+        ];
+
+        $kdrRows = $vehicles->map(function ($veh) {
+            return [
+                $veh->vendor?->contract_number ?: '-',
+                $veh->user_holder ?: ($veh->vendor?->client?->name ?: ($veh->vendor?->name ?: '-')),
+                ucfirst($veh->asset_type ?: 'Motor'),
+                $veh->brand ?: '-',
+                $veh->model_name ?: '-',
+                $veh->type_name ?: '-',
+                $veh->plate_number ?: '-',
+                (float) $veh->total_contract_value,
+                (float) $veh->rental_price_per_month,
+                (float) $veh->additional_contract_value,
+                (float) $veh->additional_monthly_value,
+                $veh->engine_number ?: '-',
+                $veh->frame_number ?: '-',
+                (float) $veh->invoice_value,
+                (float) $veh->acquisition_value,
+                (float) $veh->ppn_pm,
+                (float) $veh->residual_percentage,
+                $veh->useful_life_months ?: 48,
+            ];
+        })->all();
+
+        return $this->streamExcel('qryPersewaan_'.date('Ymd').'.xlsx', [
+            ['title' => 'Data Kontrak', 'headers' => $kontrakHeaders, 'rows' => $kontrakRows],
+            ['title' => 'Data Kdr Kontrak', 'headers' => $kdrHeaders, 'rows' => $kdrRows],
+        ]);
+    }
+
+    private function buildClientsExportData(): array
+    {
+        $clients = Client::withCount('contracts')->orderBy('name')->get();
+        $headers = ['Kode Klien', 'Nama Perusahaan', 'NPWP', 'NITKU', 'PIC', 'No. Telepon', 'Email', 'Alamat', 'Jml Kontrak'];
+        $rows = $clients->map(fn ($c) => [
+            $c->code ?: '-',
+            $c->name,
+            $c->npwp ?: '-',
+            $c->nitku ?: '-',
+            $c->pic_name ?: '-',
+            $c->phone ?: '-',
+            $c->email ?: '-',
+            $c->address ?: '-',
+            $c->contracts_count,
+        ])->all();
+
+        $summary = 'Total Klien Terdaftar: <strong>'.$clients->count().'</strong> Perusahaan';
+
+        return [$headers, $rows, $summary];
+    }
+
+    private function buildVendorsExportData(): array
+    {
+        $vendors = Vendor::with('client')->withCount('vehicles')->orderBy('id')->get();
+        $headers = ['Kode', 'No. Kontrak', 'Klien', 'Tgl Kontrak', 'Periode Awal', 'Periode Akhir', 'Tenor (Bln)', 'Cara Bayar', 'Pembayaran', 'Nilai Utama', 'Bulanan Utama', 'Nilai Tambahan', 'Nilai Total', 'Unit', 'Status'];
+        $rows = $vendors->map(fn ($v) => [
+            $v->code,
+            $v->contract_number ?: '-',
+            $v->client?->name ?: $v->name,
+            $v->contract_date?->format('d/m/Y') ?: '-',
+            $v->contract_start_date?->format('d/m/Y') ?: '-',
+            $v->contract_end_date?->format('d/m/Y') ?: '-',
+            $v->duration_months ?: '-',
+            $v->billing_cycle_label,
+            $v->payment_method_label,
+            number_format((float) $v->main_contract_value, 0, ',', '.'),
+            number_format((float) $v->main_monthly_value, 0, ',', '.'),
+            number_format((float) $v->additional_contract_value, 0, ',', '.'),
+            number_format((float) $v->contract_value, 0, ',', '.'),
+            $v->vehicles_count,
+            strtoupper($v->status),
+        ])->all();
+
+        $totalNilai = $vendors->sum('contract_value');
+        $summary = 'Total Kontrak: <strong>'.$vendors->count().'</strong> &bull; Aktif: <strong>'.$vendors->where('status', 'active')->count().'</strong> &bull; Total Nilai Kontrak: <strong>Rp '.number_format((float) $totalNilai, 0, ',', '.').'</strong>';
+
+        return [$headers, $rows, $summary];
+    }
+
+    private function buildMaintenanceExportData(): array
+    {
+        $activeVendorId = session('active_vendor_id');
+        $records = MaintenanceRecord::with(['vehicle.vendor', 'vehicle.location'])
+            ->when($activeVendorId, fn ($q) => $q->whereHas('vehicle', fn ($vq) => $vq->where('vendor_id', $activeVendorId)))
+            ->orderByDesc('service_date')
+            ->get();
+
+        $headers = ['Tgl Servis', 'Plat / Kode', 'Model Aset', 'Kontrak', 'Bengkel / Vendor', 'Odometer (KM)', 'Jenis Pekerjaan', 'Rincian / Catatan', 'Biaya (Rp)', 'Status'];
+        $rows = $records->map(fn ($m) => [
+            $m->service_date?->format('d/m/Y') ?: '-',
+            $m->vehicle?->plate_number ?: '-',
+            $m->vehicle?->model_name ?: '-',
+            $m->vehicle?->vendor?->contract_number ?: ($m->vehicle?->vendor?->name ?: '-'),
+            $m->workshop_name ?: '-',
+            $m->odometer_km ? number_format($m->odometer_km, 0, ',', '.') : '-',
+            $m->service_type ?: '-',
+            $m->description ?: ($m->notes ?: '-'),
+            number_format((float) $m->cost, 0, ',', '.'),
+            strtoupper($m->status ?: '-'),
+        ])->all();
+
+        $summary = 'Total Catatan Servis: <strong>'.$records->count().'</strong> &bull; Total Biaya: <strong>Rp '.number_format((float) $records->sum('cost'), 0, ',', '.').'</strong>';
+
+        return [$headers, $rows, $summary];
+    }
+
+    private function buildDocumentsExportData(): array
+    {
+        $activeVendorId = session('active_vendor_id');
+        $docs = VehicleDocument::with(['vehicle.vendor'])
+            ->when($activeVendorId, fn ($q) => $q->whereHas('vehicle', fn ($vq) => $vq->where('vendor_id', $activeVendorId)))
+            ->orderBy('expiry_date')
+            ->get();
+
+        $headers = ['Plat / Kode', 'Model Aset', 'Kontrak', 'Jenis Dokumen', 'Nomor Dokumen', 'Jatuh Tempo', 'Status', 'Catatan'];
+        $rows = $docs->map(fn ($d) => [
+            $d->vehicle?->plate_number ?: '-',
+            $d->vehicle?->model_name ?: '-',
+            $d->vehicle?->vendor?->contract_number ?: ($d->vehicle?->vendor?->name ?: '-'),
+            strtoupper(str_replace('_', ' ', $d->document_type)),
+            $d->document_number ?: '-',
+            $d->expiry_date?->format('d/m/Y') ?: '-',
+            strtoupper($d->status ?: '-'),
+            $d->notes ?: '-',
+        ])->all();
+
+        $summary = 'Total Dokumen Tercatat: <strong>'.$docs->count().'</strong>';
+
+        return [$headers, $rows, $summary];
+    }
+
+    private function buildInsuranceExportData(): array
+    {
+        $activeVendorId = session('active_vendor_id');
+        $policies = InsurancePolicy::with(['vehicle', 'vendor'])
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('end_date')
+            ->get();
+
+        $claims = ClientRequest::with(['vehicle', 'vendor'])
+            ->whereIn('request_type', ['kehilangan', 'kecelakaan', 'asuransi', 'klaim_asuransi'])
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->latest()
+            ->get();
+
+        $policyHeaders = ['No. Polis', 'Perusahaan Asuransi', 'Plat / Kode Unit', 'Kontrak', 'Pertanggungan', 'Mulai', 'Berakhir', 'Premi (Rp)', 'Nilai Pertanggungan (Rp)', 'Status'];
+        $policyRows = $policies->map(fn ($p) => [
+            $p->policy_number,
+            $p->insurance_company,
+            $p->vehicle?->plate_number ?: '-',
+            $p->vendor?->contract_number ?: ($p->vendor?->name ?: '-'),
+            strtoupper(str_replace('_', ' ', $p->coverage_type)),
+            $p->start_date?->format('d/m/Y') ?: '-',
+            $p->end_date?->format('d/m/Y') ?: '-',
+            number_format((float) $p->premium_amount, 0, ',', '.'),
+            number_format((float) $p->coverage_amount, 0, ',', '.'),
+            strtoupper($p->status ?: '-'),
+        ])->all();
+
+        $claimHeaders = ['Tgl Laporan', 'Plat / Kode Unit', 'Kontrak', 'Jenis Kasus', 'Status', 'Deskripsi'];
+        $claimRows = $claims->map(fn ($c) => [
+            $c->created_at?->format('d/m/Y') ?: '-',
+            $c->vehicle?->plate_number ?: '-',
+            $c->vendor?->contract_number ?: ($c->vendor?->name ?: '-'),
+            strtoupper(str_replace('_', ' ', $c->request_type)),
+            strtoupper($c->status ?: '-'),
+            $c->description ?: '-',
+        ])->all();
+
+        $summary = 'Total Polis: <strong>'.$policies->count().'</strong> &bull; Total Premi: <strong>Rp '.number_format((float) $policies->sum('premium_amount'), 0, ',', '.').'</strong> &bull; Total Klaim: <strong>'.$claims->count().'</strong>';
+
+        return [$policyHeaders, $policyRows, $summary, $claimHeaders, $claimRows];
+    }
+
+    private function activeVendorSubtitle(): string
+    {
+        $activeVendorId = session('active_vendor_id');
+        if (! $activeVendorId) {
+            return 'Seluruh Kontrak Aktif';
+        }
+        $v = Vendor::find($activeVendorId);
+
+        return $v ? 'Kontrak: '.($v->contract_number ?: $v->name) : 'Seluruh Kontrak Aktif';
+    }
+
+    private function streamPdfRekap(string $title, string $subtitle, array $headers, array $rows, string $summaryText, string $filename)
+    {
+        $pdf = Pdf::loadView('exports.pdf_table_rekap', compact('title', 'subtitle', 'headers', 'rows', 'summaryText'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download($filename);
+    }
+
+    private function streamExcel(string $filename, array $sheets): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet;
+
+        foreach ($sheets as $index => $sheetData) {
+            $sheet = $index === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $sheet->setTitle(substr($sheetData['title'], 0, 31));
+
+            $headers = $sheetData['headers'];
+            $rows = $sheetData['rows'];
+
+            foreach ($headers as $colIdx => $header) {
+                $colLetter = Coordinate::stringFromColumnIndex($colIdx + 1);
+                $sheet->setCellValue($colLetter.'1', $header);
+                $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+            }
+
+            $lastCol = Coordinate::stringFromColumnIndex(max(1, count($headers)));
+            $sheet->getStyle("A1:{$lastCol}1")->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+            $sheet->getStyle("A1:{$lastCol}1")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF015471');
+            $sheet->getStyle("A1:{$lastCol}1")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+            foreach ($rows as $rowIdx => $row) {
+                $excelRow = $rowIdx + 2;
+                foreach ($row as $colIdx => $val) {
+                    $colLetter = Coordinate::stringFromColumnIndex($colIdx + 1);
+                    $sheet->setCellValue($colLetter.$excelRow, $val);
+                }
+            }
+        }
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

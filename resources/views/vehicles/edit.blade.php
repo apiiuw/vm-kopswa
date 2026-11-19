@@ -75,6 +75,26 @@
                     </div>
 
                     <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Aset Sewa <span class="text-[#FF7A3D]">*</span></label>
+                                <select name="asset_type" class="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900">
+                                    <option value="motor" {{ old('asset_type', $vehicle->asset_type ?: 'motor') == 'motor' ? 'selected' : '' }}>Motor</option>
+                                    <option value="mobil" {{ old('asset_type', $vehicle->asset_type) == 'mobil' ? 'selected' : '' }}>Mobil</option>
+                                    <option value="fotocopy" {{ old('asset_type', $vehicle->asset_type) == 'fotocopy' ? 'selected' : '' }}>Mesin Fotocopy</option>
+                                    <option value="dispenser" {{ old('asset_type', $vehicle->asset_type) == 'dispenser' ? 'selected' : '' }}>Dispenser</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Kode Aset Internal</label>
+                                <input type="text" name="asset_code" value="{{ old('asset_code', $vehicle->asset_code) }}" class="w-full text-xs font-mono px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Serial Number</label>
+                                <input type="text" name="serial_number" value="{{ old('serial_number', $vehicle->serial_number) }}" class="w-full text-xs font-mono px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900">
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Plat Nomor -->
                             <div>
@@ -320,6 +340,94 @@
                             </div>
                         </div>
 
+                        <div class="pt-3 border-t border-slate-100 space-y-3">
+                            <span class="text-xs font-black text-[#015471] uppercase tracking-wider block">Status Penjualan & Valuasi Penyusutan Aset</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Status Unit</label>
+                                    <select name="status" class="w-full text-xs font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900">
+                                        <option value="active" {{ old('status', $vehicle->status) == 'active' ? 'selected' : '' }}>Aktif Disewa</option>
+                                        <option value="standby" {{ old('status', $vehicle->status) == 'standby' ? 'selected' : '' }}>Aktif Standby</option>
+                                        <option value="maintenance" {{ old('status', $vehicle->status) == 'maintenance' ? 'selected' : '' }}>Dalam Servis / Bengkel</option>
+                                        <option value="replaced" {{ old('status', $vehicle->status) == 'replaced' ? 'selected' : '' }}>Unit Pengganti Aktif</option>
+                                        <option value="sold" {{ old('status', $vehicle->status) == 'sold' ? 'selected' : '' }}>Dijual / Terjual</option>
+                                        <option value="lost" {{ old('status', $vehicle->status) == 'lost' ? 'selected' : '' }}>Hilang / Lapor Polisi</option>
+                                        <option value="claimed" {{ old('status', $vehicle->status) == 'claimed' ? 'selected' : '' }}>Klaim Selesai</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Dijual</label>
+                                    <input type="date" name="sold_date" value="{{ old('sold_date', $vehicle->sold_date?->format('Y-m-d')) }}" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Harga Jual (Rp)</label>
+                                    <input type="number" name="sold_price" value="{{ old('sold_price', $vehicle->sold_price) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Pembeli / Keterangan Jual</label>
+                                    <input type="text" name="sold_to" value="{{ old('sold_to', $vehicle->sold_to) }}" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Kontrak Unit (Rp)</label>
+                                    <input type="number" name="total_contract_value" value="{{ old('total_contract_value', $vehicle->total_contract_value) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Tambahan Total (Rp)</label>
+                                    <input type="number" name="additional_contract_value" value="{{ old('additional_contract_value', $vehicle->additional_contract_value) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Tambahan / Bln (Rp)</label>
+                                    <input type="number" name="additional_monthly_value" value="{{ old('additional_monthly_value', $vehicle->additional_monthly_value) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Harga Beli / Faktur (Rp)</label>
+                                    <input type="number" name="invoice_value" id="invoice_value_input" oninput="calculateLiveBookValue()" value="{{ old('invoice_value', $vehicle->invoice_value) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nilai Perolehan (Rp)</label>
+                                    <input type="number" name="acquisition_value" id="acquisition_value_input" oninput="calculateLiveBookValue()" value="{{ old('acquisition_value', $vehicle->acquisition_value) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">PPnPM (Rp)</label>
+                                    <input type="number" name="ppn_pm" value="{{ old('ppn_pm', $vehicle->ppn_pm) }}" min="0" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Tgl Perolehan</label>
+                                    <input type="date" name="acquisition_date" id="acquisition_date_input" onchange="calculateLiveBookValue()" value="{{ old('acquisition_date', $vehicle->acquisition_date?->format('Y-m-d')) }}" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Umur Manfaat (Bln)</label>
+                                    <input type="number" name="useful_life_months" id="useful_life_input" oninput="calculateLiveBookValue()" value="{{ old('useful_life_months', $vehicle->useful_life_months ?: 48) }}" min="1" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Residu (%)</label>
+                                    <input type="number" step="0.01" name="residual_percentage" id="residual_percentage_input" oninput="calculateLiveBookValue()" value="{{ old('residual_percentage', $vehicle->residual_percentage) }}" min="0" max="100" class="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-300 text-slate-900">
+                                </div>
+                            </div>
+
+                            <!-- Live Calculation: Penyusutan & Sisa Nilai Buku -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                                    <span class="text-[10px] font-bold text-amber-800 uppercase block">Penyusutan / Bulan</span>
+                                    <span id="liveMonthlyDep" class="text-sm font-black font-mono text-amber-900 block mt-0.5">Rp 0</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200">
+                                    <span class="text-[10px] font-bold text-rose-800 uppercase block">Akum. Penyusutan (<span id="liveElapsedMonths">0</span> bln)</span>
+                                    <span id="liveAccumDep" class="text-sm font-black font-mono text-rose-900 block mt-0.5">Rp 0</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-[#015471]/5 border border-[#015471]/25">
+                                    <span class="text-[10px] font-black text-[#015471] uppercase block">Sisa Nilai Buku (Otomatis)</span>
+                                    <span id="liveBookValue" class="text-sm font-black font-mono text-[#015471] block mt-0.5">Rp 0</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Motor Pengganti Dropdown -->
                         <div class="pt-3 border-t border-slate-100">
                             <div class="flex items-center justify-between mb-1.5">
@@ -556,6 +664,38 @@
         // Initial run
         filterLocationsByVendor();
     }
+
+    function calculateLiveBookValue() {
+        const inv = parseFloat(document.getElementById('invoice_value_input')?.value || 0);
+        const acqRaw = parseFloat(document.getElementById('acquisition_value_input')?.value || 0);
+        const acq = acqRaw > 0 ? acqRaw : inv;
+        const life = Math.max(1, parseInt(document.getElementById('useful_life_input')?.value || 48, 10));
+        const resPct = parseFloat(document.getElementById('residual_percentage_input')?.value || 0);
+        const acqDateStr = document.getElementById('acquisition_date_input')?.value || '';
+
+        const residualVal = acq * (resPct / 100);
+        const depreciable = Math.max(0, acq - residualVal);
+        const monthlyDep = Math.round(depreciable / life);
+
+        let elapsed = 0;
+        if (acqDateStr) {
+            const start = new Date(acqDateStr);
+            const now = new Date();
+            const monthsDiff = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+            elapsed = Math.max(0, Math.min(life, monthsDiff));
+        }
+
+        const accumDep = Math.min(depreciable, monthlyDep * elapsed);
+        const bookVal = Math.max(residualVal, acq - accumDep);
+        const fmt = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+
+        if (document.getElementById('liveMonthlyDep')) document.getElementById('liveMonthlyDep').textContent = fmt(monthlyDep);
+        if (document.getElementById('liveElapsedMonths')) document.getElementById('liveElapsedMonths').textContent = elapsed;
+        if (document.getElementById('liveAccumDep')) document.getElementById('liveAccumDep').textContent = fmt(accumDep);
+        if (document.getElementById('liveBookValue')) document.getElementById('liveBookValue').textContent = fmt(bookVal);
+    }
+
+    document.addEventListener('DOMContentLoaded', calculateLiveBookValue);
 
     function openAddLocationModal() {
         const vId = vendorSelect.value;

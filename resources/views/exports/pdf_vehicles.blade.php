@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Daftar 76 Unit Armada Sepeda Motor Koperasi Swadharma</title>
+    <title>Daftar Unit Aset Operasional Koperasi Swadharma</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;

@@ -313,16 +313,16 @@
 
             <!-- Dropdown Pilihan Klien (Muncul jika kategori Klien dipilih) -->
             <div id="vendor_select_wrapper" class="space-y-1.5 transition-all duration-300 {{ old('category') === 'klien' ? '' : 'hidden' }}">
-                <label class="block font-bold text-slate-700">Pilih Perusahaan / Instansi Klien <span class="text-[#FF7A3D]">*</span></label>
-                <select name="vendor_id" id="vendor_id" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#FF7A3D] bg-white text-slate-900 cursor-pointer">
-                    <option value="">-- Pilih PT / Klien dari Daftar Klien (Vendors) --</option>
-                    @foreach($vendors as $v)
-                        <option value="{{ $v->id }}" {{ old('vendor_id') == $v->id ? 'selected' : '' }}>
-                            {{ $v->name }} {{ $v->client_name ? '— ' . $v->client_name : '' }} ({{ $v->code }})
+                <label class="block font-bold text-slate-700">Pilih Perusahaan Klien <span class="text-[#FF7A3D]">*</span></label>
+                <select name="client_id" id="client_id" class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#FF7A3D] bg-white text-slate-900 cursor-pointer">
+                    <option value="">-- Pilih Perusahaan dari Master Klien --</option>
+                    @foreach($clients ?? [] as $cl)
+                        <option value="{{ $cl->id }}" {{ old('client_id') == $cl->id ? 'selected' : '' }}>
+                            {{ $cl->name }} ({{ $cl->code }})
                         </option>
                     @endforeach
                 </select>
-                <span class="text-[11px] text-slate-500 block">Daftar klien bersumber dari halaman <a href="{{ route('vendors.index') }}" target="_blank" class="text-[#015471] font-bold underline">Manajemen Klien & Kontrak</a></span>
+                <span class="text-[11px] text-slate-500 block">Daftar klien bersumber dari halaman <a href="{{ route('clients.index') }}" target="_blank" class="text-[#015471] font-bold underline">Master Klien</a></span>
             </div>
 
             <div>
@@ -351,7 +351,7 @@
     function toggleCategoryVendor() {
         const isKlien = document.getElementById('category_klien').checked;
         const vendorWrapper = document.getElementById('vendor_select_wrapper');
-        const vendorSelect = document.getElementById('vendor_id');
+        const vendorSelect = document.getElementById('client_id');
 
         if (isKlien) {
             vendorWrapper.classList.remove('hidden');

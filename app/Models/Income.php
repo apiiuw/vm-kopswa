@@ -16,13 +16,34 @@ class Income extends Model
 
     protected $casts = [
         'invoice_date' => 'date',
+        'due_date' => 'date',
         'payment_date' => 'date',
         'crf_subtotal' => 'decimal:2',
         'supra_subtotal' => 'decimal:2',
         'gross_amount' => 'decimal:2',
         'ppn_amount' => 'decimal:2',
         'total_amount_with_ppn' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
     ];
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
+    public function taxInvoice()
+    {
+        return $this->hasOne(TaxInvoice::class);
+    }
+
+    public function getRemainingAmountAttribute(): float
+    {
+        if ($this->status === 'lunas') {
+            return 0.0;
+        }
+
+        return max(0.0, (float) $this->total_amount_with_ppn - (float) $this->paid_amount);
+    }
 
     public function getPph23AmountAttribute(): float
     {

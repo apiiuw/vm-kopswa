@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
@@ -32,7 +32,8 @@ class ExampleTest extends TestCase
     public function test_authenticated_user_can_access_vehicles_and_financial(): void
     {
         $user = User::first();
-        $this->actingAs($user)->get('/vehicles')->assertStatus(200);
+        $this->actingAs($user)->get('/assets')->assertStatus(200);
+        $this->actingAs($user)->get('/vehicles')->assertRedirect('/assets');
         $this->actingAs($user)->get('/financial')->assertStatus(200);
         $this->actingAs($user)->get('/maintenance')->assertStatus(200);
         $this->actingAs($user)->get('/documents')->assertStatus(200);

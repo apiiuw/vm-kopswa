@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\Auth;
 
 class ClientPortalController extends Controller
 {
-    private function getClientVendorId()
+    private function getClientContractIds(): array
     {
-        return Auth::user()->vendor_id;
+        return Auth::user()->accessibleContractIds();
     }
 
     public function dashboard()
     {
-        $vendorId = $this->getClientVendorId();
+        $contractIds = $this->getClientContractIds();
 
         $vehiclesQuery = Vehicle::query();
-        if ($vendorId) {
-            $vehiclesQuery->where('vendor_id', $vendorId);
+        if (! empty($contractIds)) {
+            $vehiclesQuery->whereIn('vendor_id', $contractIds);
         }
 
         $totalVehicles = (clone $vehiclesQuery)->count();
@@ -74,13 +74,14 @@ class ClientPortalController extends Controller
 
     public function createRequest(Request $request)
     {
-        $vendorId = $this->getClientVendorId();
+        $contractIds = $this->getClientContractIds();
         $vehiclesQuery = Vehicle::with(['location'])
             ->where('status', '!=', 'lost')
+            ->where('status', '!=', 'sold')
             ->orderBy('plate_number');
 
-        if ($vendorId) {
-            $vehiclesQuery->where('vendor_id', $vendorId);
+        if (! empty($contractIds)) {
+            $vehiclesQuery->whereIn('vendor_id', $contractIds);
         }
         $vehicles = $vehiclesQuery->get();
         $preselectedVehicleId = $request->get('vehicle_id');
@@ -119,8 +120,8 @@ class ClientPortalController extends Controller
         ]);
 
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
-        $clientVendorId = $this->getClientVendorId();
-        if ($clientVendorId && (int) $vehicle->vendor_id !== (int) $clientVendorId) {
+        $contractIds = $this->getClientContractIds();
+        if (! empty($contractIds) && ! in_array((int) $vehicle->vendor_id, $contractIds, true)) {
             abort(403, 'Anda tidak memiliki akses untuk mengajukan permohonan pada unit kendaraan ini.');
         }
 
@@ -245,7 +246,7 @@ class ClientPortalController extends Controller
 
         $clientRequest = ClientRequest::create([
             'user_id' => Auth::id(),
-            'vendor_id' => Auth::user()->vendor_id,
+            'vendor_id' => $vehicle->vendor_id ?? Auth::user()->vendor_id,
             'vehicle_id' => $validated['vehicle_id'],
             'request_type' => $validated['request_type'],
             'title' => $title,
@@ -285,12 +286,12 @@ class ClientPortalController extends Controller
 
     public function vehiclesIndex(Request $request)
     {
-        $vendorId = $this->getClientVendorId();
+        $contractIds = $this->getClientContractIds();
         $perPage = in_array((int) $request->get('per_page', 10), [10, 15, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
 
         $query = Vehicle::with(['location', 'vendor']);
-        if ($vendorId) {
-            $query->where('vendor_id', $vendorId);
+        if (! empty($contractIds)) {
+            $query->whereIn('vendor_id', $contractIds);
         }
 
         if ($request->filled('status')) {

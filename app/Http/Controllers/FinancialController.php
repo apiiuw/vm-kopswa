@@ -6,8 +6,10 @@ use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\Income;
 use App\Models\MaintenanceRecord;
+use App\Models\TaxInvoice;
 use App\Models\Vehicle;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class FinancialController extends Controller
@@ -178,6 +180,30 @@ class FinancialController extends Controller
         }
         $vehicles = $vehicleQuery->get();
 
+        // Other Incomes (e.g. Dealer Discounts / Pendapatan Lain-lain)
+        $otherIncomes = Income::with(['vendor', 'vehicle'])
+            ->where('income_type', 'lain_lain')
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('invoice_date', 'desc')
+            ->get();
+        $totalOtherIncome = $otherIncomes->sum('gross_amount');
+
+        // Asset Valuation & Depreciation
+        $depreciationAssets = (clone $vehicleQuery)->with('vendor')->get();
+        $totalAcquisition = $depreciationAssets->sum(fn ($v) => (float) ($v->acquisition_value ?: $v->invoice_value ?: 0));
+        $totalAccumDepreciation = $depreciationAssets->sum(fn ($v) => $v->accumulated_depreciation);
+        $totalBookValue = $depreciationAssets->sum(fn ($v) => $v->book_value);
+
+        // Tax Invoices (Faktur Pajak / Coretax)
+        $taxInvoices = TaxInvoice::with(['income', 'vendor'])
+            ->when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('faktur_date', 'desc')
+            ->get();
+        $vendors = Vendor::with('client')->orderBy('name')->get();
+        $allIncomesForTax = Income::when($activeVendorId, fn ($q) => $q->where('vendor_id', $activeVendorId))
+            ->orderBy('invoice_date', 'desc')
+            ->get();
+
         return view('financial.index', compact(
             'tab',
             'budgets',
@@ -200,7 +226,16 @@ class FinancialController extends Controller
             'categoriesReport',
             'vehicles',
             'perPageIncomes',
-            'perPageExpenses'
+            'perPageExpenses',
+            'otherIncomes',
+            'totalOtherIncome',
+            'depreciationAssets',
+            'totalAcquisition',
+            'totalAccumDepreciation',
+            'totalBookValue',
+            'taxInvoices',
+            'vendors',
+            'allIncomesForTax'
         ));
     }
 
@@ -322,39 +357,166 @@ class FinancialController extends Controller
     public function storeIncome(Request $request)
     {
         $validated = $request->validate([
+            'vendor_id' => 'nullable|exists:vendors,id',
+            'income_type' => 'nullable|in:sewa,lain_lain',
+            'contract_number' => 'nullable|string|max:120',
+            'billing_cycle' => 'nullable|in:bulanan,triwulanan,semesteran,tahunan,2_tahunan',
             'invoice_number' => 'required|unique:incomes,invoice_number',
             'period_month_year' => 'required|string',
             'invoice_date' => 'required|date',
+            'due_date' => 'nullable|date',
             'client_name' => 'required|string',
-            'crf_count' => 'required|integer',
-            'supra_count' => 'required|integer',
+            'source_name' => 'nullable|string|max:150',
+            'crf_count' => 'nullable|integer|min:0',
+            'supra_count' => 'nullable|integer|min:0',
+            'custom_gross_amount' => 'nullable|numeric|min:0',
             'bast_number' => 'nullable|string',
             'status' => 'required|in:draft,tertagih,lunas',
             'payment_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
-        $crfSubtotal = $validated['crf_count'] * 1570000;
-        $supraSubtotal = $validated['supra_count'] * 860000;
-        $gross = $crfSubtotal + $supraSubtotal;
-        $ppn = $gross * 0.11;
+        $incomeType = $validated['income_type'] ?? 'sewa';
+        $billingCycle = $validated['billing_cycle'] ?? 'bulanan';
+        $multiplier = match ($billingCycle) {
+            'triwulanan' => 3,
+            'semesteran' => 6,
+            'tahunan' => 12,
+            '2_tahunan' => 24,
+            default => 1,
+        };
+
+        $crfCount = (int) ($validated['crf_count'] ?? 0);
+        $supraCount = (int) ($validated['supra_count'] ?? 0);
+        $crfSubtotal = $crfCount * 1570000 * $multiplier;
+        $supraSubtotal = $supraCount * 860000 * $multiplier;
+
+        $gross = ($request->filled('custom_gross_amount') && (float) $validated['custom_gross_amount'] > 0)
+            ? (float) $validated['custom_gross_amount']
+            : ($crfSubtotal + $supraSubtotal);
+
+        $ppnRate = $incomeType === 'lain_lain' ? 0.00 : 11.00;
+        $ppn = round($gross * ($ppnRate / 100), 2);
         $totalWithPpn = $gross + $ppn;
 
         $vendorId = $request->input('vendor_id') ?: session('active_vendor_id');
+        $vendor = $vendorId ? Vendor::find($vendorId) : null;
 
-        $income = Income::create(array_merge($validated, [
+        $income = Income::create([
             'vendor_id' => $vendorId,
+            'income_type' => $incomeType,
+            'contract_number' => $validated['contract_number'] ?? $vendor?->contract_number,
+            'billing_cycle' => $billingCycle,
+            'invoice_number' => $validated['invoice_number'],
+            'period_month_year' => $validated['period_month_year'],
+            'invoice_date' => $validated['invoice_date'],
+            'due_date' => $validated['due_date'] ?? Carbon::parse($validated['invoice_date'])->addDays(30)->toDateString(),
+            'client_name' => $validated['client_name'],
+            'source_name' => $validated['source_name'] ?? null,
+            'crf_count' => $crfCount,
             'crf_subtotal' => $crfSubtotal,
+            'supra_count' => $supraCount,
             'supra_subtotal' => $supraSubtotal,
             'gross_amount' => $gross,
-            'ppn_rate' => 11.00,
+            'ppn_rate' => $ppnRate,
             'ppn_amount' => $ppn,
             'total_amount_with_ppn' => $totalWithPpn,
-        ]));
+            'paid_amount' => $validated['status'] === 'lunas' ? $totalWithPpn : 0,
+            'bast_number' => $validated['bast_number'] ?? null,
+            'status' => $validated['status'],
+            'payment_date' => $validated['payment_date'] ?? ($validated['status'] === 'lunas' ? now()->toDateString() : null),
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $redirectTab = $incomeType === 'lain_lain' ? 'other_incomes' : 'incomes';
+
+        return redirect()->route('financial.index', ['tab' => $redirectTab])
+            ->with('success', ($incomeType === 'lain_lain' ? 'Pendapatan Lain-lain ' : 'Tagihan sewa ').$income->invoice_number.' berhasil dicatat!')
+            ->with('auto_download_invoice_id', $incomeType === 'sewa' ? $income->id : null);
+    }
+
+    public function generateFromContracts(Request $request)
+    {
+        $validated = $request->validate([
+            'period' => 'required|date_format:Y-m',
+            'invoice_date' => 'nullable|date',
+        ]);
+
+        $period = $validated['period'];
+        $invoiceDate = $validated['invoice_date'] ?? now()->toDateString();
+        $activeVendorId = session('active_vendor_id');
+
+        $vendors = Vendor::with(['client', 'vehicles' => fn ($q) => $q->where('status', 'active')])
+            ->where('status', 'active')
+            ->when($activeVendorId, fn ($q) => $q->where('id', $activeVendorId))
+            ->get();
+
+        $created = 0;
+        $skipped = 0;
+
+        foreach ($vendors as $vendor) {
+            $exists = Income::where('vendor_id', $vendor->id)
+                ->where('income_type', 'sewa')
+                ->where('period_month_year', $period)
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+
+                continue;
+            }
+
+            $cycle = $vendor->billing_cycle ?: 'bulanan';
+            $multiplier = match ($cycle) {
+                'triwulanan' => 3,
+                'semesteran' => 6,
+                'tahunan' => 12,
+                '2_tahunan' => 24,
+                default => 1,
+            };
+
+            $monthlyContract = (float) $vendor->main_monthly_value + (float) $vendor->additional_monthly_value;
+            $monthlyVehicles = (float) $vendor->vehicles->sum(fn ($v) => (float) $v->rental_price_per_month + (float) $v->additional_monthly_value);
+            $monthlyBase = $monthlyContract > 0 ? $monthlyContract : $monthlyVehicles;
+
+            if ($monthlyBase <= 0) {
+                $skipped++;
+
+                continue;
+            }
+
+            $gross = round($monthlyBase * $multiplier, 2);
+            $ppnRate = 11.00;
+            $ppn = round($gross * ($ppnRate / 100), 2);
+            $totalWithPpn = $gross + $ppn;
+
+            $seq = str_pad((string) (Income::count() + 1), 4, '0', STR_PAD_LEFT);
+            $invoiceNumber = 'INV/'.str_replace('-', '', $period).'/'.$seq;
+
+            Income::create([
+                'vendor_id' => $vendor->id,
+                'income_type' => 'sewa',
+                'contract_number' => $vendor->contract_number,
+                'billing_cycle' => $cycle,
+                'invoice_number' => $invoiceNumber,
+                'period_month_year' => $period,
+                'invoice_date' => $invoiceDate,
+                'due_date' => Carbon::parse($invoiceDate)->addDays(30)->toDateString(),
+                'client_name' => $vendor->client?->name ?: $vendor->name,
+                'gross_amount' => $gross,
+                'ppn_rate' => $ppnRate,
+                'ppn_amount' => $ppn,
+                'total_amount_with_ppn' => $totalWithPpn,
+                'paid_amount' => 0,
+                'status' => 'tertagih',
+                'notes' => 'Generate otomatis dari kontrak '.$vendor->contract_number,
+            ]);
+
+            $created++;
+        }
 
         return redirect()->route('financial.index', ['tab' => 'incomes'])
-            ->with('success', 'Tagihan sewa '.$income->invoice_number.' berhasil diterbitkan!')
-            ->with('auto_download_invoice_id', $income->id);
+            ->with('success', "Generate tagihan periode {$period} selesai: {$created} invoice dibuat, {$skipped} kontrak dilewati (sudah tertagih / nilai 0).");
     }
 
     public function storeExpense(Request $request)
@@ -404,11 +566,27 @@ class FinancialController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:draft,tertagih,lunas',
             'payment_date' => 'nullable|date',
+            'paid_amount' => 'nullable|numeric|min:0',
         ]);
 
-        $income->update($validated);
+        $totalTagihan = (float) $income->total_amount_with_ppn;
+        $paidAmount = isset($validated['paid_amount'])
+            ? (float) $validated['paid_amount']
+            : ($validated['status'] === 'lunas' ? $totalTagihan : (float) $income->paid_amount);
 
-        return redirect()->route('financial.index', ['tab' => 'incomes'])->with('success', 'Status tagihan diperbarui!');
+        $status = $validated['status'];
+        if ($paidAmount >= $totalTagihan && $totalTagihan > 0) {
+            $status = 'lunas';
+            $paidAmount = $totalTagihan;
+        }
+
+        $income->update([
+            'status' => $status,
+            'payment_date' => $validated['payment_date'] ?? ($status === 'lunas' || $paidAmount > 0 ? now()->toDateString() : $income->payment_date),
+            'paid_amount' => $status === 'draft' ? 0 : $paidAmount,
+        ]);
+
+        return redirect()->route('financial.index', ['tab' => 'incomes'])->with('success', 'Status & pembayaran tagihan '.$income->invoice_number.' diperbarui!');
     }
 
     public function createBudget()

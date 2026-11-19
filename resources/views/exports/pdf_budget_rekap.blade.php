@@ -275,7 +275,7 @@
         </table>
 
         <div style="font-size: 8px; color: #475569; margin-top: 10px;">
-            <em>Catatan: Sisa plafon anggaran operasional sebesar Rp {{ number_format($remainingBudget, 0, ',', '.') }} mencukupi rata-rata pengeluaran operasional lapangan hingga akhir masa kontrak Mei 2028 sesuai persetujuan Pengurus Koperasi Swadharma.</em>
+            <em>Catatan: Sisa plafon anggaran operasional sebesar Rp {{ number_format($remainingBudget, 0, ',', '.') }} dihitung berdasarkan realisasi pengeluaran operasional tercatat terhadap total pagu anggaran aktif.</em>
         </div>
     @endif
 
