@@ -3,16 +3,20 @@
 namespace App\Console\Commands;
 
 use App\Models\Client;
+use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use SimpleXMLElement;
 use ZipArchive;
 
 class ImportPersewaanExcel extends Command
 {
-    protected $signature = 'app:import-persewaan {--file=qryPersewaan.xlsx}';
+    protected $signature = 'app:import-persewaan {--file=qryPersewaan.xlsx} {--fresh : Kosongkan data operasional lama sebelum import} {--with-clients : Buatkan akun login untuk setiap client}';
 
     protected $description = 'Import Data Kontrak dan Data Kdr Kontrak dari qryPersewaan.xlsx ke database';
 
@@ -23,6 +27,10 @@ class ImportPersewaanExcel extends Command
             $this->error("File tidak ditemukan: {$filePath}");
 
             return self::FAILURE;
+        }
+
+        if ($this->option('fresh')) {
+            $this->clearOperationalData();
         }
 
         $zip = new ZipArchive;
@@ -171,9 +179,64 @@ class ImportPersewaanExcel extends Command
             $vehicleCount++;
         }
 
-        $this->info("Import selesai: {$contractCount} kontrak dan {$vehicleCount} unit kendaraan berhasil disinkronkan.");
+        $createdAccounts = 0;
+        if ($this->option('with-clients')) {
+            $clients = Client::with('contracts')->orderBy('id')->get();
+            foreach ($clients as $client) {
+                $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '.', $client->code ?: $client->name), '.'));
+                $email = $slug.'@client.kopswa.id';
+                if (User::where('email', $email)->exists()) {
+                    $email = $slug.'.'.$client->id.'@client.kopswa.id';
+                }
+
+                User::create([
+                    'name' => 'PIC '.$client->name,
+                    'email' => $email,
+                    'password' => Hash::make('kopswa123'),
+                    'category' => 'klien',
+                    'client_id' => $client->id,
+                    'vendor_id' => $client->contracts->first()?->id,
+                ]);
+                $createdAccounts++;
+            }
+        }
+
+        $this->info("Import selesai: {$contractCount} kontrak, {$vehicleCount} unit kendaraan, dan {$createdAccounts} akun client berhasil disinkronkan.");
 
         return self::SUCCESS;
+    }
+
+    private function clearOperationalData(): void
+    {
+        Schema::disableForeignKeyConstraints();
+
+        $tables = [
+            'handover_documents',
+            'tax_invoices',
+            'incomes',
+            'expenses',
+            'budgets',
+            'maintenance_records',
+            'vehicle_documents',
+            'insurance_policies',
+            'client_requests',
+            'locations',
+            'vehicles',
+            'vendors',
+            'clients',
+        ];
+
+        foreach ($tables as $table) {
+            if (Schema::hasTable($table)) {
+                DB::table($table)->delete();
+            }
+        }
+
+        // Hapus akun client lama, pertahankan akun internal/admin
+        User::where('category', 'klien')->delete();
+
+        Schema::enableForeignKeyConstraints();
+        $this->info('Data operasional lama & akun client lama berhasil dikosongkan.');
     }
 
     private function readSharedStrings(ZipArchive $zip): array
