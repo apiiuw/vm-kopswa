@@ -1,25 +1,18 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Artisan;
 
 return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Handled by 2026_11_19_000002_fix_vehicle_type_column_and_resync_persewaan
+     * after altering vehicles.vehicle_type from ENUM to VARCHAR(80).
      */
     public function up(): void
     {
-        if (app()->runningUnitTests()) {
-            return;
-        }
-
-        if (file_exists(base_path('qryPersewaan.xlsx'))) {
-            Artisan::call('app:import-persewaan', [
-                '--fresh' => true,
-                '--with-clients' => true,
-            ]);
-        }
+        //
     }
 
     /**
