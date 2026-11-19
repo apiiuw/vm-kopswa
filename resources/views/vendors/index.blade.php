@@ -86,7 +86,7 @@
                         <th class="px-6 py-4 text-right min-w-[210px]">Nilai Kontrak</th>
                         <th class="px-6 py-4 text-center min-w-[160px]">Jenis Pembayaran</th>
                         <th class="px-6 py-4 min-w-[260px]">PIC / Kontak Klien</th>
-                        <th class="px-6 py-4 text-center min-w-[140px]">Armada Disewa</th>
+                        <th class="px-6 py-4 text-center min-w-[140px]">Asset Disewa</th>
                         <th class="px-6 py-4 text-center min-w-[120px]">Status</th>
                         <th class="px-6 py-4 text-right min-w-[180px] sticky right-0 bg-[#f4f8fa] shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.05)]">Aksi</th>
                     </tr>
@@ -208,10 +208,10 @@
                                 </div>
                             </td>
 
-                            <!-- Armada -->
+                            <!-- Asset -->
                             <td class="px-6 py-4 text-center align-top whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#015471]/10 text-[#015471] font-black text-xs">
-                                    <i data-lucide="truck" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
+                                    <i data-lucide="boxes" class="w-3.5 h-3.5 text-[#FF7A3D]"></i>
                                     {{ $v->vehicles_count }} Unit
                                 </span>
                             </td>
